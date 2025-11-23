@@ -1,0 +1,42 @@
+{
+    "nombre": "Lionel",
+    "apellido": "Messi",
+    "tipoDocumento": "DNI",
+    "numeroDocumento": "20202020",
+    "email": "lio2@mail.com",
+    "telefono": "123456",
+    "nacionalidad": "Argentina",
+    "ocupacion": "Campeón",
+    "fechaNacimiento": "1987-06-24",
+    "posicionIVA": "CONSUMIDOR_FINAL",
+    "direccion": {
+        "calle": "Av. Corrientes",
+        "numero": "1234",
+        "codPostal": "1045",
+        "localidad": "Rosario",
+        "provincia": "Santa Fe",
+        "pais": "Argentina"
+    }
+}
+{
+    "nombre": "Diego",
+    "apellido": "Maradona",
+    "tipoDocumento": "DNI",
+    "numeroDocumento": "10000010",
+    "email": "el10@mail.com",
+    "telefono": "555-1010",
+    "nacionalidad": "Argentina",
+    "ocupacion": "Director Técnico",
+    "fechaNacimiento": "1960-10-30",
+    "posicionIVA": "CONSUMIDOR_FINAL",
+    "direccion": {
+        "calle": "Segurola y Habana",
+        "numero": 4310,
+        "piso": 7,
+        "departamento": "A",
+        "codPostal": "1419",
+        "localidad": "Villa Devoto",
+        "provincia": "CABA",
+        "pais": "Argentina"
+    }
+}

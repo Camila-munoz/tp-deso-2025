@@ -1,118 +1,78 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-package com.example.demo.dominio;
+package com.example.demo.dominio; // Ajusta a tu paquete
 
 import java.time.LocalDate;
-/**
- *
- * @author I-MAG
- */
+
 public class Huesped {
+    // Ya no son 'final' para permitir que Spring cargue los datos
+    private String nombre;
+    private String apellido;
+    private String tipoDocumento; // Lo cambié a String para simplificar la BD, o usa Enum con cuidado
+    private String numeroDocumento;
+    private String cuit;
+    private String posicionIVA;
+    private int edad;
+    private String telefono;
+    private String email;
+    private LocalDate fechaNacimiento;
+    private String nacionalidad;
+    private String ocupacion;
+    private Direccion direccion;
     
-    //atributos inmutables
-    private final String nombre;
-    private final String apellido;
-    private final TipoDocumento tipoDocumento;
-    private final String cuit;
-    private final String numeroDocumento;
-    private final PosicionIVA posicionIVA;
-    private final int edad;
-    private final String telefono;
-    private final Direccion direccion;
-    private final String email;
-    private final LocalDate fechaNacimiento;
-    private final String nacionalidad;
-    private final String ocupacion;
-    
-    //constructor privado, solo el Builder lo puede llamar
-    private Huesped(Builder builder) {
-        this.nombre = builder.nombre;
-        this.apellido = builder.apellido;
-        this.tipoDocumento = builder.tipoDocumento;
-        this.cuit = builder.cuit;
-        this.numeroDocumento = builder.numeroDocumento;
-        this.posicionIVA = builder.posicionIVA;
-        this.edad = builder.edad;
-        this.telefono = builder.telefono;
-        this.direccion = builder.direccion;
-        this.email = builder.email;
-        this.fechaNacimiento = builder.fechaNacimiento;
-        this.nacionalidad = builder.nacionalidad;
-        this.ocupacion = builder.ocupacion;
+
+    // 1. CONSTRUCTOR VACÍO (OBLIGATORIO PARA SPRING)
+    public Huesped() {
     }
-    
-    //getters
+
+    // 2. CONSTRUCTOR COMPLETO (Opcional, útil para ti)
+    public Huesped(String nombre, String apellido, String tipoDocumento, String numeroDocumento) {
+        this.nombre = nombre;
+        this.apellido = apellido;
+        this.tipoDocumento = tipoDocumento;
+        this.numeroDocumento = numeroDocumento;
+    }
+
+    // 3. GETTERS Y SETTERS (Spring usa los Setters para cargar los datos)
     public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
+
     public String getApellido() { return apellido; }
-    public TipoDocumento getTipoDocumento() { return tipoDocumento; }
-    public String getCuit() { return cuit; }
+    public void setApellido(String apellido) { this.apellido = apellido; }
+
+    public String getTipoDocumento() { return tipoDocumento; }
+    public void setTipoDocumento(String tipoDocumento) { this.tipoDocumento = tipoDocumento; }
+
     public String getNumeroDocumento() { return numeroDocumento; }
-    public PosicionIVA getPosicionIVA() { return posicionIVA; }
+    public void setNumeroDocumento(String numeroDocumento) { this.numeroDocumento = numeroDocumento; }
+
+    public String getCuit() { return cuit; }
+    public void setCuit(String cuit) { this.cuit = cuit; }
+
+    public String getPosicionIVA() { return posicionIVA; }
+    public void setPosicionIVA(String posicionIVA) { this.posicionIVA = posicionIVA; }
+
     public int getEdad() { return edad; }
+    public void setEdad(int edad) { this.edad = edad; }
+
     public String getTelefono() { return telefono; }
-    public Direccion getDireccion() { return direccion; }
-    public String getEmail() { return email; }  
+    public void setTelefono(String telefono) { this.telefono = telefono; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
     public LocalDate getFechaNacimiento() { return fechaNacimiento; }
+    public void setFechaNacimiento(LocalDate fechaNacimiento) { this.fechaNacimiento = fechaNacimiento; }
+
     public String getNacionalidad() { return nacionalidad; }
+    public void setNacionalidad(String nacionalidad) { this.nacionalidad = nacionalidad; }
+
     public String getOcupacion() { return ocupacion; }
- 
+    public void setOcupacion(String ocupacion) { this.ocupacion = ocupacion; }
+
+    public Direccion getDireccion() { return direccion; }
+    public void setDireccion(Direccion direccion) { this.direccion = direccion; }
+
     @Override
     public String toString() {
         return apellido + ", " + nombre + " (" + tipoDocumento + " " + numeroDocumento + ")";
-    }
-    
-    public static class Builder{
-        private  String nombre;
-        private  String apellido;
-        private  TipoDocumento tipoDocumento;
-        private  String numeroDocumento;
-        private  String cuit;
-        private  PosicionIVA posicionIVA;
-        private  int edad;
-        private  String telefono;
-        private  Direccion direccion;
-        private  String email;
-        private  LocalDate fechaNacimiento;
-        private  String nacionalidad;
-        private  String ocupacion;
-    
-        //constructor para un Huesped NUEVO (solo pide el ID)
-        public Builder(TipoDocumento tipo, String numDoc) {
-            this.tipoDocumento = tipo;
-            this.numeroDocumento = numDoc;
-        }
-        
-        public Builder(Huesped existente) {
-            this.nombre = existente.getNombre();
-            this.apellido = existente.getApellido();
-            this.tipoDocumento = existente.getTipoDocumento();
-            this.numeroDocumento = existente.getNumeroDocumento();
-            this.cuit = existente.getCuit();
-            this.posicionIVA = existente.getPosicionIVA();
-            this.telefono = existente.getTelefono();
-            this.direccion = existente.getDireccion();
-            this.email = existente.getEmail();
-            this.fechaNacimiento = existente.getFechaNacimiento();
-            this.nacionalidad = existente.getNacionalidad();
-            this.ocupacion = existente.getOcupacion();
-        }
-        
-        public Builder setNombre(String nombre) { this.nombre = nombre;return this; }
-        public Builder setApellido(String apellido) { this.apellido = apellido;return this; }
-        public Builder setTipoDocumento(TipoDocumento tipoDocumento) { this.tipoDocumento = tipoDocumento;return this; }
-        public Builder setCuit(String cuit) { this.cuit = cuit; return this; }
-        public Builder setNumeroDocumento(String numeroDocumento) { this.numeroDocumento = numeroDocumento;return this; }
-        public Builder setPosicionIVA(PosicionIVA posicionIVA) { this.posicionIVA = posicionIVA;return this; }
-        public Builder setEdad(int edad) { this.edad = edad;return this; }
-        public Builder setTelefono(String telefono) { this.telefono = telefono;return this; }
-        public Builder setDireccion(Direccion direccion) { this.direccion = direccion;return this; }
-        public Builder setEmail(String email) { this.email = email;return this; }
-        public Builder setFechaNacimiento(LocalDate fechaNacimiento) { this.fechaNacimiento = fechaNacimiento;return this; }
-        public Builder setNacionalidad(String nacionalidad) { this.nacionalidad = nacionalidad;return this; }
-        public Builder setOcupacion(String ocupacion) { this.ocupacion = ocupacion;return this; }
-
-        public Huesped build() { return new Huesped(this); }
     }
 }

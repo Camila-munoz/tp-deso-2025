@@ -1,95 +1,110 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.example.demo.dominio;
 
-import java.time.LocalDate;
-import java.util.List;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Estadia {
-    private int id;
-    private int cantidad_huesped;
-    private int cantidad_habitaciones;
-    private CategoriaHabitacion tipo_habitacion;
-    private int cantidad_dias;
-    private LocalDate check_in;
-    private LocalDate check_out;
-    private List<Huesped> huespedes;
+    private Integer id;
+    private int cantidadHuespedes; // Antes cantidad_huesped
+    private int cantidadHabitaciones; // Antes cantidad_habitaciones
+    private int cantidadDias; // Antes cantidad_dias
+    
+    // Usamos LocalDateTime para guardar fecha Y hora (requerido por el TP para check-in 10am)
+    private LocalDateTime checkIn; 
+    private LocalDateTime checkOut;
+    
+    // Relaciones
+    private CategoriaHabitacion tipoHabitacion; 
+    private Integer idReserva; // Para saber de qué reserva viene
+    
+    // Listas inicializadas para evitar NullPointerException
+    private List<Huesped> huespedes = new ArrayList<>();
+    private List<Habitacion> habitaciones = new ArrayList<>();
 
-    private Estadia(Builder builder) {
-        this.id = builder.id;
-        this.cantidad_huesped = builder.cantidad_huesped;
-        this.cantidad_habitaciones = builder.cantidad_habitaciones;
-        this.tipo_habitacion = builder.tipo_habitacion;
-        this.cantidad_dias = builder.cantidad_dias;
-        this.check_in = builder.check_in;
-        this.check_out = builder.check_out;
-        this.huespedes = builder.huespedes;
+    // 1. CONSTRUCTOR VACÍO (OBLIGATORIO)
+    public Estadia() {
     }
 
-    public int getIDEstadia() { return id; } // Ajuste aquí
-    public int getCantidad_huesped() { return cantidad_huesped; }
-    public int getCantidad_habitaciones() { return cantidad_habitaciones; }
-    public CategoriaHabitacion getTipo_habitacion() { return tipo_habitacion; }
-    public int getCantidad_dias() { return cantidad_dias; }
-    public LocalDate getCheck_in() { return check_in; }
-    public LocalDate getCheck_out() { return check_out; }
-    public List<Huesped> getHuespedes() { return huespedes; }
+    // 2. GETTERS Y SETTERS (OBLIGATORIOS PARA EL DAO)
+    
+    public Integer getId() {
+        return id;
+    }
 
-   
-    public static class Builder {
-        private int id;
-        private int cantidad_huesped;
-        private int cantidad_habitaciones;
-        private CategoriaHabitacion tipo_habitacion;
-        private int cantidad_dias;
-        private LocalDate check_in;
-        private LocalDate check_out;
-        private List<Huesped> huespedes = new ArrayList<>();
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
-        public Builder setID(int id) {
-            this.id = id;
-            return this;
-        }
-        public Builder setCantidadHuesped(int cantidad_huesped) {
-            this.cantidad_huesped = cantidad_huesped;
-            return this;
-        }
+    public int getCantidadHuespedes() {
+        return cantidadHuespedes;
+    }
 
-        public Builder setCantidadHabitaciones(int cantidad_habitaciones) {
-            this.cantidad_habitaciones = cantidad_habitaciones;
-            return this;
-        }
+    public void setCantidadHuespedes(int cantidadHuespedes) {
+        this.cantidadHuespedes = cantidadHuespedes;
+    }
 
-        public Builder setTipoHabitacion(CategoriaHabitacion tipo_habitacion) {
-            this.tipo_habitacion = tipo_habitacion;
-            return this;
-        }
+    public int getCantidadHabitaciones() {
+        return cantidadHabitaciones;
+    }
 
-        public Builder setCantidadDias(int cantidad_dias) {
-            this.cantidad_dias = cantidad_dias;
-            return this;
-        }
+    public void setCantidadHabitaciones(int cantidadHabitaciones) {
+        this.cantidadHabitaciones = cantidadHabitaciones;
+    }
 
-        public Builder setCheckIn(LocalDate check_in) {
-            this.check_in = check_in;
-            return this;
-        }
+    public int getCantidadDias() {
+        return cantidadDias;
+    }
 
-        public Builder setCheckOut(LocalDate check_out) {
-            this.check_out = check_out;
-            return this;
-        }
+    public void setCantidadDias(int cantidadDias) {
+        this.cantidadDias = cantidadDias;
+    }
 
-        public Builder addHuesped(Huesped huesped) {
-            this.huespedes.add(huesped);
-            return this;
-        }
+    public LocalDateTime getCheckIn() {
+        return checkIn;
+    }
 
-        public Estadia build() {
-            return new Estadia(this);
-        }
+    public void setCheckIn(LocalDateTime checkIn) {
+        this.checkIn = checkIn;
+    }
+
+    public LocalDateTime getCheckOut() {
+        return checkOut;
+    }
+
+    public void setCheckOut(LocalDateTime checkOut) {
+        this.checkOut = checkOut;
+    }
+
+    public CategoriaHabitacion getTipoHabitacion() {
+        return tipoHabitacion;
+    }
+
+    public void setTipoHabitacion(CategoriaHabitacion tipoHabitacion) {
+        this.tipoHabitacion = tipoHabitacion;
+    }
+
+    public Integer getIdReserva() {
+        return idReserva;
+    }
+
+    public void setIdReserva(Integer idReserva) {
+        this.idReserva = idReserva;
+    }
+
+    public List<Huesped> getHuespedes() {
+        return huespedes;
+    }
+
+    public void setHuespedes(List<Huesped> huespedes) {
+        this.huespedes = huespedes;
+    }
+    
+    public List<Habitacion> getHabitaciones() {
+        return habitaciones;
+    }
+
+    public void setHabitaciones(List<Habitacion> habitaciones) {
+        this.habitaciones = habitaciones;
     }
 }

@@ -1,14 +1,7 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.example.demo.dominio;
 
-/**
- *
- * @author I-MAG
- */
 public class Direccion {
+    private Integer id; // Agregué ID porque la BD lo genera y lo necesitamos recuperar
     private String calle;
     private int numero;
     private String departamento;
@@ -18,7 +11,11 @@ public class Direccion {
     private String provincia;
     private String pais;
 
-    // Constructor privado para usar con Builder
+    // 1. CONSTRUCTOR VACÍO (NECESARIO PARA SPRING/POSTMAN)
+    public Direccion() {
+    }
+
+    // Constructor privado para usar con Builder (Tu código original)
     private Direccion(Builder builder) {
         this.calle = builder.calle;
         this.numero = builder.numero;
@@ -30,22 +27,40 @@ public class Direccion {
         this.pais = builder.pais;
     }
 
-    // Getters
-    public String getCalle() { return calle; }
-    public int getNumero() { return numero; }
-    public String getDepartamento() { return departamento; }
-    public String getCodPostal() { return codPostal; }
-    public int getPiso() { return piso; }
-    public String getLocalidad() { return localidad; }
-    public String getProvincia() { return provincia; }
-    public String getPais() { return pais; }
+    // 2. GETTERS Y SETTERS (AGREGAR SETTERS ES NECESARIO PARA SPRING)
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
 
-   @Override
+    public String getCalle() { return calle; }
+    public void setCalle(String calle) { this.calle = calle; }
+
+    public int getNumero() { return numero; }
+    public void setNumero(int numero) { this.numero = numero; }
+
+    public String getDepartamento() { return departamento; }
+    public void setDepartamento(String departamento) { this.departamento = departamento; }
+
+    public String getCodPostal() { return codPostal; }
+    public void setCodPostal(String codPostal) { this.codPostal = codPostal; }
+
+    public int getPiso() { return piso; }
+    public void setPiso(int piso) { this.piso = piso; }
+
+    public String getLocalidad() { return localidad; }
+    public void setLocalidad(String localidad) { this.localidad = localidad; }
+
+    public String getProvincia() { return provincia; }
+    public void setProvincia(String provincia) { this.provincia = provincia; }
+
+    public String getPais() { return pais; }
+    public void setPais(String pais) { this.pais = pais; }
+
+    @Override
     public String toString() {
         return String.format("%s %d, %s, %s, %s, %s", calle, numero, localidad, provincia, pais, codPostal);
     }
 
-
+    // Tu Builder original (Lo dejamos tal cual)
     public static class Builder {
         private String calle;
         private int numero;

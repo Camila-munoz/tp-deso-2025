@@ -18,4 +18,6 @@ public interface EstadiaDAO {
      * @return Una lista de objetos Estadia. La lista estará vacía si no se encuentran coincidencias.
      */
     List<Estadia> buscarPorHuesped(String tipoDoc, String numDoc);
+    List<Estadia> listarTodas();
+    void guardar(Estadia estadia);
 }
