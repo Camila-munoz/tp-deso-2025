@@ -166,11 +166,11 @@ CREATE TABLE IF NOT EXISTS Estadia (
     ID_Estadia INT AUTO_INCREMENT PRIMARY KEY,
     check_in DATETIME NOT NULL,
     check_out DATETIME NULL,
-    cantidad_dias INT NOT NULL,
-    cantidad_huespedes INT NOT NULL,
-    cantidad_habitaciones INT NOT NULL,
-    ID_Reserva INT NOT NULL UNIQUE,
-    ID_Habitacion INT NOT NULL, -- Ojo: Una estadia puede tener muchas habitaciones, quizás esto debería ir aparte
+    -- cantidad_dias INT NOT NULL,
+    -- cantidad_huespedes INT NOT NULL,
+    -- cantidad_habitaciones INT NOT NULL,
+    -- ID_Reserva INT NOT NULL UNIQUE,
+    -- ID_Habitacion INT NOT NULL, -- Ojo: Una estadia puede tener muchas habitaciones, quizás esto debería ir aparte
     FOREIGN KEY (ID_Reserva) REFERENCES Reserva(ID_Reserva),
     FOREIGN KEY (ID_Habitacion) REFERENCES Habitacion(ID_Habitacion)
 );
@@ -266,4 +266,22 @@ CREATE TABLE IF NOT EXISTS Medio_de_Pago (
     FOREIGN KEY (ID_Moneda_Extranjera) REFERENCES Moneda_extranjera(ID_Moneda_Extranjera),
     FOREIGN KEY (Numero_cheque_tercero) REFERENCES Cheque_tercero(Numero_cheque_tercero),
     FOREIGN KEY (Numero_cheque_propio) REFERENCES Cheque_propio(Numero_cheque_propio)
+);
+
+-- TABLA INTERMEDIA: Estadía <-> Habitaciones
+CREATE TABLE IF NOT EXISTS Estadias_Habitaciones (
+    estadia_id BIGINT NOT NULL,
+    habitacion_id BIGINT NOT NULL,
+    PRIMARY KEY (estadia_id, habitacion_id),
+    FOREIGN KEY (estadia_id) REFERENCES estadias(id),
+    FOREIGN KEY (habitacion_id) REFERENCES habitaciones(id)
+);
+
+-- 7. TABLA INTERMEDIA: Estadía <-> Huéspedes
+CREATE TABLE IF NOT EXISTS Estadias_Huespedes (
+    estadia_id BIGINT NOT NULL,
+    huesped_id BIGINT NOT NULL,
+    PRIMARY KEY (estadia_id, huesped_id),
+    FOREIGN KEY (estadia_id) REFERENCES estadias(id),
+    FOREIGN KEY (huesped_id) REFERENCES huespedes(id)
 );

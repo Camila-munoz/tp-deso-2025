@@ -1,8 +1,9 @@
-package com.example.demo; // Asegúrate que este sea tu paquete real
+package com.example.demo; 
 
-import com.example.demo.dominio.Habitacion;
-import com.example.demo.datos.dao.HabitacionDAO;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.demo.modelo.Habitacion;
+import com.example.demo.repositorios.HabitacionRepositorio;
+
+import com.example.demo.repositorios.HabitacionRepositorio;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -18,7 +19,7 @@ public class DemoApplication {
 
     // --- PRUEBA RÁPIDA DE BASE DE DATOS ---
     @Bean
-    public CommandLineRunner testDatabase(HabitacionDAO habitacionDAO) {
+    public CommandLineRunner testDatabase(HabitacionRepositorio habitacionRepositorio) {
         return args -> {
             System.out.println("=======================================");
             System.out.println("⚡ INICIANDO PRUEBA DE CONEXIÓN A BD ⚡");
@@ -27,7 +28,7 @@ public class DemoApplication {
                 // Intentamos listar las habitaciones
                 // Si esto no da error, la conexión es EXITOSA
                 System.out.println("Consultando habitaciones...");
-                habitacionDAO.listarTodas(); 
+                habitacionRepositorio.findAll(); 
                 
                 System.out.println("✅ ¡CONEXIÓN EXITOSA! La base de datos responde.");
             } catch (Exception e) {

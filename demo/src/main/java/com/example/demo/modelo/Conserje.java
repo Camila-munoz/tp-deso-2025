@@ -2,36 +2,37 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.example.demo.dominio;
+package com.example.demo.modelo;
 
-/**
- *
- * @author I-MAG
- */
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "conserjes")
 public class Conserje {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
     private String usuario;
     private String contrasenia;
+
+    public Conserje() {
+    }
 
     public Conserje(String usuario, String contrasenia) {
         this.usuario = usuario;
         this.contrasenia = contrasenia;
     }
 
-    public String getUsuario() {
-        return usuario;
-    }
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
 
-    public void setUsuario(String usuario) {
-        this.usuario = usuario;
-    }
+    public String getUsuario() { return usuario;}
+    public void setUsuario(String usuario) {  this.usuario = usuario; }
 
-    public String getContrasenia() {
-        return contrasenia;
-    }
-
-    public void setContrasenia(String contrasenia) {
-        this.contrasenia = contrasenia;
-    }
+    public String getContrasenia() { return contrasenia; }
+    public void setContrasenia(String contrasenia) { this.contrasenia = contrasenia; }
+    
     @Override
     public String toString() {
         return "Conserje{" +

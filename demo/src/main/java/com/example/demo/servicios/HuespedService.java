@@ -1,23 +1,25 @@
 package com.example.demo.servicios;
 
-import com.example.demo.datos.dao.HuespedDAO;
-import com.example.demo.dominio.Huesped;
-import com.example.demo.excepciones.EntidadNoEncontradaException;
-import com.example.demo.excepciones.ValidacionException;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import com.example.demo.excepciones.EntidadNoEncontradaException;
+import com.example.demo.excepciones.ValidacionException;
+import com.example.demo.modelo.Huesped;
+import com.example.demo.repositorios.HuespedRepositorio;
+
 
 @Service
 public class HuespedService {
 
     @Autowired
-    private HuespedDAO huespedDAO;
+    private HuespedRepositorio huespedRepositorio;
 
     // --- CU09: Dar de alta huésped ---
-    public void darAltaHuesped(Huesped huesped) throws ValidacionException {
+    public Huesped darAltaHuesped(Huesped huesped) throws ValidacionException {
         // 1. Validaciones básicas
         if (huesped.getNumeroDocumento() == null || huesped.getNumeroDocumento().isEmpty()) {
             throw new ValidacionException("El número de documento es obligatorio.");
@@ -26,10 +28,9 @@ public class HuespedService {
             throw new ValidacionException("El tipo de documento es obligatorio.");
         }
 
-        // 2. Verificar si ya existe (Aquí estaba tu ERROR, agregamos .toString())
-        // El DAO espera (String, String), pero el dominio tiene (Enum, String)
-        Optional<Huesped> existente = huespedDAO.buscarPorDocumento(
-                huesped.getTipoDocumento().toString(), 
+        // 2. Verificar si ya existe
+        Optional<Huesped> existente = huespedRepositorio.findByDocumento(
+                huesped.getTipoDocumento(), 
                 huesped.getNumeroDocumento()
         );
 
@@ -38,44 +39,44 @@ public class HuespedService {
         }
 
         // 3. Guardar
-        huespedDAO.guardar(huesped);
+        huespedRepositorio.save(huesped);
     }
 
     // --- CU02: Buscar huésped ---
     public Huesped buscarHuesped(String tipoDoc, String nroDoc) throws EntidadNoEncontradaException {
-        return huespedDAO.buscarPorDocumento(tipoDoc, nroDoc)
+        return huespedRepositorio.findByDocumento(tipoDoc, nroDoc)
                 .orElseThrow(() -> new EntidadNoEncontradaException("Huésped no encontrado."));
     }
 
     // --- CU10: Modificar huésped ---
-    public void modificarHuesped(Huesped huesped) throws ValidacionException, EntidadNoEncontradaException {
-        // Validamos que exista antes de intentar modificar
-        Optional<Huesped> existente = huespedDAO.buscarPorDocumento(
-                huesped.getTipoDocumento().toString(), 
-                huesped.getNumeroDocumento()
-        );
+    public Huesped modificarHuesped(Huesped huespedDatosNuevos) throws ValidacionException, EntidadNoEncontradaException {
+        // 1. Buscamos el huésped ORIGINAL en la base de datos para obtener su ID
+        Huesped huespedExistente = huespedRepositorio.findByDocumento(
+                huespedDatosNuevos.getTipoDocumento(), 
+                huespedDatosNuevos.getNumeroDocumento()
+        ).orElseThrow(() -> new EntidadNoEncontradaException("No se puede modificar. El huésped no existe."));
+       
+        // 2. Asignamos el ID del existente al nuevo (FUNDAMENTAL para que JPA sepa que es un UPDATE)
+        huespedDatosNuevos.setId(huespedExistente.getId());
 
-        if (existente.isEmpty()) {
-            throw new EntidadNoEncontradaException("No se puede modificar. El huésped no existe.");
-        }
-
-        huespedDAO.actualizar(huesped);
+        // 3. Guardamos (al tener ID, JPA hace un UPDATE en vez de INSERT)
+        return huespedRepositorio.save(huespedDatosNuevos);
+        
+       
     }
 
     // --- CU11: Dar de baja huésped ---
     public void darBajaHuesped(String tipoDoc, String nroDoc) throws EntidadNoEncontradaException {
-        // Verificamos si existe antes de borrar
-        if (huespedDAO.buscarPorDocumento(tipoDoc, nroDoc).isEmpty()) {
-            throw new EntidadNoEncontradaException("No se puede eliminar. El huésped no existe.");
-        }
+        // 1. Buscamos el huésped para obtener la entidad completa
+        Huesped huesped = huespedRepositorio.findByDocumento(tipoDoc, nroDoc)
+                .orElseThrow(() -> new EntidadNoEncontradaException("No se puede eliminar. El huésped no existe."));
         
-        // Aquí podrías agregar lógica extra: "Si tiene reservas activas, no borrar"
-        
-        huespedDAO.eliminar(tipoDoc, nroDoc);
+        // 2. Eliminamos la entidad
+        huespedRepositorio.delete(huesped);
     }
 
     // --- Listar todos (Auxiliar) ---
     public List<Huesped> listarTodos() {
-        return huespedDAO.buscarTodos();
+        return huespedRepositorio.findAll();
     }
 }

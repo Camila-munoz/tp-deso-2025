@@ -1,9 +1,19 @@
-package com.example.demo.dominio; // Ajusta a tu paquete
+package com.example.demo.modelo; 
 
+import jakarta.persistence.*;
 import java.time.LocalDate;
 
+import org.springframework.data.relational.core.mapping.Column;
+
+@Entity
+@Table(name = "huespedes")
 public class Huesped {
-    // Ya no son 'final' para permitir que Spring cargue los datos
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @Column(nullable = false)
     private String nombre;
     private String apellido;
     private String tipoDocumento; // Lo cambié a String para simplificar la BD, o usa Enum con cuidado
@@ -19,11 +29,11 @@ public class Huesped {
     private Direccion direccion;
     
 
-    // 1. CONSTRUCTOR VACÍO (OBLIGATORIO PARA SPRING)
+    // 1. CONSTRUCTOR VACÍO
     public Huesped() {
     }
 
-    // 2. CONSTRUCTOR COMPLETO (Opcional, útil para ti)
+    // 2. CONSTRUCTOR COMPLETO
     public Huesped(String nombre, String apellido, String tipoDocumento, String numeroDocumento) {
         this.nombre = nombre;
         this.apellido = apellido;
@@ -32,6 +42,9 @@ public class Huesped {
     }
 
     // 3. GETTERS Y SETTERS (Spring usa los Setters para cargar los datos)
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
+    
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }
 

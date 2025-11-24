@@ -1,7 +1,14 @@
-package com.example.demo.dominio;
+package com.example.demo.modelo;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "direcciones")
 public class Direccion {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id; // Agregué ID porque la BD lo genera y lo necesitamos recuperar
+   
     private String calle;
     private int numero;
     private String departamento;
