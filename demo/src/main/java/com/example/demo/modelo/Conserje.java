@@ -1,3 +1,4 @@
+<<<<<<< HEAD:demo/src/main/java/com/example/demo/modelo/Conserje.java
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
@@ -39,5 +40,40 @@ public class Conserje {
                 "usuario='" + usuario + '\'' +
                 ", contrasenia='" + contrasenia + '\'' +
                 '}';
+=======
+package com.example.demo.dominio;
+
+public class Conserje {
+
+    private int idConserje;
+    private String nombre;
+    private String contrasena;
+
+    public Conserje() {
+    }
+
+    public int getIdConserje() {
+        return idConserje;
+    }
+
+    public void setIdConserje(int idConserje) {
+        this.idConserje = idConserje;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public String getContrasena() {
+        return contrasena;
+    }
+
+    public void setContrasena(String contrasena) {
+        this.contrasena = contrasena;
+>>>>>>> ce33725384b8423b34cb56bea61609f9da54efdd:demo/src/main/java/com/example/demo/dominio/Conserje.java
     }
 }
