@@ -2,15 +2,12 @@ package com.example.demo.servicios;
 
 import java.util.List;
 import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.example.demo.excepciones.EntidadNoEncontradaException;
 import com.example.demo.excepciones.ValidacionException;
 import com.example.demo.modelo.Huesped;
 import com.example.demo.repositorios.HuespedRepositorio;
-
 
 @Service
 public class HuespedService {
@@ -38,8 +35,8 @@ public class HuespedService {
             throw new ValidacionException("El huésped ya existe con ese tipo y número de documento.");
         }
 
-        // 3. Guardar
-        huespedRepositorio.save(huesped);
+        // 3. Guardar y retornar
+        return huespedRepositorio.save(huesped); // ✅ CORREGIDO: Retornar el resultado
     }
 
     // --- CU02: Buscar huésped ---
@@ -61,8 +58,6 @@ public class HuespedService {
 
         // 3. Guardamos (al tener ID, JPA hace un UPDATE en vez de INSERT)
         return huespedRepositorio.save(huespedDatosNuevos);
-        
-       
     }
 
     // --- CU11: Dar de baja huésped ---

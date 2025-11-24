@@ -1,26 +1,47 @@
-package com.example.demo.modelo; // 1. Asegúrate que coincida con tu paquete
+package com.example.demo.modelo;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "Habitacion")
 public class Habitacion {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ID_Habitacion")
     private Integer id;
+    
+    @Column(name = "numero")
     private String numero;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ID_TipoHabitacion") // Ajusta según tu BD
     private CategoriaHabitacion tipo;
+    
+    @Column(name = "costo") // En tu BD es "costo", no "precio"
     private Double precio;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado")
     private EstadoHabitacion estado;
 
-    // CONSTRUCTOR VACÍO (Necesario para que Java trabaje cómodamente)
+     @Column(name = "capacidad")  // ✅ Asegúrate que sea Integer, no int
+    private Integer capacidad;   // ✅ Para evitar el mismo problema
+
+    // CONSTRUCTOR VACÍO
     public Habitacion() {
     }
 
-    // CONSTRUCTOR CON DATOS (Para crear habitaciones rápido en las pruebas)
-    public Habitacion(String numero, CategoriaHabitacion tipo, Double precio, EstadoHabitacion estado) {
+    // CONSTRUCTOR CON DATOS
+    public Habitacion(String numero, CategoriaHabitacion tipo, Double precio, EstadoHabitacion estado, int capacidad) {
         this.numero = numero;
         this.tipo = tipo;
         this.precio = precio;
         this.estado = estado;
+        this.capacidad = capacidad; 
     }
 
-    // GETTERS Y SETTERS (Para poder leer y escribir los datos)
+    // GETTERS Y SETTERS
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
 
@@ -35,6 +56,8 @@ public class Habitacion {
    
     public EstadoHabitacion getEstado() { return estado; }
     public void setEstado(EstadoHabitacion estado) { this.estado = estado; }
+    public Integer getCapacidad() { return capacidad; }
+    public void setCapacidad(Integer capacidad) { this.capacidad = capacidad; }
 
     @Override
     public String toString() {

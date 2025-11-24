@@ -3,37 +3,60 @@ package com.example.demo.modelo;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 
-import org.springframework.data.relational.core.mapping.Column;
-
 @Entity
-@Table(name = "huespedes")
+@Table(name = "Huesped")
 public class Huesped {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ID_Huesped")
     private Integer id;
 
-    @Column(nullable = false)
+    @Column(name = "nombre", nullable = false)
     private String nombre;
+    
+    @Column(name = "apellido")
     private String apellido;
-    private String tipoDocumento; // Lo cambié a String para simplificar la BD, o usa Enum con cuidado
+    
+    @Column(name = "tipo_documento")
+    private String tipoDocumento;
+    
+    @Column(name = "nro_documento")
     private String numeroDocumento;
+    
+    @Column(name = "cuit")
     private String cuit;
+    
+    @Column(name = "posicion_IVA")
     private String posicionIVA;
-    private int edad;
+    
+    @Column(name = "edad")  // ✅ CAMBIADO: int -> Integer
+    private Integer edad;   // ✅ Ahora puede ser null
+    
+    @Column(name = "telefono")
     private String telefono;
+    
+    @Column(name = "email")
     private String email;
+    
+    @Column(name = "fecha_nacimiento")
     private LocalDate fechaNacimiento;
+    
+    @Column(name = "nacionalidad")
     private String nacionalidad;
+    
+    @Column(name = "ocupacion")
     private String ocupacion;
+    
+    // ✅ CORREGIDO: Relación OneToOne con Direccion
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "ID_Direccion")
     private Direccion direccion;
     
-
-    // 1. CONSTRUCTOR VACÍO
+    // Constructores
     public Huesped() {
     }
 
-    // 2. CONSTRUCTOR COMPLETO
     public Huesped(String nombre, String apellido, String tipoDocumento, String numeroDocumento) {
         this.nombre = nombre;
         this.apellido = apellido;
@@ -41,7 +64,7 @@ public class Huesped {
         this.numeroDocumento = numeroDocumento;
     }
 
-    // 3. GETTERS Y SETTERS (Spring usa los Setters para cargar los datos)
+    // Getters y Setters
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
     
@@ -63,8 +86,8 @@ public class Huesped {
     public String getPosicionIVA() { return posicionIVA; }
     public void setPosicionIVA(String posicionIVA) { this.posicionIVA = posicionIVA; }
 
-    public int getEdad() { return edad; }
-    public void setEdad(int edad) { this.edad = edad; }
+    public Integer getEdad() { return edad; }           // ✅ Integer
+    public void setEdad(Integer edad) { this.edad = edad; } // ✅ Integer
 
     public String getTelefono() { return telefono; }
     public void setTelefono(String telefono) { this.telefono = telefono; }

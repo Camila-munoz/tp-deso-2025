@@ -2,50 +2,46 @@ package com.example.demo.modelo;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Table;
 
 @Entity
-@Table(name = "estadias")
+@Table(name = "Estadia")
 public class Estadia {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ID_Estadia")
     private Integer id;
 
+    @Column(name = "cantidad_huespedes")
     private int cantidadHuespedes; 
+    
+    @Column(name = "cantidad_habitaciones")
     private int cantidadHabitaciones; 
+    
+    @Column(name = "cantidad_dias")
     private int cantidadDias; 
     
     @ManyToOne
-    @JoinColumn(name = "id_habitacion")
+    @JoinColumn(name = "ID_Habitacion")
     private Habitacion habitacion;
 
     @ManyToOne
-    @JoinColumn(name = "id_huesped")
+    @JoinColumn(name = "ID_Huesped")
     private Huesped huesped;
 
-    // Usamos LocalDateTime para guardar fecha Y hora (requerido por el TP para check-in 10am)
+    @Column(name = "check_in")
     private LocalDateTime checkIn; 
+    
+    @Column(name = "check_out")
     private LocalDateTime checkOut;
     
-    // Relaciones
-    private CategoriaHabitacion tipoHabitacion; 
-    private Integer idReserva; // Para saber de qué reserva viene
-    
-
-    // Listas inicializadas para evitar NullPointerException
-    private List<Huesped> huespedes = new ArrayList<>();
-    private List<Habitacion> habitaciones = new ArrayList<>();
+    @Column(name = "ID_Reserva")
+    private Integer idReserva;
 
     // CONSTRUCTOR VACÍO
     public Estadia() { }
 
     // GETTERS Y SETTERS
-    
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
 
@@ -58,21 +54,18 @@ public class Estadia {
     public int getCantidadDias() { return cantidadDias; }
     public void setCantidadDias(int cantidadDias) { this.cantidadDias = cantidadDias; }
 
+    public Habitacion getHabitacion() { return habitacion; }
+    public void setHabitacion(Habitacion habitacion) { this.habitacion = habitacion; }
+
+    public Huesped getHuesped() { return huesped; }
+    public void setHuesped(Huesped huesped) { this.huesped = huesped; }
+
     public LocalDateTime getCheckIn() { return checkIn; }
     public void setCheckIn(LocalDateTime checkIn) { this.checkIn = checkIn; }
 
     public LocalDateTime getCheckOut() { return checkOut; }
     public void setCheckOut(LocalDateTime checkOut) { this.checkOut = checkOut; }
 
-    public CategoriaHabitacion getTipoHabitacion() { return tipoHabitacion; }
-    public void setTipoHabitacion(CategoriaHabitacion tipoHabitacion) { this.tipoHabitacion = tipoHabitacion; }
-
     public Integer getIdReserva() { return idReserva; }
     public void setIdReserva(Integer idReserva) { this.idReserva = idReserva; }
-
-    public List<Huesped> getHuespedes() { return huespedes; }
-    public void setHuespedes(List<Huesped> huespedes) { this.huespedes = huespedes; }
-    
-    public List<Habitacion> getHabitaciones() { return habitaciones; }   
-    public void setHabitaciones(List<Habitacion> habitaciones) { this.habitaciones = habitaciones; }
 }
