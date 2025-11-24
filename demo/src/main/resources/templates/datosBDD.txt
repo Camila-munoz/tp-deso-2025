@@ -1,3 +1,16 @@
+//CONSERJES
+[
+  {
+    "nombre": "admin",
+    "contrasena": "admin493"
+  },
+  {
+    "nombre": "conserje",
+    "contrasena": "password1778"
+  }
+]
+
+//HUESPEDES
 {
     "nombre": "Lionel",
     "apellido": "Messi",
@@ -40,3 +53,4 @@
         "pais": "Argentina"
     }
 }
+

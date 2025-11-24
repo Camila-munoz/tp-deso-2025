@@ -1,3 +1,5 @@
+-- Active: 1763931386304@@localhost@3306@hotel_premier
+-- Active: 1763931386304@@localhost@3306@hotel_premier
 -- 1. PRIMERO CREAMOS LAS TABLAS INDEPENDIENTES (SIN CLAVES FORÁNEAS COMPLEJAS)
 CREATE DATABASE IF NOT EXISTS hotel_premier;
 USE hotel_premier;

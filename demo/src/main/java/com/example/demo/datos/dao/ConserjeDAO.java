@@ -13,4 +13,5 @@ import java.util.Optional;
  */
 public interface ConserjeDAO {
     Optional<Conserje> buscarPorNombre(String nombre);
+    boolean insertarConserje(Conserje conserje);
 }

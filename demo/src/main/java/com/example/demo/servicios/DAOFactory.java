@@ -4,6 +4,8 @@
  */
 package com.example.demo.servicios;
 
+import org.springframework.context.annotation.Bean;
+
 import com.example.demo.datos.dao.ConserjeDAO;
 import com.example.demo.datos.dao.EstadiaDAO;
 import com.example.demo.datos.dao.HuespedDAO;
@@ -12,13 +14,17 @@ import com.example.demo.datos.implementacion.EstadiaDAOImpl;
 import com.example.demo.datos.implementacion.HuespedDAOImpl;
 
 public class DAOFactory {
+      @Bean
+    public ConserjeDAO conserjeDAO() {
+        return new ConserjeDAOImpl();
+    }
     public static HuespedDAO getHuespedDAO() {
         return new HuespedDAOImpl();
     }
 
-    public static ConserjeDAO getConserjeDAO() {
+    /*public static ConserjeDAO getConserjeDAO() {
         return new ConserjeDAOImpl();
-    }
+    }*/
     
     public static EstadiaDAO getEstadiaDAO() {
         return new EstadiaDAOImpl();
