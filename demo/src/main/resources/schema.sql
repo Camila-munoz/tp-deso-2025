@@ -1,4 +1,4 @@
--- Active: 1763766791540@@localhost@3306@hotel_premier
+-- Active: 1763931386304@@localhost@3306@hotel_premier
 -- Active: 1763931386304@@localhost@3306@hotel_premier
 -- 1. PRIMERO CREAMOS LAS TABLAS INDEPENDIENTES (SIN CLAVES FORÁNEAS COMPLEJAS)
 CREATE DATABASE IF NOT EXISTS hotel_premier;
@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS Categoria (
 
 CREATE TABLE IF NOT EXISTS Tipo_Habitacion (
     ID_TipoHabitacion INT AUTO_INCREMENT PRIMARY KEY,
-    descripcion VARCHAR(20) NOT NULL CHECK (posicion_IVA IN ('SUITE', 'DOBLE_ESTANDAR', 'DOBLE_SUPERIOR', 'INDIVIDUAL_ESTANDAR','SUPERIOR_FAMILY_PLAN')),
+    descripcion VARCHAR(20) NOT NULL CHECK (descripcion IN ('SUITE', 'DOBLE_ESTANDAR', 'DOBLE_SUPERIOR', 'INDIVIDUAL_ESTANDAR','SUPERIOR_FAMILY_PLAN')),
     cantidad_camas_kingsize INT,
     cantidad_camas_individuales INT,
     cantidad_camas_dobles INT

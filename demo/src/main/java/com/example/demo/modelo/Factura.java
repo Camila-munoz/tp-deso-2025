@@ -17,13 +17,13 @@ public class Factura {
     private BigDecimal monto; 
 
     @Column(name = "tipo", nullable = false, length = 2)
-    private String tipo; // Tipo A o B
+    private String tipo; 
 
     @Column(name = "estado", nullable = false, length = 50)
     @Enumerated(EnumType.STRING) 
-    private EstadoFactura estado; // Usando el Enum EstadoFactura
+    private EstadoFactura estado; 
 
-    // Relación ManyToOne con Estadia
+    // Relación ManyToOne con Estadia (JPA solo necesita el ID si no lo va a buscar)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ID_Estadia", nullable = false)
     private Estadia estadia;
@@ -33,18 +33,17 @@ public class Factura {
     @JoinColumn(name = "ID_Responsable", nullable = false)
     private ResponsableDePago responsable; 
 
-    // Relación OneToMany con Nota_Credito (mappedBy apunta al campo 'factura' en NotaCredito)
+    // Relaciones bidireccionales OneToMany (se mantienen para integridad)
     @OneToMany(mappedBy = "factura", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<NotaCredito> notasCredito; 
 
-    // Relación OneToMany con Pago (mappedBy apunta al campo 'factura' en Pago)
     @OneToMany(mappedBy = "factura", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Pago> pagos; 
     
-    // Constructores, Getters y Setters
+    // --- Constructores ---
     public Factura() {}
 
-    // ... (El resto de getters y setters, ya que son extensos, se omiten aquí, pero deben existir)
+    // --- Getters y Setters COMPLETOS ---
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
 
@@ -56,16 +55,16 @@ public class Factura {
 
     public EstadoFactura getEstado() { return estado; }
     public void setEstado(EstadoFactura estado) { this.estado = estado; }
-    
+
     public Estadia getEstadia() { return estadia; }
     public void setEstadia(Estadia estadia) { this.estadia = estadia; }
 
     public ResponsableDePago getResponsable() { return responsable; }
     public void setResponsable(ResponsableDePago responsable) { this.responsable = responsable; }
-    
+
     public List<NotaCredito> getNotasCredito() { return notasCredito; }
     public void setNotasCredito(List<NotaCredito> notasCredito) { this.notasCredito = notasCredito; }
-    
+
     public List<Pago> getPagos() { return pagos; }
     public void setPagos(List<Pago> pagos) { this.pagos = pagos; }
 }
