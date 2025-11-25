@@ -20,13 +20,22 @@ CREATE TABLE IF NOT EXISTS Categoria (
     descripcion VARCHAR(50) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS Tipo_Habitacion (
+CREATE TABLE IF NOT EXISTS TipoHabitacion (
     ID_TipoHabitacion INT AUTO_INCREMENT PRIMARY KEY,
-    descripcion VARCHAR(20) NOT NULL CHECK (descripcion IN ('SUITE', 'DOBLE_ESTANDAR', 'DOBLE_SUPERIOR', 'INDIVIDUAL_ESTANDAR','SUPERIOR_FAMILY_PLAN')),
-    cantidad_camas_kingsize INT,
+    descripcion VARCHAR(20) NOT NULL,
+    cantidad_camas_kingSize INT,
     cantidad_camas_individuales INT,
-    cantidad_camas_dobles INT
+    cantidad_camas_dobles INT,
+    CONSTRAINT chk_tipo_habitacion 
+    CHECK (descripcion IN (
+        'SUITE',
+        'DOBLE ESTANDAR',
+        'DOBLE SUPERIOR',
+        'INDIVIDUAL ESTANDAR',
+        'SUPERIOR FAMILY'
+    ))
 );
+
 
 CREATE TABLE IF NOT EXISTS Conserje (
     ID_Conserje INT AUTO_INCREMENT PRIMARY KEY,
