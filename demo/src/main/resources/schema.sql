@@ -1,4 +1,4 @@
--- Active: 1763931386304@@localhost@3306@hotel_premier
+-- Active: 1763766791540@@localhost@3306@hotel_premier
 -- Active: 1763931386304@@localhost@3306@hotel_premier
 -- 1. PRIMERO CREAMOS LAS TABLAS INDEPENDIENTES (SIN CLAVES FORÁNEAS COMPLEJAS)
 CREATE DATABASE IF NOT EXISTS hotel_premier;
@@ -22,7 +22,10 @@ CREATE TABLE IF NOT EXISTS Categoria (
 
 CREATE TABLE IF NOT EXISTS Tipo_Habitacion (
     ID_TipoHabitacion INT AUTO_INCREMENT PRIMARY KEY,
-    descripcion VARCHAR(50) NOT NULL
+    descripcion VARCHAR(20) NOT NULL CHECK (posicion_IVA IN ('SUITE', 'DOBLE_ESTANDAR', 'DOBLE_SUPERIOR', 'INDIVIDUAL_ESTANDAR','SUPERIOR_FAMILY_PLAN')),
+    cantidad_camas_kingsize INT,
+    cantidad_camas_individuales INT,
+    cantidad_camas_dobles INT
 );
 
 CREATE TABLE IF NOT EXISTS Conserje (
@@ -106,45 +109,6 @@ CREATE TABLE IF NOT EXISTS Habitacion (
     FOREIGN KEY (ID_TipoHabitacion) REFERENCES Tipo_Habitacion(ID_TipoHabitacion)
 );
 
-CREATE TABLE IF NOT EXISTS Suite (
-    ID_Suite INT AUTO_INCREMENT PRIMARY KEY,
-    Cantidad_camas_kingsize INT NOT NULL,
-    Cantidad_camas_dobles INT NOT NULL,
-    ID_Habitacion INT NOT NULL,
-    FOREIGN KEY (ID_Habitacion) REFERENCES Habitacion(ID_Habitacion)
-);
-
-CREATE TABLE IF NOT EXISTS Individual_Estandar (
-    ID_Individual_Estandar INT AUTO_INCREMENT PRIMARY KEY,
-    ID_Habitacion INT NOT NULL,
-    FOREIGN KEY (ID_Habitacion) REFERENCES Habitacion(ID_Habitacion)
-);
-
-CREATE TABLE IF NOT EXISTS Superior_Family_Plan (
-    ID_Superior INT AUTO_INCREMENT PRIMARY KEY,
-    Cantidad_camas_individuales INT NOT NULL,
-    Cantidad_camas_dobles INT NOT NULL,
-    ID_Habitacion INT NOT NULL,
-    FOREIGN KEY (ID_Habitacion) REFERENCES Habitacion(ID_Habitacion)
-);
-
-CREATE TABLE IF NOT EXISTS Doble_Estandar (
-    ID_Doble_Estandar INT AUTO_INCREMENT PRIMARY KEY,
-    Cantidad_camas_individuales INT NOT NULL,
-    Cantidad_camas_dobles INT NOT NULL,
-    ID_Habitacion INT NOT NULL,
-    FOREIGN KEY (ID_Habitacion) REFERENCES Habitacion(ID_Habitacion)
-);
-
-CREATE TABLE IF NOT EXISTS Doble_Superior (
-    ID_Doble_Superior INT AUTO_INCREMENT PRIMARY KEY,
-    Cantidad_camas_individuales INT NOT NULL,
-    Cantidad_camas_dobles INT NOT NULL,
-    Cantidad_camas_kingsize INT NOT NULL,
-    ID_Habitacion INT NOT NULL,
-    FOREIGN KEY (ID_Habitacion) REFERENCES Habitacion(ID_Habitacion)
-);
-
 -- 6. RESERVAS Y ESTADIA
 
 CREATE TABLE IF NOT EXISTS Reserva (
@@ -168,11 +132,11 @@ CREATE TABLE IF NOT EXISTS Estadia (
     ID_Estadia INT AUTO_INCREMENT PRIMARY KEY,
     check_in DATETIME NOT NULL,
     check_out DATETIME NULL,
-    -- cantidad_dias INT NOT NULL,
-    -- cantidad_huespedes INT NOT NULL,
-    -- cantidad_habitaciones INT NOT NULL,
-    -- ID_Reserva INT NOT NULL UNIQUE,
-    -- ID_Habitacion INT NOT NULL, -- Ojo: Una estadia puede tener muchas habitaciones, quizás esto debería ir aparte
+    cantidad_dias INT NOT NULL,
+    cantidad_huespedes INT NOT NULL,
+    cantidad_habitaciones INT NOT NULL,
+    ID_Reserva INT NOT NULL UNIQUE,
+    ID_Habitacion INT NOT NULL, -- Ojo: Una estadia puede tener muchas habitaciones, quizás esto debería ir aparte
     FOREIGN KEY (ID_Reserva) REFERENCES Reserva(ID_Reserva),
     FOREIGN KEY (ID_Habitacion) REFERENCES Habitacion(ID_Habitacion)
 );
@@ -268,22 +232,4 @@ CREATE TABLE IF NOT EXISTS Medio_de_Pago (
     FOREIGN KEY (ID_Moneda_Extranjera) REFERENCES Moneda_extranjera(ID_Moneda_Extranjera),
     FOREIGN KEY (Numero_cheque_tercero) REFERENCES Cheque_tercero(Numero_cheque_tercero),
     FOREIGN KEY (Numero_cheque_propio) REFERENCES Cheque_propio(Numero_cheque_propio)
-);
-
--- TABLA INTERMEDIA: Estadía <-> Habitaciones
-CREATE TABLE IF NOT EXISTS Estadias_Habitaciones (
-    estadia_id BIGINT NOT NULL,
-    habitacion_id BIGINT NOT NULL,
-    PRIMARY KEY (estadia_id, habitacion_id),
-    FOREIGN KEY (estadia_id) REFERENCES estadias(id),
-    FOREIGN KEY (habitacion_id) REFERENCES habitaciones(id)
-);
-
--- 7. TABLA INTERMEDIA: Estadía <-> Huéspedes
-CREATE TABLE IF NOT EXISTS Estadias_Huespedes (
-    estadia_id BIGINT NOT NULL,
-    huesped_id BIGINT NOT NULL,
-    PRIMARY KEY (estadia_id, huesped_id),
-    FOREIGN KEY (estadia_id) REFERENCES estadias(id),
-    FOREIGN KEY (huesped_id) REFERENCES huespedes(id)
 );
