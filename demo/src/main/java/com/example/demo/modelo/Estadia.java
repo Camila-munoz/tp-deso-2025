@@ -5,49 +5,59 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Table;
-
 @Entity
 @Table(name = "estadias")
 public class Estadia {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @Column(name = "ID_Estadia")
+    private Long id;
 
-    private int cantidadHuespedes; 
-    private int cantidadHabitaciones; 
-    private int cantidadDias; 
-    
-    @ManyToOne
-    @JoinColumn(name = "id_habitacion")
-    private Habitacion habitacion;
-
-    @ManyToOne
-    @JoinColumn(name = "id_huesped")
-    private Huesped huesped;
-
-    // Usamos LocalDateTime para guardar fecha Y hora (requerido por el TP para check-in 10am)
+    @Column(name = "check_in")
     private LocalDateTime checkIn; 
-    private LocalDateTime checkOut;
-    
-    // Relaciones
-    private CategoriaHabitacion tipoHabitacion; 
-    private Integer idReserva; // Para saber de qué reserva viene
-    
 
-    // Listas inicializadas para evitar NullPointerException
-    private List<Huesped> huespedes = new ArrayList<>();
+    @Column(name = "check_out")
+    private LocalDateTime checkOut;
+
+    @Column(name = "cantidad_huespedes")
+    private int cantidadHuespedes; 
+
+    @Column(name = "cantidad_habitaciones")
+    private int cantidadHabitaciones; 
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_habitacion")
+    private CategoriaHabitacion tipoHabitacion; 
+    
+    @Column(name = "cantidad_dias")
+    private int cantidadDias; 
+
+    @Column(name = "ID_Reserva")
+    private Integer idReserva;
+
+    @ManyToMany
+    @JoinTable(
+        name = "Estadia_Habitaciones", // Nombre de la tabla intermedia en SQL
+        joinColumns = @JoinColumn(name = "ID_Estadia"),
+        inverseJoinColumns = @JoinColumn(name = "ID_Habitacion")
+    )
     private List<Habitacion> habitaciones = new ArrayList<>();
+
+    @ManyToMany
+    @JoinTable(
+        name = "Estadia_Huespedes", // Nombre de la tabla intermedia en SQL
+        joinColumns = @JoinColumn(name = "ID_Estadia"),
+        inverseJoinColumns = @JoinColumn(name = "ID_Huesped")
+    )
+    private List<Huesped> huespedes = new ArrayList<>();
 
     // CONSTRUCTOR VACÍO
     public Estadia() { }
 
     // GETTERS Y SETTERS
-    
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
     public int getCantidadHuespedes() { return cantidadHuespedes; }  
     public void setCantidadHuespedes(int cantidadHuespedes) { this.cantidadHuespedes = cantidadHuespedes; }

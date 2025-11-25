@@ -8,9 +8,7 @@ import com.example.demo.modelo.Conserje;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.Optional;
-
-
-
+@Repository
 public interface ConserjeRepositorio extends JpaRepository<Conserje, Long> {
     Optional<Conserje> findByUsuario(String usuario);
 }

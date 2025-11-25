@@ -4,10 +4,6 @@
  */
 package com.example.demo.modelo;
 
-/**
- *
- * @author I-MAG
- */
 public enum PosicionIVA {
     CONSUMIDOR_FINAL, RESPONSABLE_INSCRIPTO, MONOTRIBUTO, EXENTO
 }

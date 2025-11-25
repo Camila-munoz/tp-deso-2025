@@ -1,5 +1,6 @@
 package com.example.demo.controladores;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,22 +17,21 @@ import com.example.demo.servicios.EstadiaService;
 @RestController
 @RequestMapping("api/estadias")
 @CrossOrigin(origins = "http://localhost:3000")
-
 public class EstadiaControlador {
     
     @Autowired
     private EstadiaService estadiaService;
 
     @PostMapping("/checkin")
-    public ResponseEntity<?> checkIn(@RequestBody Map<String, Integer> datos) {
+    public ResponseEntity<?> checkIn(@RequestBody Map<String, List<Long>> datos) {
         try {
-            Integer idHab = datos.get("idHabitacion");
-            Integer idHuesped = datos.get("idHuesped");
-            
-            Estadia nueva = estadiaService.crearEstadia(idHab, idHuesped);
-            return ResponseEntity.ok(nueva);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        List<Long> idsHab = datos.get("idsHabitaciones");
+        List<Long> idsHues = datos.get("idsHuespedes");
+        
+        Estadia nueva = estadiaService.crearEstadia(idsHab, idsHues);
+        return ResponseEntity.ok(nueva);
+    } catch (Exception e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
+    }
     }
 }

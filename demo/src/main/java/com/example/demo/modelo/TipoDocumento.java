@@ -4,10 +4,6 @@
  */
 package com.example.demo.modelo;
 
-/**
- *
- * @author I-MAG
- */
 public enum TipoDocumento {
     DNI, LE, LC, PASAPORTE, OTRO
 }

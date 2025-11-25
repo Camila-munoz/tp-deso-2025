@@ -1,9 +1,16 @@
 package com.example.demo.modelo; 
 
-import jakarta.persistence.*;
 import java.time.LocalDate;
 
-import org.springframework.data.relational.core.mapping.Column;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "huespedes")
@@ -11,13 +18,18 @@ public class Huesped {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @Column(name = "ID_Huesped")
+    private Long id;
 
-    @Column(nullable = false)
     private String nombre;
     private String apellido;
+
+    @Column(name = "tipo_documento")
     private String tipoDocumento; // Lo cambié a String para simplificar la BD, o usa Enum con cuidado
+    
+    @Column(name = "numero_documento")
     private String numeroDocumento;
+
     private String cuit;
     private String posicionIVA;
     private int edad;
@@ -26,6 +38,10 @@ public class Huesped {
     private LocalDate fechaNacimiento;
     private String nacionalidad;
     private String ocupacion;
+
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "ID_Direccion") // Nombre exacto de la FK en tabla Huesped
     private Direccion direccion;
     
 
@@ -42,8 +58,8 @@ public class Huesped {
     }
 
     // 3. GETTERS Y SETTERS (Spring usa los Setters para cargar los datos)
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
     
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }

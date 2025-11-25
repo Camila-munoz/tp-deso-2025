@@ -4,8 +4,8 @@
  */
 package com.example.demo.modelo;
 
-
 public enum CategoriaHabitacion {
+    
     INDIVIDUAL_ESTANDAR,
     SUPERIOR_FAMILY_PLAN,
     DOBLE_SUPERIOR,

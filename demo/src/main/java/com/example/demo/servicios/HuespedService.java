@@ -11,7 +11,6 @@ import com.example.demo.excepciones.ValidacionException;
 import com.example.demo.modelo.Huesped;
 import com.example.demo.repositorios.HuespedRepositorio;
 
-
 @Service
 public class HuespedService {
 
@@ -29,7 +28,7 @@ public class HuespedService {
         }
 
         // 2. Verificar si ya existe
-        Optional<Huesped> existente = huespedRepositorio.findByDocumento(
+        Optional<Huesped> existente = huespedRepositorio.findByTipoDocumentoAndNumeroDocumento(
                 huesped.getTipoDocumento(), 
                 huesped.getNumeroDocumento()
         );
@@ -39,19 +38,19 @@ public class HuespedService {
         }
 
         // 3. Guardar
-        huespedRepositorio.save(huesped);
+       return huespedRepositorio.save(huesped);
     }
 
     // --- CU02: Buscar huésped ---
     public Huesped buscarHuesped(String tipoDoc, String nroDoc) throws EntidadNoEncontradaException {
-        return huespedRepositorio.findByDocumento(tipoDoc, nroDoc)
+        return huespedRepositorio.findByTipoDocumentoAndNumeroDocumento(tipoDoc, nroDoc)
                 .orElseThrow(() -> new EntidadNoEncontradaException("Huésped no encontrado."));
     }
 
     // --- CU10: Modificar huésped ---
     public Huesped modificarHuesped(Huesped huespedDatosNuevos) throws ValidacionException, EntidadNoEncontradaException {
         // 1. Buscamos el huésped ORIGINAL en la base de datos para obtener su ID
-        Huesped huespedExistente = huespedRepositorio.findByDocumento(
+        Huesped huespedExistente = huespedRepositorio.findByTipoDocumentoAndNumeroDocumento(
                 huespedDatosNuevos.getTipoDocumento(), 
                 huespedDatosNuevos.getNumeroDocumento()
         ).orElseThrow(() -> new EntidadNoEncontradaException("No se puede modificar. El huésped no existe."));
@@ -68,7 +67,7 @@ public class HuespedService {
     // --- CU11: Dar de baja huésped ---
     public void darBajaHuesped(String tipoDoc, String nroDoc) throws EntidadNoEncontradaException {
         // 1. Buscamos el huésped para obtener la entidad completa
-        Huesped huesped = huespedRepositorio.findByDocumento(tipoDoc, nroDoc)
+        Huesped huesped = huespedRepositorio.findByTipoDocumentoAndNumeroDocumento(tipoDoc, nroDoc)
                 .orElseThrow(() -> new EntidadNoEncontradaException("No se puede eliminar. El huésped no existe."));
         
         // 2. Eliminamos la entidad

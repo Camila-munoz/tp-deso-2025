@@ -1,8 +1,5 @@
 package com.example.demo; 
 
-import com.example.demo.modelo.Habitacion;
-import com.example.demo.repositorios.HabitacionRepositorio;
-
 import com.example.demo.repositorios.HabitacionRepositorio;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;

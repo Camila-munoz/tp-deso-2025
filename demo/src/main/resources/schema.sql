@@ -27,8 +27,8 @@ CREATE TABLE IF NOT EXISTS Tipo_Habitacion (
 
 CREATE TABLE IF NOT EXISTS Conserje (
     ID_Conserje INT AUTO_INCREMENT PRIMARY KEY,
-    contraseña VARCHAR(20) NOT NULL,
-    nombre VARCHAR(20) NOT NULL
+    contrasenia VARCHAR(20) NOT NULL,
+    usuario VARCHAR(20) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS Efectivo (
@@ -56,8 +56,9 @@ CREATE TABLE IF NOT EXISTS Huesped (
     posicion_IVA VARCHAR(30) NOT NULL CHECK (posicion_IVA IN ('CONSUMIDOR_FINAL', 'RESPONSABLE_INSCRIPTO', 'MONOTRIBUTO', 'EXENTO')),
     cuit VARCHAR(15) NULL,
     ID_Direccion INT NULL,
+    ID_Estadia INT NULL,
     FOREIGN KEY (ID_Direccion) REFERENCES Direccion(ID_Direccion) ON DELETE SET NULL ON UPDATE CASCADE
-    -- Nota: Saque ID_Estadia de aqui para evitar error circular. Se vincula a través de la Reserva/Estadia.
+    FOREIGN KEY (ID_Estadia) REFERENCES Estadia(ID_Estadia) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 -- 3. RESPONSABLE DE PAGO (Quitamos ID_Factura para romper el ciclo circular)
@@ -168,13 +169,13 @@ CREATE TABLE IF NOT EXISTS Estadia (
     ID_Estadia INT AUTO_INCREMENT PRIMARY KEY,
     check_in DATETIME NOT NULL,
     check_out DATETIME NULL,
-    -- cantidad_dias INT NOT NULL,
-    -- cantidad_huespedes INT NOT NULL,
-    -- cantidad_habitaciones INT NOT NULL,
-    -- ID_Reserva INT NOT NULL UNIQUE,
-    -- ID_Habitacion INT NOT NULL, -- Ojo: Una estadia puede tener muchas habitaciones, quizás esto debería ir aparte
+    cantidad_dias INT NOT NULL,
+    cantidad_huespedes INT NOT NULL,
+    cantidad_habitaciones INT NOT NULL,
+    ID_Reserva INT NOT NULL UNIQUE,
+    --ID_Habitacion INT NOT NULL,
     FOREIGN KEY (ID_Reserva) REFERENCES Reserva(ID_Reserva),
-    FOREIGN KEY (ID_Habitacion) REFERENCES Habitacion(ID_Habitacion)
+    --FOREIGN KEY (ID_Habitacion) REFERENCES Habitacion(ID_Habitacion)
 );
 
 CREATE TABLE IF NOT EXISTS Consumo (
@@ -270,20 +271,22 @@ CREATE TABLE IF NOT EXISTS Medio_de_Pago (
     FOREIGN KEY (Numero_cheque_propio) REFERENCES Cheque_propio(Numero_cheque_propio)
 );
 
--- TABLA INTERMEDIA: Estadía <-> Habitaciones
-CREATE TABLE IF NOT EXISTS Estadias_Habitaciones (
-    estadia_id BIGINT NOT NULL,
-    habitacion_id BIGINT NOT NULL,
-    PRIMARY KEY (estadia_id, habitacion_id),
-    FOREIGN KEY (estadia_id) REFERENCES estadias(id),
-    FOREIGN KEY (habitacion_id) REFERENCES habitaciones(id)
+-- 2. TABLA INTERMEDIA: Estadía <-> Habitaciones
+-- Esto permite que una estadía tenga muchas habitaciones
+CREATE TABLE IF NOT EXISTS Estadia_Habitaciones (
+    ID_Estadia INT NOT NULL,
+    ID_Habitacion INT NOT NULL,
+    PRIMARY KEY (ID_Estadia, ID_Habitacion),
+    FOREIGN KEY (ID_Estadia) REFERENCES Estadia(ID_Estadia) ON DELETE CASCADE,
+    FOREIGN KEY (ID_Habitacion) REFERENCES Habitacion(ID_Habitacion) ON DELETE CASCADE
 );
 
--- 7. TABLA INTERMEDIA: Estadía <-> Huéspedes
-CREATE TABLE IF NOT EXISTS Estadias_Huespedes (
-    estadia_id BIGINT NOT NULL,
-    huesped_id BIGINT NOT NULL,
-    PRIMARY KEY (estadia_id, huesped_id),
-    FOREIGN KEY (estadia_id) REFERENCES estadias(id),
-    FOREIGN KEY (huesped_id) REFERENCES huespedes(id)
+-- 3. TABLA INTERMEDIA: Estadía <-> Huéspedes
+-- Esto permite que una estadía tenga muchos huéspedes
+CREATE TABLE IF NOT EXISTS Estadia_Huespedes (
+    ID_Estadia INT NOT NULL,
+    ID_Huesped INT NOT NULL,
+    PRIMARY KEY (ID_Estadia, ID_Huesped),
+    FOREIGN KEY (ID_Estadia) REFERENCES Estadia(ID_Estadia) ON DELETE CASCADE,
+    FOREIGN KEY (ID_Huesped) REFERENCES Huesped(ID_Huesped) ON DELETE CASCADE
 );
