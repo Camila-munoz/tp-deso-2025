@@ -1,4 +1,10 @@
+<<<<<<< HEAD
 -- Active: 1763934661541@@localhost@3306@hotel_premier
+=======
+-- Active: 1763931386304@@localhost@3306@hotel_premier
+-- Active: 1763931386304@@localhost@3306@hotel_premier
+-- 1. PRIMERO CREAMOS LAS TABLAS INDEPENDIENTES (SIN CLAVES FORÁNEAS COMPLEJAS)
+>>>>>>> d8cfa15c44fa718d25d48ff41a8f627d7d700bc3
 CREATE DATABASE IF NOT EXISTS hotel_premier;
 USE hotel_premier;
 
@@ -15,7 +21,15 @@ CREATE TABLE IF NOT EXISTS Direccion (
     pais VARCHAR(255) NOT NULL
 );
 
+<<<<<<< HEAD
 -- 2. CONFIGURACIÓN DE HABITACIONES
+=======
+CREATE TABLE IF NOT EXISTS Categoria (
+    ID_Categoria INT AUTO_INCREMENT PRIMARY KEY,
+    descripcion VARCHAR(50) NOT NULL
+);
+
+>>>>>>> d8cfa15c44fa718d25d48ff41a8f627d7d700bc3
 CREATE TABLE IF NOT EXISTS TipoHabitacion (
     ID_TipoHabitacion INT AUTO_INCREMENT PRIMARY KEY,
     descripcion VARCHAR(20) NOT NULL,
@@ -28,11 +42,19 @@ CREATE TABLE IF NOT EXISTS TipoHabitacion (
         'DOBLE ESTANDAR',
         'DOBLE SUPERIOR',
         'INDIVIDUAL ESTANDAR',
+<<<<<<< HEAD
         'SUPERIOR FAMILY PLAN'
     ))
 );
 
 -- 3. USUARIOS DEL SISTEMA
+=======
+        'SUPERIOR FAMILY'
+    ))
+);
+
+
+>>>>>>> d8cfa15c44fa718d25d48ff41a8f627d7d700bc3
 CREATE TABLE IF NOT EXISTS Conserje (
     ID_Conserje INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(20) NOT NULL,
