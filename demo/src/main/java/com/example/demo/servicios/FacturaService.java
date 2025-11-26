@@ -2,6 +2,7 @@ package com.example.demo.servicios;
 
 import com.example.demo.excepciones.EntidadNoEncontradaException;
 import com.example.demo.excepciones.ValidacionException;
+import com.example.demo.modelo.Consumo;
 import com.example.demo.modelo.EstadoFactura;
 import com.example.demo.modelo.Factura;
 import com.example.demo.repositorios.FacturaRepositorio;
@@ -19,6 +20,12 @@ public class FacturaService {
 
     @Autowired
     private FacturaRepositorio facturaRepositorio;
+    @Autowired
+    private com.example.demo.repositorios.ConsumoRepositorio consumoRepositorio;
+    @Autowired
+    private com.example.demo.repositorios.EstadiaRepositorio estadiaRepositorio;
+    @Autowired
+    private com.example.demo.repositorios.HuespedRepositorio huespedRepositorio; // Opcional, si accedes via estadia.getHuesped() no hace falta.
 
     /**
      * CU: Crea una nueva factura.
@@ -70,4 +77,53 @@ public class FacturaService {
     }
     
     // Si fuera necesario, puedes agregar métodos para obtener y eliminar facturas.
+// ... tus @Autowired existentes (FacturaRepositorio) ...
+    
+    // --- NUEVO MÉTODO PARA CU07 (PRE-FACTURA) ---
+    public java.util.Map<String, Object> generarPrevisualizacion(Integer idEstadia) throws EntidadNoEncontradaException {
+        // 1. Buscar la estadía
+        com.example.demo.modelo.Estadia estadia = estadiaRepositorio.findById(idEstadia)
+                .orElseThrow(() -> new EntidadNoEncontradaException("Estadía no encontrada"));
+
+        BigDecimal total = BigDecimal.ZERO;
+        java.util.List<java.util.Map<String, Object>> items = new java.util.ArrayList<>();
+
+        // 2. Calcular costo de la habitación (Precio x Días)
+        // Nota: Asumo que en Habitacion el precio es Double, lo convertimos a BigDecimal
+        BigDecimal precioNoche = BigDecimal.valueOf(estadia.getHabitacion().getPrecio());
+        BigDecimal costoEstadia = precioNoche.multiply(new BigDecimal(estadia.getCantidadDias()));
+        
+        items.add(java.util.Map.of(
+            "concepto", "Alojamiento (" + estadia.getCantidadDias() + " noches en Hab. " + estadia.getHabitacion().getNumero() + ")",
+            "monto", costoEstadia
+        ));
+        total = total.add(costoEstadia);
+
+        // 3. Sumar consumos
+        java.util.List<Consumo> consumos = consumoRepositorio.findByEstadia_Id(idEstadia);
+        for (Consumo c : consumos) {
+            items.add(java.util.Map.of(
+                "concepto", "Consumo: " + c.getDescripcion(),
+                "monto", c.getPrecio()
+            ));
+            total = total.add(c.getPrecio());
+        }
+
+        // 4. Determinar si es Factura A o B (Regla de negocio simple)
+        String tipoFactura = "B";
+        // Verificamos si la posición IVA es Responsable Inscripto
+        if (estadia.getHuesped().getPosicionIVA() != null && 
+            estadia.getHuesped().getPosicionIVA().contains("RESPONSABLE_INSCRIPTO")) {
+            tipoFactura = "A";
+        }
+
+        // 5. Retornar estructura lista para el JSON
+        return java.util.Map.of(
+            "huesped", estadia.getHuesped().getNombre() + " " + estadia.getHuesped().getApellido(),
+            "subtotal", total,
+            "total", total, // Aquí podrías sumar IVA si fuera necesario separar
+            "tipoFactura", tipoFactura,
+            "items", items
+        );
+    }
 }

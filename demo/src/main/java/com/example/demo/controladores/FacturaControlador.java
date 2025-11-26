@@ -88,4 +88,12 @@ public class FacturaControlador {
     }
     
     // Aquí puedes agregar otros endpoints (GET /id, GET /, DELETE /id, etc.)
+    @GetMapping("/previsualizar")
+    public ResponseEntity<?> previsualizarFactura(@RequestParam Integer idEstadia) {
+        try {
+            return ResponseEntity.ok(facturaService.generarPrevisualizacion(idEstadia));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
+        }
+    }
 }
