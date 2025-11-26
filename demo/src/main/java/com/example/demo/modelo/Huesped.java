@@ -1,55 +1,62 @@
 package com.example.demo.modelo; 
 
+import jakarta.persistence.*;
 import java.time.LocalDate;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-
 @Entity
-@Table(name = "huespedes")
+@Table(name = "Huesped")
 public class Huesped {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID_Huesped")
-    private Long id;
+    private Integer id;
 
+    @Column(name = "nombre", nullable = false)
     private String nombre;
-    private String apellido;
-
-    @Column(name = "tipo_documento")
-    private String tipoDocumento; // Lo cambié a String para simplificar la BD, o usa Enum con cuidado
     
-    @Column(name = "numero_documento")
+    @Column(name = "apellido")
+    private String apellido;
+    
+    @Column(name = "tipo_documento")
+    private String tipoDocumento;
+    
+    @Column(name = "nro_documento")
     private String numeroDocumento;
-
+    
+    @Column(name = "cuit")
     private String cuit;
+    
+    @Column(name = "posicion_IVA")
     private String posicionIVA;
-    private int edad;
+    
+    @Column(name = "edad")  // ✅ CAMBIADO: int -> Integer
+    private Integer edad;   // ✅ Ahora puede ser null
+    
+    @Column(name = "telefono")
     private String telefono;
+    
+    @Column(name = "email")
     private String email;
+    
+    @Column(name = "fecha_nacimiento")
     private LocalDate fechaNacimiento;
+    
+    @Column(name = "nacionalidad")
     private String nacionalidad;
+    
+    @Column(name = "ocupacion")
     private String ocupacion;
-
-
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "ID_Direccion") // Nombre exacto de la FK en tabla Huesped
+    
+    // ✅ CORREGIDO: Relación OneToOne con Direccion
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "ID_Direccion")
     private Direccion direccion;
     
-
-    // 1. CONSTRUCTOR VACÍO
+    // Constructores
     public Huesped() {
     }
 
-    // 2. CONSTRUCTOR COMPLETO
     public Huesped(String nombre, String apellido, String tipoDocumento, String numeroDocumento) {
         this.nombre = nombre;
         this.apellido = apellido;
@@ -57,9 +64,9 @@ public class Huesped {
         this.numeroDocumento = numeroDocumento;
     }
 
-    // 3. GETTERS Y SETTERS (Spring usa los Setters para cargar los datos)
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    // Getters y Setters
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
     
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }
@@ -79,8 +86,8 @@ public class Huesped {
     public String getPosicionIVA() { return posicionIVA; }
     public void setPosicionIVA(String posicionIVA) { this.posicionIVA = posicionIVA; }
 
-    public int getEdad() { return edad; }
-    public void setEdad(int edad) { this.edad = edad; }
+    public Integer getEdad() { return edad; }           // ✅ Integer
+    public void setEdad(Integer edad) { this.edad = edad; } // ✅ Integer
 
     public String getTelefono() { return telefono; }
     public void setTelefono(String telefono) { this.telefono = telefono; }

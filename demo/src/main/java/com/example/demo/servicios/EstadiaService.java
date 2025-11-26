@@ -2,15 +2,22 @@ package com.example.demo.servicios;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.demo.excepciones.ValidacionException;
-import com.example.demo.modelo.*;
-import com.example.demo.repositorios.*;
+import com.example.demo.controladores.EstadiaControlador;
+import com.example.demo.modelo.Estadia;
+import com.example.demo.modelo.EstadoHabitacion;
+import com.example.demo.modelo.Habitacion;
+import com.example.demo.modelo.Huesped;
+import com.example.demo.repositorios.EstadiaRepositorio;
+import com.example.demo.repositorios.HabitacionRepositorio;
+import com.example.demo.repositorios.HuespedRepositorio;
 
 @Service
+@Transactional
 public class EstadiaService {
     
     @Autowired
@@ -22,49 +29,67 @@ public class EstadiaService {
     @Autowired
     private HuespedRepositorio huespedRepositorio;
 
-
     @Transactional
-    public Estadia crearEstadia(List<Long> idsHabitaciones, List<Long> idsHuespedes) throws Exception {
+    public Estadia crearEstadiaCompleta(EstadiaControlador.CrearEstadiaRequest request) throws Exception {
+        System.out.println("🔍 Creando estadía completa con: " + request);
 
-        // 1. Buscar todas las habitaciones
-        List<Habitacion> habitaciones = habitacionRepositorio.findAllById(idsHabitaciones);
-        if (habitaciones.size() != idsHabitaciones.size()) {
-            throw new ValidacionException("Alguna de las habitaciones no existe.");
-        }
+        // 1. Buscar entidades
+        Habitacion habitacion = habitacionRepositorio.findById(request.getIdHabitacion())
+                .orElseThrow(() -> new Exception("Habitación no encontrada con ID: " + request.getIdHabitacion()));
 
-        // 2. Validar que estén LIBRES
-        for (Habitacion h : habitaciones) {
-            // Asumiendo que tienes el enum EstadoHabitacion cargado correctamente o usas String
-            if (h.getEstado() != EstadoHabitacion.LIBRE) { 
-                throw new ValidacionException("La habitación " + h.getId() + " no está libre.");
-            }
-        }
-
-        // 3. Buscar todos los huéspedes
-        List<Huesped> huespedes = huespedRepositorio.findAllById(idsHuespedes); // Nota: Asegurate que el ID de Huesped sea Integer o Long según corresponda
-        if (huespedes.isEmpty()) {
-            throw new ValidacionException("Debe haber al menos un huésped.");
-        }
-
-        // 4. Crear la estadía y asignar las listas
-        Estadia estadia = new Estadia();
-        estadia.setHabitaciones(habitaciones);
-        estadia.setHuespedes(huespedes);
-        estadia.setCheckIn(LocalDateTime.now());
-        estadia.setCantidadDias(1); // Valor inicial ejemplo
-
-        // 5. Ocupar las habitaciones
-        for (Habitacion h : habitaciones) {
-            h.setEstado(EstadoHabitacion.OCUPADA);
-        }
+        Huesped huesped = huespedRepositorio.findById(request.getIdHuesped())
+                .orElseThrow(() -> new Exception("Huésped no encontrado con ID: " + request.getIdHuesped()));
         
-        habitacionRepositorio.saveAll(habitaciones);
+        System.out.println("✅ Habitación encontrada: " + habitacion.getNumero() + ", Estado: " + habitacion.getEstado());
+        System.out.println("✅ Huésped encontrado: " + huesped.getNombre() + " " + huesped.getApellido());
 
-        return estadiaRepositorio.save(estadia);
+        // 2. Validar disponibilidad
+        if (habitacion.getEstado() != EstadoHabitacion.LIBRE && habitacion.getEstado() != EstadoHabitacion.RESERVADA) {
+            throw new Exception("La habitación no está disponible para ocuparse. Estado actual: " + habitacion.getEstado());
+        }
+
+        // 3. Validar capacidad de la habitación
+        if (request.getCantidadHuespedes() > habitacion.getCapacidad()) {
+            throw new Exception("La habitación tiene capacidad para " + habitacion.getCapacidad() + 
+                              " huéspedes, pero se intentaron asignar " + request.getCantidadHuespedes());
+        }
+
+        // 4. Crear la estadía con todos los datos
+        Estadia estadia = new Estadia();
+        estadia.setHabitacion(habitacion);
+        estadia.setHuesped(huesped);
+        estadia.setCheckIn(LocalDateTime.now());
+        estadia.setCantidadHuespedes(request.getCantidadHuespedes());
+        estadia.setCantidadHabitaciones(1); // Por defecto 1 habitación por estadía
+        estadia.setCantidadDias(request.getCantidadDias());
+        estadia.setIdReserva(request.getIdReserva()); // Puede ser null
+
+        // 5. Actualizar estado de la habitación a OCUPADA
+        habitacion.setEstado(EstadoHabitacion.OCUPADA);
+        habitacionRepositorio.save(habitacion);
+
+        Estadia estadiaGuardada = estadiaRepositorio.save(estadia);
+        System.out.println("✅ Estadía creada con ID: " + estadiaGuardada.getId() + 
+                         ", Huéspedes: " + estadiaGuardada.getCantidadHuespedes() + 
+                         ", Días: " + estadiaGuardada.getCantidadDias());
+        
+        return estadiaGuardada;
+    }
+
+    // Método simplificado (para compatibilidad)
+    @Transactional
+    public Estadia crearEstadia(Integer idHabitacion, Integer idHuesped) throws Exception {
+        EstadiaControlador.CrearEstadiaRequest request = new EstadiaControlador.CrearEstadiaRequest(
+            idHabitacion, idHuesped, 1, 1, null
+        );
+        return crearEstadiaCompleta(request);
     }
 
     // Para el CU11: Verificar si un huésped se alojó antes
-    public boolean huespedSeHaAlojado(Long idHuesped) { 
-        return !estadiaRepositorio.findByHuespedesId(idHuesped).isEmpty();
+    public boolean huespedSeHaAlojado(Integer idHuesped) { 
+        List<Estadia> estadias = estadiaRepositorio.findByHuespedID(idHuesped);
+        System.out.println("🔍 Huésped ID " + idHuesped + " tiene " + estadias.size() + " estadías anteriores");
+        return !estadias.isEmpty();
     }
 }
+

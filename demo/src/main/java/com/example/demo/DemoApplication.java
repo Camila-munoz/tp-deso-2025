@@ -19,7 +19,7 @@ public class DemoApplication {
     public CommandLineRunner testDatabase(HabitacionRepositorio habitacionRepositorio) {
         return args -> {
             System.out.println("=======================================");
-            System.out.println("⚡ INICIANDO PRUEBA DE CONEXIÓN A BD ⚡");
+            System.out.println(" INICIANDO PRUEBA DE CONEXION A BD ");
             
             try {
                 // Intentamos listar las habitaciones
@@ -27,9 +27,9 @@ public class DemoApplication {
                 System.out.println("Consultando habitaciones...");
                 habitacionRepositorio.findAll(); 
                 
-                System.out.println("✅ ¡CONEXIÓN EXITOSA! La base de datos responde.");
+                System.out.println(" ¡CONEXION EXITOSA! La base de datos responde.");
             } catch (Exception e) {
-                System.out.println("❌ ERROR DE CONEXIÓN:");
+                System.out.println(" ERROR DE CONEXION:");
                 System.out.println(e.getMessage());
             }
             System.out.println("=======================================");

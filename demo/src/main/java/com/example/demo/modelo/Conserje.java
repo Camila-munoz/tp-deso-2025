@@ -1,44 +1,43 @@
-
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.example.demo.modelo;
 
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "conserjes")
+@Table(name = "Conserje")
 public class Conserje {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "ID_Conserje")
+    private int idConserje;
+    
+    @Column(name = "nombre", nullable = false, length = 20)
+    private String nombre;
+    
+    @Column(name = "contrasena", nullable = false, length = 20)
+    private String contrasena;
 
-    private String usuario;
-    private String contrasenia;
-
+    // Constructores
     public Conserje() {
     }
 
-    public Conserje(String usuario, String contrasenia) {
-        this.usuario = usuario;
-        this.contrasenia = contrasenia;
+    public Conserje(String nombre, String contrasena) {
+        this.nombre = nombre;
+        this.contrasena = contrasena;
     }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    // Getters y Setters
+    public int getIdConserje() { return idConserje; }
+    public void setIdConserje(int idConserje) { this.idConserje = idConserje; }
 
-    public String getUsuario() { return usuario;}
-    public void setUsuario(String usuario) {  this.usuario = usuario; }
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
 
-    public String getContrasenia() { return contrasenia; }
-    public void setContrasenia(String contrasenia) { this.contrasenia = contrasenia; }
-    
+    public String getContrasena() { return contrasena; }
+    public void setContrasena(String contrasena) { this.contrasena = contrasena; }
+
     @Override
     public String toString() {
-        return "Conserje{" +
-                "usuario='" + usuario + '\'' +
-                ", contrasenia='" + contrasenia + '\'' +
-                '}';
+        return "Conserje{id=" + idConserje + ", nombre='" + nombre + "'}";
     }
-} 
+}

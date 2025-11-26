@@ -1,41 +1,111 @@
 package com.example.demo.controladores;
 
+import com.example.demo.excepciones.ValidacionException;
 import com.example.demo.modelo.Conserje;
 import com.example.demo.servicios.ConserjeService;
-
-import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/conserjes")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "*")
 public class ConserjeControlador {
-    
-    @Autowired  
+
+    @Autowired
     private ConserjeService conserjeService;
 
-    @PostMapping()
-    public ResponseEntity<?> autenticar(@RequestBody Map<String, String> credenciales) {
-        
+    // --- REGISTRAR NUEVO CONSERJE ---
+    @PostMapping
+    public ResponseEntity<?> registrar(@RequestBody Conserje conserje) {
         try {
-
-            String usuario = credenciales.get("usuario");
-            String contrasenia = credenciales.get("contrasenia");
+            System.out.println("📝 Registrando conserje: " + conserje.getNombre());
             
-            // 1. Llamamos al servicio
-            Conserje conserje = conserjeService.autenticarUsuario(usuario, contrasenia);
+            boolean registrado = conserjeService.registrarConserje(conserje);
             
-            // 2. SEGURIDAD: No devolvemos la contraseña al frontend
-            conserje.setContrasenia(null); 
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "✅ Conserje registrado correctamente",
+                "id", conserje.getIdConserje()
+            ));
             
-            // 3. Devolvemos 200 OK con el objeto (sin clave)
-            return ResponseEntity.ok(conserje);
-            
+        } catch (ValidacionException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "❌ " + e.getMessage()
+            ));
         } catch (Exception e) {
-            // 4. Si falla (usuario no existe o clave mal), devolvemos 401 Unauthorized
-            return ResponseEntity.status(401).body("Error de autenticación: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(Map.of(
+                "success", false,
+                "message", "❌ Error interno del servidor"
+            ));
         }
+    }
+
+    // --- LOGIN ---
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody Conserje conserje) {
+        try {
+            System.out.println("🔐 Intento de login para: " + conserje.getNombre());
+            
+            boolean autenticado = conserjeService.autenticar(
+                conserje.getNombre(), 
+                conserje.getContrasena()
+            );
+
+            if (autenticado) {
+                return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "✅ Login exitoso",
+                    "usuario", conserje.getNombre()
+                ));
+            } else {
+                return ResponseEntity.status(401).body(Map.of(
+                    "success", false,
+                    "message", "❌ Credenciales inválidas"
+                ));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "❌ Error: " + e.getMessage()
+            ));
+        }
+    }
+
+    // --- BUSCAR POR NOMBRE ---
+    @GetMapping("/{nombre}")
+    public ResponseEntity<?> buscarPorNombre(@PathVariable String nombre) {
+        try {
+            return conserjeService.buscarPorNombre(nombre)
+                .map(conserje -> ResponseEntity.ok(conserje))
+                .orElse(ResponseEntity.notFound().build());
+                
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of(
+                "error", "Error al buscar conserje: " + e.getMessage()
+            ));
+        }
+    }
+
+    // --- LISTAR TODOS (para debugging) ---
+    @GetMapping
+    public ResponseEntity<?> listarTodos() {
+        try {
+            return ResponseEntity.ok(conserjeService.listarTodos());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of(
+                "error", "Error al listar conserjes: " + e.getMessage()
+            ));
+        }
+    }
+
+    // --- ENDPOINT DE PRUEBA ---
+    @GetMapping("/status")
+    public String status() {
+        return "✅ Servicio de conserjes activo - Spring Data JPA";
     }
 }

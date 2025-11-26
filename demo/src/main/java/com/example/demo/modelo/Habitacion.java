@@ -1,67 +1,76 @@
 package com.example.demo.modelo;
 
-import jakarta.persistence.*; 
-@Entity 
-@Table(name = "habitaciones")
+import com.example.demo.modelo.TipoHabitacion;
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "Habitacion")
 public class Habitacion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(unique = true, nullable = false)
+    @Column(name = "ID_Habitacion")
+    private Integer id;
+    
+    @Column(name = "numero")
     private String numero;
 
-    @Enumerated(EnumType.STRING)
-    private CategoriaHabitacion tipo;
-
-    private Double precio;
-    private Integer capacidad;
-    private Integer cantidad;
-    private Double porcentaje_descuento;
-
+    @Column(name = "estado")
     @Enumerated(EnumType.STRING)
     private EstadoHabitacion estado;
+    
+    @Column(name = "cantidad")
+    private Integer cantidad;
 
-    // CONSTRUCTOR VACÍO (Necesario para que Java trabaje cómodamente)
+    @Column(name = "costo") // Mapea 'precio' de Java a 'costo' de la BD
+    private Double precio;
+
+    @Column(name = "capacidad")  // ✅ Asegúrate que sea Integer, no int
+    private Integer capacidad;   // ✅ Para evitar el mismo problema
+
+    @Column(name = "porcentaje_descuento")
+    private Double porcentajeDescuento;
+
+    @ManyToOne
+    @JoinColumn(name = "ID_TipoHabitacion") // Esta es la Foreign Key en la BD
+    private TipoHabitacion tipo;
+
+    @ManyToOne
+    @JoinColumn(name = "ID_Categoria")
+    private Categoria categoria;
+ 
+    // CONSTRUCTOR VACÍO
     public Habitacion() {
     }
+    
 
-    // CONSTRUCTOR CON DATOS (Para crear habitaciones rápido en las pruebas)
-    public Habitacion(String numero, CategoriaHabitacion tipo, Double precio, Integer capacidad, Integer cantidad, Double porcentaje_descuento, EstadoHabitacion estado) {
-        this.numero = numero;
-        this.tipo = tipo;
-        this.precio = precio;
-        this.capacidad = capacidad;
-        this.estado = estado;
-        this.cantidad = cantidad;
-        this.porcentaje_descuento = porcentaje_descuento;
-    }
-
-    // GETTERS Y SETTERS (Para poder leer y escribir los datos)
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    // GETTERS Y SETTERS
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
 
     public String getNumero() { return numero; }    
     public void setNumero(String numero) { this.numero = numero; }
 
-    public CategoriaHabitacion getTipo() { return tipo; }
-    public void setTipo(CategoriaHabitacion tipo) { this.tipo = tipo; }
+    public Integer getCantidad() { return cantidad; }
+    public void setCantidad(Integer cantidad) { this.cantidad = cantidad; }
+
+    public TipoHabitacion getTipo() { return tipo; }
+    public void setTipo(TipoHabitacion tipo) { this.tipo = tipo; }
 
     public Double getPrecio() { return precio; }
     public void setPrecio(Double precio) { this.precio = precio; }
    
     public EstadoHabitacion getEstado() { return estado; }
     public void setEstado(EstadoHabitacion estado) { this.estado = estado; }
-
+    
     public Integer getCapacidad() { return capacidad; }
     public void setCapacidad(Integer capacidad) { this.capacidad = capacidad; }
 
-    public Integer getCantidad() { return cantidad; }
-    public void setCantidad(Integer cantidad) { this.cantidad = cantidad; }
+    public Categoria getCategoria() { return categoria; }
+    public void setCategoria(Categoria categoria) { this.categoria = categoria; }
 
-    public Double getPorcentaje_descuento() { return porcentaje_descuento; }
-    public void setPorcentaje_descuento(Double porcentaje_descuento) { this.porcentaje_descuento = porcentaje_descuento; }
+    public Double getPorcentajeDescuento() { return porcentajeDescuento; }
+    public void setPorcentajeDescuento(Double porcentajeDescuento) { this.porcentajeDescuento = porcentajeDescuento; }
 
     @Override
     public String toString() {

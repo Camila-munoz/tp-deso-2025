@@ -1,22 +1,29 @@
 package com.example.demo.repositorios;
 
 import com.example.demo.modelo.Reserva;
-import com.example.demo.modelo.EstadoReserva;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
 import java.time.LocalDate;
 import java.util.List;
 
 @Repository
-public interface ReservaRepositorio extends JpaRepository<Reserva, Long> {
+public interface ReservaRepositorio extends JpaRepository<Reserva, Integer> {
 
-    // Para CU06: Buscar por apellido del huésped
-    List<Reserva> findByHuespedApellidoContainingIgnoreCase(String apellido);
-
-    // Para CU04: Verificar disponibilidad
-    List<Reserva> findByHabitacionesIdAndFechaSalidaAfterAndFechaEntradaBeforeAndEstadoNot(
-            Long idHabitacion, 
-            LocalDate fechaEntradaNueva, 
-            LocalDate fechaSalidaNueva, 
-            EstadoReserva estadoIgnorado);
+    // Validar Disponibilidad (CU04):
+    // Busca si hay alguna reserva ACTIVA que se solape con las fechas para esas habitaciones.
+    @Query("SELECT r FROM Reserva r JOIN r.habitaciones h " +
+           "WHERE h.id IN :idsHabitaciones " +
+           "AND r.estado <> 'CANCELADA' " +
+           "AND (r.fechaEntrada < :fechaFin AND r.fechaSalida > :fechaInicio)")
+    List<Reserva> findReservasConflictivas(
+            @Param("idsHabitaciones") List<Integer> idsHabitaciones,
+            @Param("fechaInicio") LocalDate fechaInicio,
+            @Param("fechaFin") LocalDate fechaFin
+    );
+    
+    // Para buscar reservas de un huésped (útil para listar)
+    List<Reserva> findByHuespedId(Integer idHuesped);
 }

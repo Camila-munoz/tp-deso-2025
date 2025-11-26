@@ -1,7 +1,6 @@
 package com.example.demo.servicios;
 
 import com.example.demo.excepciones.ValidacionException;
-import com.example.demo.excepciones.EntidadNoEncontradaException;
 import com.example.demo.modelo.*;
 import com.example.demo.repositorios.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,53 +11,60 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Service
+@Transactional
 public class ReservaService {
 
-    @Autowired private ReservaRepositorio reservaRepositorio;
-    @Autowired private HabitacionRepositorio habitacionRepositorio;
-    @Autowired private HuespedRepositorio huespedRepositorio;
+    @Autowired
+    private ReservaRepositorio reservaRepositorio;
+    @Autowired
+    private HabitacionRepositorio habitacionRepositorio;
+    @Autowired
+    private HuespedRepositorio huespedRepositorio;
 
-    // --- CU04: RESERVAR HABITACIÓN ---
-    @Transactional
-    public Reserva crearReserva(LocalDate fEntrada, LocalDate fSalida, Long idHuesped, List<Long> idsHabitaciones) 
-            throws ValidacionException, EntidadNoEncontradaException {
+    // --- CU04: RESERVAR HABITACIÓN (Modificado para recibir datos sueltos) ---
+    public Reserva crearReserva(LocalDate fechaEntrada, LocalDate fechaSalida, Integer idHuesped, List<Integer> idsHabitaciones) throws Exception {
         
         // 1. Validar Fechas
-        if (fEntrada.isAfter(fSalida)) {
+        if (fechaEntrada == null || fechaSalida == null) {
+            throw new ValidacionException("Las fechas son obligatorias.");
+        }
+        if (fechaEntrada.isAfter(fechaSalida)) {
             throw new ValidacionException("La fecha de entrada no puede ser posterior a la de salida.");
         }
-        if (fEntrada.isBefore(LocalDate.now())) {
-            throw new ValidacionException("No se puede reservar en el pasado.");
+        if (fechaEntrada.isBefore(LocalDate.now())) {
+            throw new ValidacionException("No se pueden hacer reservas en el pasado.");
         }
 
         // 2. Buscar Huésped
         Huesped huesped = huespedRepositorio.findById(idHuesped)
-                .orElseThrow(() -> new EntidadNoEncontradaException("Huésped no encontrado"));
+                .orElseThrow(() -> new Exception("Huésped no encontrado con ID: " + idHuesped));
 
         // 3. Buscar Habitaciones
+        if (idsHabitaciones == null || idsHabitaciones.isEmpty()) {
+            throw new ValidacionException("Debe seleccionar al menos una habitación.");
+        }
+
         List<Habitacion> habitaciones = habitacionRepositorio.findAllById(idsHabitaciones);
-        if (habitaciones.isEmpty() || habitaciones.size() != idsHabitaciones.size()) {
-            throw new ValidacionException("Alguna de las habitaciones no existe.");
+        
+        if (habitaciones.size() != idsHabitaciones.size()) {
+            throw new Exception("Alguna de las habitaciones solicitadas no existe.");
         }
 
-        // 4. Validación de disponibilidad
-        for (Habitacion h : habitaciones) {
-            List<Reserva> conflictos = reservaRepositorio.findByHabitacionesIdAndFechaSalidaAfterAndFechaEntradaBeforeAndEstadoNot(
-                    h.getId(), 
-                    fEntrada, // Si mi reserva empieza antes de que la otra termine...
-                    fSalida,  // Y termina después de que la otra empiece...
-                    EstadoReserva.CANCELADA // Ignoramos las canceladas
-            );
-            
-            if (!conflictos.isEmpty()) {
-                throw new ValidacionException("La habitación " + h.getNumero() + " ya está ocupada en esas fechas.");
-            }
+        // 4. VALIDAR DISPONIBILIDAD
+        List<Reserva> conflictos = reservaRepositorio.findReservasConflictivas(
+                idsHabitaciones,
+                fechaEntrada,
+                fechaSalida
+        );
+
+        if (!conflictos.isEmpty()) {
+            throw new ValidacionException("Una o más habitaciones ya están reservadas en las fechas seleccionadas.");
         }
 
-        // 5. Crear y Guardar
+        // 5. Crear y Guardar Reserva
         Reserva reserva = new Reserva();
-        reserva.setFechaEntrada(fEntrada);
-        reserva.setFechaSalida(fSalida);
+        reserva.setFechaEntrada(fechaEntrada);
+        reserva.setFechaSalida(fechaSalida);
         reserva.setHuesped(huesped);
         reserva.setHabitaciones(habitaciones);
         reserva.setEstado(EstadoReserva.CONFIRMADA); 
@@ -67,15 +73,19 @@ public class ReservaService {
     }
 
     // --- CU06: CANCELAR RESERVA ---
-    public void cancelarReserva(Long idReserva) throws EntidadNoEncontradaException {
+    public void cancelarReserva(Integer idReserva) throws Exception {
         Reserva reserva = reservaRepositorio.findById(idReserva)
-                .orElseThrow(() -> new EntidadNoEncontradaException("Reserva no encontrada"));
-        
+                .orElseThrow(() -> new Exception("Reserva no encontrada con ID: " + idReserva));
+
+        if (reserva.getEstado() == EstadoReserva.CANCELADA) {
+            throw new ValidacionException("La reserva ya estaba cancelada.");
+        }
+
         reserva.setEstado(EstadoReserva.CANCELADA);
         reservaRepositorio.save(reserva);
     }
     
-    public List<Reserva> buscarPorApellido(String apellido) {
-        return reservaRepositorio.findByHuespedApellidoContainingIgnoreCase(apellido);
+    public List<Reserva> listarTodas() {
+        return reservaRepositorio.findAll();
     }
 }

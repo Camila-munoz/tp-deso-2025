@@ -1,9 +1,8 @@
 package com.example.demo.controladores;
 
+import com.example.demo.excepciones.ValidacionException;
 import com.example.demo.modelo.Reserva;
 import com.example.demo.servicios.ReservaService;
-import com.example.demo.excepciones.ValidacionException;
-import com.example.demo.excepciones.EntidadNoEncontradaException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,58 +14,69 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/reservas")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:4200")
 public class ReservaControlador {
 
     @Autowired
     private ReservaService reservaService;
 
-    // CU04: Crear Reserva
+    // --- CU04: CREAR RESERVA ---
     @PostMapping
-    public ResponseEntity<?> crear(@RequestBody Map<String, Object> datos) {
+    public ResponseEntity<?> crearReserva(@RequestBody Map<String, Object> datos) {
         try {
-            // 1. Extraer datos del Map (Casteo manual)
-            String fechaInStr = (String) datos.get("fechaEntrada");
-            String fechaOutStr = (String) datos.get("fechaSalida");
+            // 1. Extraer y convertir datos manualmente desde el Mapa
+            String fEntradaStr = (String) datos.get("fechaEntrada");
+            String fSalidaStr = (String) datos.get("fechaSalida");
+            Integer idHuesped = (Integer) datos.get("idHuesped");
             
-            Long idHuesped = ((Number) datos.get("idHuesped")).longValue();
+            // Convertir la lista de habitaciones (JSON Array -> List<Integer>)
+            List<?> listaHab = (List<?>) datos.get("idsHabitaciones");
+            if (listaHab == null) throw new ValidacionException("Falta la lista de habitaciones");
             
-            List<?> lista = (List<?>) datos.get("idsHabitaciones");
-            List<Long> idsHabitaciones = lista.stream()
-                .map(num -> ((Number) num).longValue())
+            List<Integer> idsHabitaciones = listaHab.stream()
+                .map(num -> (Integer) num)
                 .collect(Collectors.toList());
 
-            // 2. Convertir fechas
-            LocalDate fEntrada = LocalDate.parse(fechaInStr);
-            LocalDate fSalida = LocalDate.parse(fechaOutStr);
+            // 2. Convertir Fechas (String -> LocalDate)
+            LocalDate fechaEntrada = LocalDate.parse(fEntradaStr);
+            LocalDate fechaSalida = LocalDate.parse(fSalidaStr);
 
             // 3. Llamar al servicio
-            Reserva nueva = reservaService.crearReserva(fEntrada, fSalida, idHuesped, idsHabitaciones);
-            return ResponseEntity.ok(nueva);
+            Reserva nueva = reservaService.crearReserva(fechaEntrada, fechaSalida, idHuesped, idsHabitaciones);
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Reserva creada con éxito",
+                "reservaId", nueva.getId()
+            ));
 
-        } catch (ValidacionException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (EntidadNoEncontradaException e) {
-            return ResponseEntity.status(404).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error al procesar datos: " + e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "Error: " + e.getMessage()
+            ));
         }
     }
 
-    // CU06: Cancelar
+    // --- CU06: CANCELAR RESERVA ---
     @PutMapping("/{id}/cancelar")
-    public ResponseEntity<?> cancelar(@PathVariable Long id) {
+    public ResponseEntity<?> cancelarReserva(@PathVariable Integer id) {
         try {
             reservaService.cancelarReserva(id);
-            return ResponseEntity.ok("Reserva cancelada con éxito");
-        } catch (EntidadNoEncontradaException e) {
-            return ResponseEntity.status(404).body(e.getMessage());
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Reserva cancelada correctamente"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "Error al cancelar: " + e.getMessage()
+            ));
         }
     }
     
-    // Buscar para listar antes de cancelar
     @GetMapping
-    public ResponseEntity<List<Reserva>> buscarPorApellido(@RequestParam String apellido) {
-        return ResponseEntity.ok(reservaService.buscarPorApellido(apellido));
+    public List<Reserva> listar() {
+        return reservaService.listarTodas();
     }
 }

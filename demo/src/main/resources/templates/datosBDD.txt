@@ -53,4 +53,18 @@
         "pais": "Argentina"
     }
 }
-
+//HABITACION
+{
+    "numero": "101",
+    "precio": 50000.0,
+    "estado": "LIBRE",
+    "capacidad": 2,
+    "cantidad": 1,
+    "porcentajeDescuento": 0.0,
+    "tipo": {
+        "id": 1
+    },
+    "categoria": {
+        "id": 1
+    }
+}
