@@ -63,8 +63,5 @@
     "porcentajeDescuento": 0.0,
     "tipo": {
         "id": 1
-    },
-    "categoria": {
-        "id": 1
     }
 }

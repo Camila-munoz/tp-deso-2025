@@ -1,4 +1,4 @@
--- Active: 1763934661541@@localhost@3306@hotel_premier
+-- Active: 1763931386304@@localhost@3306@hotel_premier
 
 USE hotel_premier;
 
@@ -14,7 +14,7 @@ INSERT INTO Direccion (calle, numero, piso, departamento, cod_postal, localidad,
 ('Av. Siempre Viva', 742, NULL, NULL, '5500', 'Springfield', 'Mendoza', 'Argentina');
 
 -- Tipos de Habitación (Respetando el CHECK constraint del schema)
-INSERT INTO TipoHabitacion (descripcion, cantidad_camas_kingSize, cantidad_camas_individuales, cantidad_camas_dobles) VALUES 
+INSERT INTO Tipo_Habitacion (descripcion, cantidad_camas_king_Size, cantidad_camas_individuales, cantidad_camas_dobles) VALUES 
 ('INDIVIDUAL ESTANDAR', 0, 1, 0),
 ('DOBLE ESTANDAR', 0, 0, 1),
 ('DOBLE SUPERIOR', 1, 0, 0),
@@ -57,7 +57,7 @@ INSERT INTO Huesped (nombre, apellido, nro_documento, tipo_documento, cuit, posi
 ('Carlos', 'Lopez', '12345678', 'PASAPORTE', NULL, 'CONSUMIDOR_FINAL', 29, '11223344', 'carlos@mail.com', '1994-08-10', 'Uruguay', 'Turista', 3);
 
 -- Habitaciones (Respetando CHECK de estado)
-INSERT INTO Habitacion (estado, cantidad, costo, capacidad, porcentaje_descuento, ID_TipoHabitacion) VALUES 
+INSERT INTO Habitacion (estado, cantidad, costo, capacidad, porcentaje_descuento, id_tipo_habitacion) VALUES 
 ('OCUPADA', 1, 50800.00, 1, 0.0, 1),  -- Hab 1 (Individual)
 ('LIBRE', 1, 70230.00, 2, 0.0, 2),   -- Hab 2 (Doble Estándar)
 ('RESERVADA', 1, 90560.00, 2, 10.0, 3), -- Hab 3 (Doble Superior)

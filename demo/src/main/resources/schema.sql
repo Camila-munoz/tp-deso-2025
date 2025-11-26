@@ -1,4 +1,4 @@
--- Active: 1763934661541@@localhost@3306@hotel_premier
+-- Active: 1763931386304@@localhost@3306@hotel_premier
 CREATE DATABASE IF NOT EXISTS hotel_premier;
 USE hotel_premier;
 
