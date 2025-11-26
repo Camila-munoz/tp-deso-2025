@@ -42,19 +42,11 @@ CREATE TABLE IF NOT EXISTS TipoHabitacion (
         'DOBLE ESTANDAR',
         'DOBLE SUPERIOR',
         'INDIVIDUAL ESTANDAR',
-<<<<<<< HEAD
         'SUPERIOR FAMILY PLAN'
     ))
 );
 
 -- 3. USUARIOS DEL SISTEMA
-=======
-        'SUPERIOR FAMILY'
-    ))
-);
-
-
->>>>>>> d8cfa15c44fa718d25d48ff41a8f627d7d700bc3
 CREATE TABLE IF NOT EXISTS Conserje (
     ID_Conserje INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(20) NOT NULL,
