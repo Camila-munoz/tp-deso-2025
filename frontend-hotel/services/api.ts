@@ -1,5 +1,30 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+// --- AUTENTICACIÓN (CU01) ---
+
+export interface ConserjeLogin {
+  nombre: string;
+  contrasena: string;
+}
+
+export const autenticarUsuario = async (datos: ConserjeLogin) => {
+  const response = await fetch(`${API_URL}/conserjes/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(datos),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Error al autenticar");
+  }
+
+  return data;
+};
+
 // --- HUÉSPEDES (CU02 y CU09) ---
 
 export const buscarHuespedes = async (filtros: any) => {
