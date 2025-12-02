@@ -12,7 +12,7 @@ public class Huesped {
     @Column(name = "ID_Huesped")
     private Integer id;
 
-    @Column(name = "nombre", nullable = false)
+    @Column(name = "nombre")
     private String nombre;
     
     @Column(name = "apellido")
@@ -30,8 +30,8 @@ public class Huesped {
     @Column(name = "posicion_IVA")
     private String posicionIVA;
     
-    @Column(name = "edad")  // ✅ CAMBIADO: int -> Integer
-    private Integer edad;   // ✅ Ahora puede ser null
+    @Column(name = "edad")  
+    private Integer edad;
     
     @Column(name = "telefono")
     private String telefono;
@@ -48,20 +48,17 @@ public class Huesped {
     @Column(name = "ocupacion")
     private String ocupacion;
     
-    // ✅ CORREGIDO: Relación OneToOne con Direccion
+    
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "ID_Direccion")
     private Direccion direccion;
     
+    @ManyToOne
+    @JoinColumn(name = "ID_Estadia")
+    private Estadia estadia;
+
     // Constructores
     public Huesped() {
-    }
-
-    public Huesped(String nombre, String apellido, String tipoDocumento, String numeroDocumento) {
-        this.nombre = nombre;
-        this.apellido = apellido;
-        this.tipoDocumento = tipoDocumento;
-        this.numeroDocumento = numeroDocumento;
     }
 
     // Getters y Setters
@@ -86,8 +83,8 @@ public class Huesped {
     public String getPosicionIVA() { return posicionIVA; }
     public void setPosicionIVA(String posicionIVA) { this.posicionIVA = posicionIVA; }
 
-    public Integer getEdad() { return edad; }           // ✅ Integer
-    public void setEdad(Integer edad) { this.edad = edad; } // ✅ Integer
+    public Integer getEdad() { return edad; }         
+    public void setEdad(Integer edad) { this.edad = edad; } 
 
     public String getTelefono() { return telefono; }
     public void setTelefono(String telefono) { this.telefono = telefono; }
@@ -106,6 +103,9 @@ public class Huesped {
 
     public Direccion getDireccion() { return direccion; }
     public void setDireccion(Direccion direccion) { this.direccion = direccion; }
+
+    public Estadia getEstadia() { return estadia; }
+    public void setEstadia(Estadia estadia) { this.estadia = estadia; }
 
     @Override
     public String toString() {
