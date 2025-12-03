@@ -2,7 +2,7 @@ package com.example.demo.servicios;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,6 +90,11 @@ public class EstadiaService {
         List<Estadia> estadias = estadiaRepositorio.findByHuespedID(idHuesped);
         System.out.println("🔍 Huésped ID " + idHuesped + " tiene " + estadias.size() + " estadías anteriores");
         return !estadias.isEmpty();
+    }
+
+    public Optional<Estadia> buscarEstadiaActivaPorHabitacion(Integer idHabitacion) {
+        // Llama a la query personalizada del repositorio
+        return estadiaRepositorio.findByHabitacionIdAndOcupada(idHabitacion);
     }
 }
 

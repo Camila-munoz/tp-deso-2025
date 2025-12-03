@@ -1,30 +1,25 @@
 "use client";
 import { useState } from "react";
-import { buscarHuespedes, crearHuesped, crearHuespedForzado } from "@/services/api";
+import { useRouter } from "next/navigation"; // <--- 1. IMPORTAR ESTO
+import { buscarHuespedes } from "@/services/api";
 
 export default function HuespedesPage() {
+  const router = useRouter(); // <--- 2. INICIALIZAR EL ROUTER
+
   // --- ESTADOS ---
   const [filtros, setFiltros] = useState({ apellido: "", nombre: "", numDoc: "", tipoDoc: "" });
   const [resultados, setResultados] = useState<any[]>([]);
-  const [seleccionado, setSeleccionado] = useState<number | null>(null); // ID del huésped seleccionado en la tabla
+  const [seleccionado, setSeleccionado] = useState<number | null>(null);
   
-  // Estado para mensajes y carga
   const [mensaje, setMensaje] = useState("");
   const [cargando, setCargando] = useState(false);
-
-  // Estados para Alta (Nuevo Huésped) - Lo mantengo oculto por defecto para respetar el diseño
-  const [mostrarFormAlta, setMostrarFormAlta] = useState(false);
-  const [nuevoHuesped, setNuevoHuesped] = useState({
-    nombre: "", apellido: "", tipoDocumento: "DNI", numeroDocumento: "", posicionIVA: "CONSUMIDOR_FINAL"
-  });
-  const [errorAlta, setErrorAlta] = useState<any>(null);
 
   // --- LÓGICA BUSCAR ---
   const handleBuscar = async () => {
     setCargando(true);
     setResultados([]);
     setMensaje("");
-    setSeleccionado(null); // Limpiar selección previa
+    setSeleccionado(null);
 
     try {
       const data = await buscarHuespedes(filtros);
@@ -41,38 +36,17 @@ export default function HuespedesPage() {
     }
   };
 
-  // --- LÓGICA SIGUIENTE (Simula la acción al elegir uno) ---
+  // --- LÓGICA SIGUIENTE ---
   const handleSiguiente = () => {
     if (seleccionado) {
       const huesped = resultados.find(h => h.id === seleccionado);
-      alert(`Has seleccionado a: ${huesped.apellido}, ${huesped.nombre}. \nAquí iría a la pantalla de Modificación.`);
-      // Aquí podrías redirigir: router.push(`/huespedes/${seleccionado}`);
+      if (huesped) {
+        // Redirigir a la ruta dinámica: /huespedes/editar/DNI/12345
+        router.push(`/huespedes/editar/${huesped.tipoDocumento}/${huesped.numeroDocumento}`);
+      }
     } else {
       alert("Por favor, seleccione un huésped de la lista.");
     }
-  };
-
-  // --- LÓGICA ALTA (Simplificada para no estorbar el diseño visual) ---
-  const handleAlta = async () => {
-    setErrorAlta(null);
-    try {
-      await crearHuesped(nuevoHuesped);
-      alert("✅ Huésped creado correctamente");
-      setMostrarFormAlta(false);
-      handleBuscar(); // Refrescar lista
-    } catch (err: any) {
-      if (err.status === 400) setErrorAlta({ message: err.message, esDuplicado: true });
-      else alert("Error: " + err.message);
-    }
-  };
-
-  const handleForzarAlta = async () => {
-    try {
-      await crearHuespedForzado(nuevoHuesped);
-      alert("✅ Huésped creado (Forzado)");
-      setMostrarFormAlta(false);
-      handleBuscar();
-    } catch (err) { alert("Error al forzar alta"); }
   };
 
   return (
@@ -80,7 +54,6 @@ export default function HuespedesPage() {
       
       {/* --- HEADER --- */}
       <div className="flex justify-between items-center mb-6">
-        {/* Icono Usuario */}
         <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center text-white">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
@@ -91,7 +64,6 @@ export default function HuespedesPage() {
           BUSCAR HUÉSPED
         </h1>
 
-        {/* Botón Cerrar (X) */}
         <button className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white font-bold border-2 border-black hover:bg-red-600 shadow-md">
           X
         </button>
@@ -101,11 +73,9 @@ export default function HuespedesPage() {
       <div className="max-w-4xl mx-auto">
         <h2 className="text-xl font-bold mb-1" style={{ fontFamily: 'serif' }}>Datos del Huésped</h2>
         
-        {/* Caja Azul Gradiente */}
         <div className="bg-gradient-to-b from-sky-200 to-gray-300 border border-gray-500 p-8 rounded-md shadow-md mb-6 relative">
           
           <div className="grid gap-4 max-w-2xl mx-auto">
-            {/* Fila Nombre */}
             <div className="flex items-center">
               <label className="w-48 font-bold text-lg text-right mr-4 font-serif">Nombre:</label>
               <input 
@@ -116,7 +86,6 @@ export default function HuespedesPage() {
               />
             </div>
 
-            {/* Fila Apellido */}
             <div className="flex items-center">
               <label className="w-48 font-bold text-lg text-right mr-4 font-serif">Apellido:</label>
               <input 
@@ -127,7 +96,6 @@ export default function HuespedesPage() {
               />
             </div>
 
-            {/* Fila Tipo Documento */}
             <div className="flex items-center">
               <label className="w-48 font-bold text-lg text-right mr-4 font-serif">Tipo de Documento:</label>
               <select 
@@ -143,7 +111,6 @@ export default function HuespedesPage() {
               </select>
             </div>
 
-            {/* Fila Documento */}
             <div className="flex items-center">
               <label className="w-48 font-bold text-lg text-right mr-4 font-serif">Documento:</label>
               <input 
@@ -155,7 +122,6 @@ export default function HuespedesPage() {
             </div>
           </div>
 
-          {/* Botón Buscar Centrado Abajo */}
           <div className="flex justify-center mt-8">
             <button 
               onClick={handleBuscar}
@@ -166,7 +132,7 @@ export default function HuespedesPage() {
           </div>
         </div>
 
-        {/* --- LISTA DE RESULTADOS (TABLA) --- */}
+        {/* --- LISTA DE RESULTADOS --- */}
         <h2 className="text-xl font-bold mb-1" style={{ fontFamily: 'serif' }}>Lista de Huéspedes</h2>
         
         <div className="border border-gray-500 bg-white min-h-[200px] relative">
@@ -215,9 +181,9 @@ export default function HuespedesPage() {
             Siguiente
           </button>
 
-          {/* Botón Alta (Discreto, por si no encuentra) */}
+          {/* 3. BOTÓN NUEVO QUE REDIRIGE A LA PÁGINA DE ALTA */}
           <button 
-            onClick={() => setMostrarFormAlta(true)}
+            onClick={() => router.push('/huespedes/nuevo')}
             className="bg-gray-200 border-2 border-gray-400 text-black font-bold px-6 py-1.5 rounded hover:bg-gray-300 shadow-sm font-serif text-sm"
           >
             + Nuevo
@@ -225,39 +191,6 @@ export default function HuespedesPage() {
         </div>
 
       </div>
-
-      {/* --- MODAL FLOTANTE DE ALTA (Para no romper el diseño principal) --- */}
-      {mostrarFormAlta && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded shadow-lg w-96 border-2 border-gray-400">
-            <h3 className="font-serif font-bold text-xl mb-4 text-center">Nuevo Huésped</h3>
-            <div className="space-y-3">
-              <input placeholder="Nombre" className="w-full border p-2" onChange={e => setNuevoHuesped({...nuevoHuesped, nombre: e.target.value})}/>
-              <input placeholder="Apellido" className="w-full border p-2" onChange={e => setNuevoHuesped({...nuevoHuesped, apellido: e.target.value})}/>
-              <select className="w-full border p-2" onChange={e => setNuevoHuesped({...nuevoHuesped, tipoDocumento: e.target.value})}>
-                <option value="DNI">DNI</option>
-                <option value="PASAPORTE">PASAPORTE</option>
-              </select>
-              <input placeholder="Nro Documento" className="w-full border p-2" onChange={e => setNuevoHuesped({...nuevoHuesped, numeroDocumento: e.target.value})}/>
-            </div>
-            
-            {errorAlta && (
-              <div className="mt-4 p-2 bg-red-100 text-red-800 text-sm">
-                {errorAlta.message}
-                {errorAlta.esDuplicado && (
-                  <button onClick={handleForzarAlta} className="mt-2 w-full bg-red-500 text-white p-1 rounded">Forzar Guardado</button>
-                )}
-              </div>
-            )}
-
-            <div className="flex gap-2 mt-4">
-              <button onClick={() => setMostrarFormAlta(false)} className="flex-1 bg-gray-300 p-2 rounded">Cancelar</button>
-              <button onClick={handleAlta} className="flex-1 bg-green-500 text-white p-2 rounded">Guardar</button>
-            </div>
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }

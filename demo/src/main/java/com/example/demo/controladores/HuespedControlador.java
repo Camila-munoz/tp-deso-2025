@@ -67,6 +67,21 @@ public class HuespedControlador {
         }
     }
     
+    // --- 3. TRAER UN HUÉSPED POR DOCUMENTO (CU10) ---
+    @GetMapping("/{tipoDoc}/{nroDoc}")
+    public ResponseEntity<?> obtenerPorDocumento(
+            @PathVariable("tipoDoc") String tipoDoc, 
+            @PathVariable("nroDoc") String nroDoc){
+        
+        try {
+            Huesped huesped = huespedService.buscarHuesped(tipoDoc, nroDoc);
+            return ResponseEntity.ok(huesped);
+        } catch (EntidadNoEncontradaException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("message", "Error interno: " + e.getMessage()));
+        }
+    }
     // --- CU09: DAR DE ALTA (Endpoint original refactorizado para usar el servicio) ---
     // POST http://localhost:8080/api/huespedes
     @PostMapping
@@ -101,15 +116,30 @@ public class HuespedControlador {
 
     // --- 4. MODIFICAR (CU10) ---
     // PUT http://localhost:8080/api/huespedes
-    @PutMapping
+@PutMapping
     public ResponseEntity<?> modificar(@RequestBody Huesped huesped) {
         try {
-            Huesped huespedActualizado = huespedService.modificarHuesped(huesped);
-            return ResponseEntity.ok(huespedActualizado);
-        } catch (EntidadNoEncontradaException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            Huesped actualizado = huespedService.modificarHuesped(huesped);
+            return ResponseEntity.ok(actualizado);
         } catch (ValidacionException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            // Error 400: Activa el modal "CUIDADO" en el frontend
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (EntidadNoEncontradaException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    // --- 7. MODIFICAR FORZADO (CU10 - Flujo Alternativo 2.B) ---
+    // (Este es nuevo: guarda sin validar duplicados)
+    @PutMapping("/forzar")
+    public ResponseEntity<?> modificarForzado(@RequestBody Huesped huesped) {
+        try {
+            Huesped actualizado = huespedService.modificarHuespedForzado(huesped);
+            return ResponseEntity.ok(actualizado);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("message", e.getMessage()));
         }
     }
 
@@ -127,4 +157,5 @@ public class HuespedControlador {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
+
 }
