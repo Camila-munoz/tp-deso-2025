@@ -3,12 +3,22 @@ package com.example.demo.controladores;
 import com.example.demo.modelo.Estadia;
 import com.example.demo.servicios.EstadiaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+<<<<<<< HEAD
 import java.util.List;
+=======
+import java.util.ArrayList;
+>>>>>>> 184c1c37a88dfd64cd44eb15ef264ea4f1038fb3
 import java.util.Map;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import org.springframework.http.HttpStatus;
 
 @RestController
 @RequestMapping("/api/estadias")
@@ -83,5 +93,61 @@ public class EstadiaControlador {
     @GetMapping("/status")
     public String status() {
         return "Servicio de estadías activo";
+    }
+
+    // --- BUSCAR OCUPANTES DE UNA HABITACIÓN (Para CU07 Facturación) ---
+    @GetMapping("/habitacion/{nro}/ocupantes")
+    public ResponseEntity<?> obtenerOcupantesPorHabitacion(@PathVariable Integer nro) {
+        try {
+            // 1. Llamar al servicio para buscar la estadía ACTIVA en esa habitación
+            // Nota: Debes asegurarte de tener este método en tu servicio (ver abajo)
+            Optional<Estadia> estadiaOpt = estadiaService.buscarEstadiaActivaPorHabitacion(nro);
+
+            // 2. Si no hay estadía activa, devolvemos 404 (Esto activa el modal rojo en el Front)
+            if (estadiaOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of(
+                            "success", false,
+                            "message", "La habitación " + nro + " no se encuentra ocupada."
+                        ));
+            }
+
+            Estadia estadia = estadiaOpt.get();
+
+            // 3. Preparamos la lista de personas para la tabla del Frontend
+            List<Map<String, Object>> listaPersonas = new ArrayList<>();
+
+            // A. Agregamos al Huésped Titular (Responsable)
+            listaPersonas.add(Map.of(
+                "id", estadia.getHuesped().getId(),
+                "apellido", estadia.getHuesped().getApellido(),
+                "nombre", estadia.getHuesped().getNombre(),
+                "tipoDoc", estadia.getHuesped().getTipoDocumento(),
+                "documento", estadia.getHuesped().getNumeroDocumento()
+            ));
+
+            // B. Si tu modelo tiene Acompañantes, agrégalos aquí. 
+            // Si no tienes la lista mapeada aún, con el titular basta para probar.
+            /* if (estadia.getAcompanantes() != null) {
+                for (Persona a : estadia.getAcompanantes()) {
+                    listaPersonas.add(Map.of(
+                        "id", a.getId(),
+                        "apellido", a.getApellido(),
+                        "nombre", a.getNombre(),
+                        "tipoDoc", a.getTipoDocumento(),
+                        "documento", a.getNumeroDocumento()
+                    ));
+                }
+            }
+            */
+
+            return ResponseEntity.ok(listaPersonas);
+
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of(
+                "success", false, 
+                "message", "Error interno: " + e.getMessage()
+            ));
+        }
     }
 }

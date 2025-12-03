@@ -81,16 +81,103 @@ public class HuespedService {
                 .orElseThrow(() -> new EntidadNoEncontradaException("Huésped no encontrado."));
     }
 
-    // --- CU10, CU11, Listar se mantienen ---
+// --- CU10: Modificar huésped (Con validación de duplicados) ---
     public Huesped modificarHuesped(Huesped huespedDatosNuevos) throws ValidacionException, EntidadNoEncontradaException {
-        // Lógica para obtener ID del existente y guardar
-        Huesped huespedExistente = huespedRepositorio.findByDocumento(
-                huespedDatosNuevos.getTipoDocumento(), 
-                huespedDatosNuevos.getNumeroDocumento()
-        ).orElseThrow(() -> new EntidadNoEncontradaException("No se puede modificar. El huésped no existe."));
+        // 1. Buscamos el huésped original por su ID (que nunca cambia)
+        if (huespedDatosNuevos.getId() == null) {
+            throw new ValidacionException("El ID del huésped es obligatorio para modificar.");
+        }
         
-        huespedDatosNuevos.setId(huespedExistente.getId());
+        Huesped huespedExistente = huespedRepositorio.findById(huespedDatosNuevos.getId())
+                .orElseThrow(() -> new EntidadNoEncontradaException("No se encontró el huésped a modificar (ID inválido)."));
+
+        // 2. Verificar si cambió el documento
+        boolean cambioDocumento = !huespedExistente.getTipoDocumento().equalsIgnoreCase(huespedDatosNuevos.getTipoDocumento()) ||
+                                  !huespedExistente.getNumeroDocumento().equalsIgnoreCase(huespedDatosNuevos.getNumeroDocumento());
+
+        if (cambioDocumento) {
+            // 3. Si cambió, verificar que el NUEVO documento no pertenezca a OTRO huésped
+            Optional<Huesped> otroHuesped = huespedRepositorio.findByDocumento(
+                    huespedDatosNuevos.getTipoDocumento(),
+                    huespedDatosNuevos.getNumeroDocumento()
+            );
+
+            if (otroHuesped.isPresent()) {
+                // Flujo Alternativo 2.B: Avisar que ya existe
+                throw new ValidacionException("¡CUIDADO! El tipo y número de documento ya existen en el sistema.");
+            }
+        }
+
+        // 4. Actualizar datos (JPA hace el merge automáticamente al guardar con el mismo ID)
         return huespedRepositorio.save(huespedDatosNuevos);
+    }
+
+    // --- CU10 Flujo Alternativo: Modificar con Fusión (Merge) ---
+    public Huesped modificarHuespedForzado(Huesped huespedOrigen) throws EntidadNoEncontradaException, ValidacionException {
+        
+        // 1. Buscamos al huésped que estamos editando (Origen)
+        Huesped origenEnBD = huespedRepositorio.findById(huespedOrigen.getId())
+                .orElseThrow(() -> new EntidadNoEncontradaException("El huésped origen no existe."));
+
+        // 2. Buscamos si existe OTRO huésped con el DNI nuevo (Destino)
+        Optional<Huesped> destinoOpt = huespedRepositorio.findByDocumento(
+                huespedOrigen.getTipoDocumento(), 
+                huespedOrigen.getNumeroDocumento()
+        );
+
+        if (destinoOpt.isPresent()) {
+            Huesped huespedDestino = destinoOpt.get();
+
+            // Si son el mismo ID, es una actualización normal
+            if (huespedDestino.getId().equals(huespedOrigen.getId())) {
+                return huespedRepositorio.save(huespedOrigen);
+            }
+
+            // --- LÓGICA DE FUSIÓN (MERGE) ---
+            // Queremos que los datos del formulario (huespedOrigen) sobrescriban al Destino.
+            // Pero debemos mantener el ID del Destino para no romper sus relaciones.
+            
+            huespedDestino.setNombre(huespedOrigen.getNombre());
+            huespedDestino.setApellido(huespedOrigen.getApellido());
+            huespedDestino.setFechaNacimiento(huespedOrigen.getFechaNacimiento());
+            huespedDestino.setTelefono(huespedOrigen.getTelefono());
+            huespedDestino.setEmail(huespedOrigen.getEmail());
+            huespedDestino.setNacionalidad(huespedOrigen.getNacionalidad());
+            huespedDestino.setOcupacion(huespedOrigen.getOcupacion());
+            huespedDestino.setPosicionIVA(huespedOrigen.getPosicionIVA());
+            huespedDestino.setCuit(huespedOrigen.getCuit());
+            
+            // Actualizamos también la dirección
+            if (huespedDestino.getDireccion() != null && huespedOrigen.getDireccion() != null) {
+                huespedDestino.getDireccion().setCalle(huespedOrigen.getDireccion().getCalle());
+                huespedDestino.getDireccion().setNumero(huespedOrigen.getDireccion().getNumero());
+                huespedDestino.getDireccion().setDepartamento(huespedOrigen.getDireccion().getDepartamento());
+                huespedDestino.getDireccion().setPiso(huespedOrigen.getDireccion().getPiso());
+                huespedDestino.getDireccion().setCodPostal(huespedOrigen.getDireccion().getCodPostal());
+                huespedDestino.getDireccion().setLocalidad(huespedOrigen.getDireccion().getLocalidad());
+                huespedDestino.getDireccion().setProvincia(huespedOrigen.getDireccion().getProvincia());
+                huespedDestino.getDireccion().setPais(huespedOrigen.getDireccion().getPais());
+            }
+
+            // Guardamos los cambios en el Huesped QUE YA TENÍA ESE DNI
+            Huesped destinoGuardado = huespedRepositorio.save(huespedDestino);
+
+            // Intentamos borrar el Huesped viejo (Origen) para que no queden duplicados
+            try {
+                huespedRepositorio.delete(origenEnBD);
+            } catch (Exception e) {
+                // Si falla (por ejemplo, porque el viejo tenía reservas asociadas),
+                // lanzamos una advertencia o decidimos qué hacer.
+                // Para este TP, lanzamos excepción para que el usuario sepa.
+                throw new ValidacionException("Se actualizaron los datos en el huésped existente, pero no se pudo borrar el registro anterior porque tiene historial asociado. Contacte a soporte.");
+            }
+
+            return destinoGuardado;
+
+        } else {
+            // 3. Si no existe nadie con ese DNI, es una actualización normal (cambio de DNI limpio)
+            return huespedRepositorio.save(huespedOrigen);
+        }
     }
 
     public void darBajaHuesped(String tipoDoc, String nroDoc) throws EntidadNoEncontradaException {

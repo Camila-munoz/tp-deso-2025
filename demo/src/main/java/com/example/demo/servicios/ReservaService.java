@@ -95,4 +95,25 @@ public class ReservaService {
     public List<Reserva> listarTodas() {
         return reservaRepositorio.findAll();
     }
+    // --- NUEVO: Buscar reservas por huésped ---
+    public List<Reserva> buscarPorHuesped(Integer idHuesped) {
+        return reservaRepositorio.findByHuespedId(idHuesped);
+    }
+
+    // --- NUEVO: Cancelar múltiples reservas (opcional) ---
+    public int cancelarMultiplesReservas(List<Integer> idsReservas) throws Exception {
+        int canceladas = 0;
+        
+        for (Integer idReserva : idsReservas) {
+            try {
+                cancelarReserva(idReserva);
+                canceladas++;
+            } catch (Exception e) {
+                // Continuar con las demás reservas
+                System.err.println("Error al cancelar reserva " + idReserva + ": " + e.getMessage());
+            }
+        }
+        
+        return canceladas;
+    }
 }
