@@ -14,16 +14,14 @@ public interface ReservaRepositorio extends JpaRepository<Reserva, Integer> {
 
     // Validar Disponibilidad (CU04):
     // Busca si hay alguna reserva ACTIVA que se solape con las fechas para esas habitaciones.
-    @Query("SELECT r FROM Reserva r JOIN r.habitaciones h " +
-           "WHERE h.id IN :idsHabitaciones " +
-           "AND r.estado <> 'CANCELADA' " +
+   @Query("SELECT r FROM Reserva r " +
+           "WHERE r.habitacion.id = :idHabitacion " + 
+           "AND r.estado <> com.example.demo.modelo.EstadoReserva.CANCELADA " +
            "AND (r.fechaEntrada < :fechaFin AND r.fechaSalida > :fechaInicio)")
     List<Reserva> findReservasConflictivas(
-            @Param("idsHabitaciones") List<Integer> idsHabitaciones,
+            @Param("idHabitacion") Integer idHabitacion,
             @Param("fechaInicio") LocalDate fechaInicio,
             @Param("fechaFin") LocalDate fechaFin
     );
-    
-    // Para buscar reservas de un huésped (útil para listar)
-    List<Reserva> findByHuespedId(Integer idHuesped);
+
 }

@@ -5,7 +5,9 @@ import com.example.demo.excepciones.ValidacionException;
 import com.example.demo.modelo.Consumo;
 import com.example.demo.modelo.EstadoFactura;
 import com.example.demo.modelo.Factura;
+import com.example.demo.modelo.Huesped;
 import com.example.demo.repositorios.FacturaRepositorio;
+import com.example.demo.repositorios.HuespedRepositorio;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,7 +27,7 @@ public class FacturaService {
     @Autowired
     private com.example.demo.repositorios.EstadiaRepositorio estadiaRepositorio;
     @Autowired
-    private com.example.demo.repositorios.HuespedRepositorio huespedRepositorio; // Opcional, si accedes via estadia.getHuesped() no hace falta.
+    private com.example.demo.repositorios.HuespedRepositorio huespedRepositorio;
 
     /**
      * CU: Crea una nueva factura.
@@ -85,12 +87,17 @@ public class FacturaService {
         com.example.demo.modelo.Estadia estadia = estadiaRepositorio.findById(idEstadia)
                 .orElseThrow(() -> new EntidadNoEncontradaException("Estadía no encontrada"));
 
+        // Buscar el huésped asociado a la estadía
+        Huesped huesped = huespedRepositorio.findByEstadiaId(idEstadia)
+                .orElseThrow(() -> new EntidadNoEncontradaException("No se encontró un huésped asociado a esta estadía."));
+
+        
         BigDecimal total = BigDecimal.ZERO;
         java.util.List<java.util.Map<String, Object>> items = new java.util.ArrayList<>();
 
         // 2. Calcular costo de la habitación (Precio x Días)
         // Nota: Asumo que en Habitacion el precio es Double, lo convertimos a BigDecimal
-        BigDecimal precioNoche = BigDecimal.valueOf(estadia.getHabitacion().getPrecio());
+        BigDecimal precioNoche = estadia.getHabitacion().getCosto();
         BigDecimal costoEstadia = precioNoche.multiply(new BigDecimal(estadia.getCantidadDias()));
         
         items.add(java.util.Map.of(
@@ -112,14 +119,13 @@ public class FacturaService {
         // 4. Determinar si es Factura A o B (Regla de negocio simple)
         String tipoFactura = "B";
         // Verificamos si la posición IVA es Responsable Inscripto
-        if (estadia.getHuesped().getPosicionIVA() != null && 
-            estadia.getHuesped().getPosicionIVA().contains("RESPONSABLE_INSCRIPTO")) {
+       if (huesped.getPosicionIVA() != null && huesped.getPosicionIVA().contains("RESPONSABLE_INSCRIPTO")) {
             tipoFactura = "A";
         }
 
         // 5. Retornar estructura lista para el JSON
         return java.util.Map.of(
-            "huesped", estadia.getHuesped().getNombre() + " " + estadia.getHuesped().getApellido(),
+            "huesped", huesped.getNombre() + " " + huesped.getApellido(),
             "subtotal", total,
             "total", total, // Aquí podrías sumar IVA si fuera necesario separar
             "tipoFactura", tipoFactura,

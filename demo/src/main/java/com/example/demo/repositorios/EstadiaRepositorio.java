@@ -1,5 +1,6 @@
 package com.example.demo.repositorios;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import com.example.demo.modelo.Estadia;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,4 +13,15 @@ public interface EstadiaRepositorio extends JpaRepository<Estadia, Integer> {
     
     @Query("SELECT e FROM Estadia e WHERE e.huesped.id = :idHuesped")
     List<Estadia> findByHuespedID(@Param("idHuesped") Integer idHuesped);
+
+    // Busca estadías que se solapen con el rango de fechas solicitado
+    @Query("SELECT e FROM Estadia e " +
+           "WHERE e.habitacion.id = :idHabitacion " +
+           "AND e.checkOut IS NOT NULL " + // Solo estadías activas o futuras definidas
+           "AND (e.checkIn < :fechaFin AND e.checkOut > :fechaInicio)")
+    List<Estadia> findEstadiasConflictivas(
+            @Param("idHabitacion") Integer idHabitacion,
+            @Param("fechaInicio") LocalDateTime fechaInicio,
+            @Param("fechaFin") LocalDateTime fechaFin
+    );
 }

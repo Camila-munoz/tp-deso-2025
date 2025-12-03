@@ -21,7 +21,7 @@ public class HabitacionControlador {
 
     @Autowired
     private HabitacionRepositorio habitacionRepositorio;
-    // ✅ PASO 2: Inyectar el Servicio para los Casos de Uso (CU05)
+    
     @Autowired
     private HabitacionService habitacionService; // <--- ¡Esto faltaba!
 
@@ -57,18 +57,15 @@ public class HabitacionControlador {
         @RequestParam String fechaHasta) {
         
         try {
-            LocalDate fDesde = LocalDate.parse(fechaDesde);
+           LocalDate fDesde = LocalDate.parse(fechaDesde);
             LocalDate fHasta = LocalDate.parse(fechaHasta);
             
-            // Lógica principal: obtener el estado de disponibilidad por ID
-            Map<Integer, EstadoHabitacion> estado = habitacionService.mostrarEstadoHabitaciones(fDesde, fHasta);
+            // Ahora devuelve una Lista de celdas, no un mapa simple
+            List<Map<String, Object>> grilla = habitacionService.mostrarEstadoHabitaciones(fDesde, fHasta);
             
-            // Nota: La presentación en grilla (eje horizontal/vertical, colores) 
-            // es responsabilidad del frontend[cite: 232, 233].
             return ResponseEntity.ok(Map.of(
                 "success", true,
-                "message", "Estado de habitaciones consultado correctamente.",
-                "data", estado
+                "data", grilla 
             ));
         } catch (ValidacionException e) {
             return ResponseEntity.badRequest().body(Map.of(

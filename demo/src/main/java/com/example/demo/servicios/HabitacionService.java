@@ -3,14 +3,18 @@ package com.example.demo.servicios;
 import com.example.demo.modelo.Habitacion;
 import com.example.demo.modelo.Reserva;
 import com.example.demo.modelo.EstadoHabitacion;
+import com.example.demo.modelo.Estadia;
 import com.example.demo.repositorios.HabitacionRepositorio;
-import com.example.demo.repositorios.ReservaRepositorio; // Necesario para buscar conflictos
+import com.example.demo.repositorios.ReservaRepositorio;
+import com.example.demo.repositorios.EstadiaRepositorio;
 import com.example.demo.excepciones.ValidacionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,63 +29,75 @@ public class HabitacionService {
     @Autowired
     private ReservaRepositorio reservaRepositorio;
 
+    @Autowired
+    private EstadiaRepositorio estadiaRepositorio;
+
     /**
      * CU05: Muestra el estado de todas las habitaciones para un rango de fechas.
      * @return Mapa donde la clave es la Habitación y el valor es el estado para el rango.
      */
-    public Map<Integer, EstadoHabitacion> mostrarEstadoHabitaciones(LocalDate fechaDesde, LocalDate fechaHasta) throws ValidacionException {
-        
-        if (fechaDesde == null) {
-        throw new ValidacionException("El campo 'fechaDesde' es obligatorio.");
-        }
-        if (fechaHasta == null) {
-        throw new ValidacionException("El campo 'fechaHasta' es obligatorio.");
-        }
-    
-        // Validaciones lógicas ya existentes:
-        if (fechaDesde.isAfter(fechaHasta)) {
-        throw new ValidacionException("La fecha inicial no puede ser posterior a la fecha final.");
-        }
-        
-        // 1. Obtener todas las habitaciones.
-        List<Habitacion> todasHabitaciones = habitacionRepositorio.findAll();
-        
-        // 2. Obtener los IDs de todas las habitaciones para la consulta de conflictos.
-        List<Integer> todosIds = todasHabitaciones.stream()
-            .map(Habitacion::getId)
-            .collect(Collectors.toList());
+    public List<Map<String, Object>> mostrarEstadoHabitaciones(LocalDate fechaDesde, LocalDate fechaHasta) throws ValidacionException {
+        if (fechaDesde == null || fechaHasta == null) throw new ValidacionException("Fechas obligatorias.");
 
-        // 3. Buscar todas las reservas que se solapan en ese rango (Usando el método de ReservaRepositorio).
-        List<Reserva> reservasConflictivas = reservaRepositorio.findReservasConflictivas(
-            todosIds, 
-            fechaDesde, 
-            fechaHasta
-        );
-        
-        // 4. Crear mapa de resultados (ID de Habitación -> Estado)
-        Map<Integer, EstadoHabitacion> estadoFinal = todasHabitaciones.stream()
-            .collect(Collectors.toMap(Habitacion::getId, Habitacion::getEstado));
+        List<Habitacion> todas = habitacionRepositorio.findAll();
+        List<Map<String, Object>> grilla = new ArrayList<>();
 
-        // 5. Aplicar estados temporales basados en las reservas.
-        // Itera sobre las habitaciones y verifica si alguna está reservada o ya ocupada
-        for (Habitacion hab : todasHabitaciones) {
-            // Estado inicial de la BD (OCUPADA/FUERA_DE_SERVICIO) tiene prioridad.
-            if (hab.getEstado() == EstadoHabitacion.OCUPADA || hab.getEstado() == EstadoHabitacion.FUERA_DE_SERVICIO) {
-                // Si ya está ocupada o fuera de servicio, su estado es definitivo.
-                continue; 
-            }
+        // Convertimos LocalDate a LocalDateTime para buscar estadías
+        LocalDateTime inicioDia = fechaDesde.atStartOfDay();
+        LocalDateTime finDia = fechaHasta.atTime(LocalTime.MAX);
+
+        // Iteramos por cada habitación
+        for (Habitacion hab : todas) {
             
-            // Si no está ocupada, verificamos si está reservada en el rango.
-            boolean estaReservada = reservasConflictivas.stream()
-                .anyMatch(reserva -> reserva.getHabitaciones().contains(hab));
+            // 1. Buscamos Reservas (Amarillo)
+            List<Reserva> reservas = reservaRepositorio.findReservasConflictivas(hab.getId(), fechaDesde, fechaHasta);
+            
+            // 2. Buscamos Estadías (Rojo)
+            List<Estadia> estadias = estadiaRepositorio.findEstadiasConflictivas(hab.getId(), inicioDia, finDia);
 
-            if (estaReservada) {
-                estadoFinal.put(hab.getId(), EstadoHabitacion.RESERVADA);
-            } else {
-                estadoFinal.put(hab.getId(), EstadoHabitacion.LIBRE);
+            LocalDate diaActual = fechaDesde;
+            
+            while (!diaActual.isAfter(fechaHasta)) {
+                
+                EstadoHabitacion estadoDia = EstadoHabitacion.LIBRE;
+
+                // A. Prioridad 1: FUERA DE SERVICIO
+                if (hab.getEstado() == EstadoHabitacion.FUERA_DE_SERVICIO) {
+                    estadoDia = EstadoHabitacion.FUERA_DE_SERVICIO;
+                } else {
+                    
+                    // B. Prioridad 2: OCUPADA (Estadía Activa)
+                    for (Estadia e : estadias) {
+                        LocalDate in = e.getCheckIn().toLocalDate();
+                        LocalDate out = e.getCheckOut().toLocalDate();
+                        
+                        // Si el día cae dentro de la estadía (Inclusive checkin, exclusive checkout)
+                        if (!diaActual.isBefore(in) && diaActual.isBefore(out)) {
+                            estadoDia = EstadoHabitacion.OCUPADA;
+                            break;
+                        }
+                    }
+
+                    // C. Prioridad 3: RESERVADA (Solo si no está ocupada)
+                    if (estadoDia == EstadoHabitacion.LIBRE) {
+                        for (Reserva r : reservas) {
+                            if (!diaActual.isBefore(r.getFechaEntrada()) && !diaActual.isAfter(r.getFechaSalida())) {
+                                estadoDia = EstadoHabitacion.RESERVADA;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                Map<String, Object> celda = new HashMap<>();
+                celda.put("idHabitacion", hab.getId());
+                celda.put("fecha", diaActual.toString());
+                celda.put("estado", estadoDia);
+                grilla.add(celda);
+
+                diaActual = diaActual.plusDays(1);
             }
         }
-        
-        return estadoFinal;
+        return grilla;
     }
 }

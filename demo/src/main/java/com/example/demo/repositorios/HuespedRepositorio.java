@@ -12,7 +12,6 @@ import java.util.Optional;
 @Repository
 public interface HuespedRepositorio extends JpaRepository<Huesped, Integer> {
 
-    // ✅ CORREGIDO: Usando @Query de JPA con parámetros nombrados
     @Query("SELECT h FROM Huesped h WHERE h.tipoDocumento = :tipo AND h.numeroDocumento = :numero")
     Optional<Huesped> findByDocumento(@Param("tipo") String tipo, @Param("numero") String numero);
 
@@ -26,5 +25,9 @@ public interface HuespedRepositorio extends JpaRepository<Huesped, Integer> {
     @Param("nombre") String nombre,
     @Param("tipoDoc") String tipoDoc,
     @Param("numDoc") String numDoc
-);
+    );
+
+    @Query("SELECT h FROM Huesped h WHERE h.estadia.id = :idEstadia")
+    Optional<Huesped> findByEstadiaId(@Param("idEstadia") Integer idEstadia);
+
 }
