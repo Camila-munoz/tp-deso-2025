@@ -1,5 +1,7 @@
 package com.example.demo.modelo;
 
+import java.math.BigDecimal;
+
 import com.example.demo.modelo.TipoHabitacion;
 import jakarta.persistence.*;
 
@@ -22,22 +24,18 @@ public class Habitacion {
     @Column(name = "cantidad")
     private Integer cantidad;
 
-    @Column(name = "costo") // Mapea 'precio' de Java a 'costo' de la BD
-    private Double precio;
+    @Column(name = "costo")
+    private BigDecimal costo;
 
-    @Column(name = "capacidad")  // ✅ Asegúrate que sea Integer, no int
-    private Integer capacidad;   // ✅ Para evitar el mismo problema
+    @Column(name = "capacidad")  
+    private Integer capacidad;   
 
     @Column(name = "porcentaje_descuento")
-    private Double porcentajeDescuento;
+    private BigDecimal porcentajeDescuento;
 
     @ManyToOne
-    @JoinColumn(name = "ID_TipoHabitacion") // Esta es la Foreign Key en la BD
+    @JoinColumn(name = "ID_TipoHabitacion")
     private TipoHabitacion tipo;
-
-    @ManyToOne
-    @JoinColumn(name = "ID_Categoria")
-    private Categoria categoria;
  
     // CONSTRUCTOR VACÍO
     public Habitacion() {
@@ -57,8 +55,8 @@ public class Habitacion {
     public TipoHabitacion getTipo() { return tipo; }
     public void setTipo(TipoHabitacion tipo) { this.tipo = tipo; }
 
-    public Double getPrecio() { return precio; }
-    public void setPrecio(Double precio) { this.precio = precio; }
+    public BigDecimal getCosto() { return costo; }
+    public void setCosto(BigDecimal costo) { this.costo = costo; }
    
     public EstadoHabitacion getEstado() { return estado; }
     public void setEstado(EstadoHabitacion estado) { this.estado = estado; }
@@ -66,14 +64,11 @@ public class Habitacion {
     public Integer getCapacidad() { return capacidad; }
     public void setCapacidad(Integer capacidad) { this.capacidad = capacidad; }
 
-    public Categoria getCategoria() { return categoria; }
-    public void setCategoria(Categoria categoria) { this.categoria = categoria; }
-
-    public Double getPorcentajeDescuento() { return porcentajeDescuento; }
-    public void setPorcentajeDescuento(Double porcentajeDescuento) { this.porcentajeDescuento = porcentajeDescuento; }
+    public BigDecimal getPorcentajeDescuento() { return porcentajeDescuento; }
+    public void setPorcentajeDescuento(BigDecimal porcentajeDescuento) { this.porcentajeDescuento = porcentajeDescuento; }
 
     @Override
     public String toString() {
-        return "Habitacion [id=" + id + ", numero=" + numero + ", precio=" + precio + "]";
+        return "Habitacion [id=" + id + ", numero=" + numero + ", costo=" + costo + "]";
     }
 }

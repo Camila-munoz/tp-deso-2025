@@ -1,4 +1,4 @@
--- Active: 1763931386304@@localhost@3306@hotel_premier
+-- Active: 1764638966350@@localhost@3306@hotel_premier
 CREATE DATABASE IF NOT EXISTS hotel_premier;
 USE hotel_premier;
 
@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS Direccion (
 -- 2. HABITACIONES
 CREATE TABLE IF NOT EXISTS Habitacion (
     ID_Habitacion INT AUTO_INCREMENT PRIMARY KEY,
+    numero VARCHAR(10) NOT NULL,
     estado VARCHAR(20) NOT NULL CHECK (estado IN ('LIBRE','RESERVADA','OCUPADA','FUERA_DE_SERVICIO')),
     cantidad INT NOT NULL,
     costo DECIMAL(10, 2) NOT NULL,
@@ -67,7 +68,7 @@ CREATE TABLE IF NOT EXISTS Huesped (
     ID_Direccion INT NOT NULL,
     ID_Estadia INT NULL,
     FOREIGN KEY (ID_Estadia) REFERENCES Estadia(ID_Estadia) ON DELETE SET NULL ON UPDATE CASCADE,
-    FOREIGN KEY (ID_Direccion) REFERENCES Direccion(ID_Direccion) ON DELETE SET NULL ON UPDATE CASCADE
+    FOREIGN KEY (ID_Direccion) REFERENCES Direccion(ID_Direccion) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- 4. RESERVAS Y ESTADIAS
@@ -90,10 +91,12 @@ CREATE TABLE IF NOT EXISTS Estadia (
     cantidad_dias INT NOT NULL,
     cantidad_huespedes INT NOT NULL,
     cantidad_habitaciones INT NOT NULL,
-    ID_Reserva INT NOT NULL UNIQUE,
+    ID_Reserva INT UNIQUE,
     ID_Habitacion INT NOT NULL,
+    ID_Huesped INT NOT NULL,
     FOREIGN KEY (ID_Reserva) REFERENCES Reserva(ID_Reserva),
-    FOREIGN KEY (ID_Habitacion) REFERENCES Habitacion(ID_Habitacion)
+    FOREIGN KEY (ID_Habitacion) REFERENCES Habitacion(ID_Habitacion),
+    FOREIGN KEY (ID_Huesped) REFERENCES Huesped(ID_Huesped)
 );
 
 CREATE TABLE IF NOT EXISTS Consumo (
@@ -106,14 +109,13 @@ CREATE TABLE IF NOT EXISTS Consumo (
 
 -- 5. RESPONSABLES DE PAGO
 CREATE TABLE IF NOT EXISTS Responsable_De_Pago (
-    ID_Responsable INT AUTO_INCREMENT PRIMARY KEY,
-    razon_social VARCHAR(100) -- Agregado para dar contexto
+    ID_Responsable INT AUTO_INCREMENT PRIMARY KEY
 );
 
 CREATE TABLE IF NOT EXISTS Persona_Fisica (
     ID_Persona_Fisica INT AUTO_INCREMENT PRIMARY KEY,
     ID_Responsable INT NOT NULL,
-    ID_Huesped INT NOT NULL,
+    ID_Huesped INT,
     FOREIGN KEY (ID_Huesped) REFERENCES Huesped(ID_Huesped),
     FOREIGN KEY (ID_Responsable) REFERENCES Responsable_de_pago(ID_Responsable) ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -125,7 +127,7 @@ CREATE TABLE IF NOT EXISTS Persona_Juridica (
     ID_Direccion INT NOT NULL,
     ID_Responsable INT NOT NULL,
     FOREIGN KEY (ID_Direccion) REFERENCES Direccion(ID_Direccion),
-    FOREIGN KEY (ID_Persona_Juridica) REFERENCES Responsable_De_Pago(ID_Responsable),
+    FOREIGN KEY (ID_Responsable) REFERENCES Responsable_De_Pago(ID_Responsable) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- 6. FACTURACION
@@ -136,7 +138,7 @@ CREATE TABLE IF NOT EXISTS Factura (
     estado VARCHAR(50) NOT NULL CHECK (estado IN ('PENDIENTE', 'PAGADA', 'ANULADA')),
     ID_Estadia INT NOT NULL,
     ID_Responsable INT NOT NULL,
-    ID_NotaCredito INT NULL,
+    ID_NotaCredito INT,
     FOREIGN KEY (ID_NotaCredito) REFERENCES Nota_Credito(ID_NotaCredito),
     FOREIGN KEY (ID_Estadia) REFERENCES Estadia(ID_Estadia),
     FOREIGN KEY (ID_Responsable) REFERENCES Responsable_De_Pago(ID_Responsable)
@@ -145,7 +147,7 @@ CREATE TABLE IF NOT EXISTS Factura (
 CREATE TABLE IF NOT EXISTS Nota_Credito (
     ID_NotaCredito INT AUTO_INCREMENT PRIMARY KEY,
     descripcion TEXT NULL,
-    monto DECIMAL(10, 2) NOT NULL,
+    monto DECIMAL(10, 2) NOT NULL
 );
 
 -- 7. PAGOS Y MEDIOS DE PAGO

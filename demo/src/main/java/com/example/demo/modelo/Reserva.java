@@ -12,31 +12,30 @@ public class Reserva {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID_Reserva")
-    private Integer id; // Usamos Integer para coincidir con tus otros modelos
+    private Integer id; 
 
     @Column(name = "estado_reserva")
     @Enumerated(EnumType.STRING)
     private EstadoReserva estado;
 
-    @Column(name = "fecha_entrada", nullable = false)
+    @Column(name = "fecha_entrada")
     private LocalDate fechaEntrada;
 
-    @Column(name = "fecha_salida", nullable = false)
+    @Column(name = "fecha_salida")
     private LocalDate fechaSalida;
 
-    // Relación con el Huésped titular
-    @ManyToOne
-    @JoinColumn(name = "ID_Huesped", nullable = false)
-    private Huesped huesped;
+    @Column(name = "nombreHuesped")
+    private String nombreHuesped;
 
-    // Relación Muchos a Muchos con Habitaciones (según tu tabla Reserva_Habitacion)
-    @ManyToMany
-    @JoinTable(
-        name = "Reserva_Habitacion", 
-        joinColumns = @JoinColumn(name = "ID_Reserva"),
-        inverseJoinColumns = @JoinColumn(name = "ID_Habitacion")
-    )
-    private List<Habitacion> habitaciones = new ArrayList<>();
+    @Column(name = "apellidoHuesped")
+    private String apellidoHuesped;
+
+    @Column(name = "telefonoHuesped")
+    private String telefonoHuesped;
+
+    @ManyToOne
+    @JoinColumn(name = "ID_Habitacion")
+    private Habitacion habitacion;
 
     public Reserva() {}
 
@@ -53,9 +52,15 @@ public class Reserva {
     public LocalDate getFechaSalida() { return fechaSalida; }
     public void setFechaSalida(LocalDate fechaSalida) { this.fechaSalida = fechaSalida; }
 
-    public Huesped getHuesped() { return huesped; }
-    public void setHuesped(Huesped huesped) { this.huesped = huesped; }
+    public String getNombreHuesped() { return nombreHuesped; }
+    public void setNombreHuesped(String nombreHuesped) { this.nombreHuesped = nombreHuesped; }
 
-    public List<Habitacion> getHabitaciones() { return habitaciones; }
-    public void setHabitaciones(List<Habitacion> habitaciones) { this.habitaciones = habitaciones; }
-}
+    public String getApellidoHuesped() { return apellidoHuesped; }
+    public void setApellidoHuesped(String apellidoHuesped) { this.apellidoHuesped = apellidoHuesped; }
+
+    public String getTelefonoHuesped() { return telefonoHuesped; }
+    public void setTelefonoHuesped(String telefonoHuesped) { this.telefonoHuesped = telefonoHuesped; }
+
+    public Habitacion getHabitacion() { return habitacion; }
+    public void setHabitacion(Habitacion habitacion) { this.habitacion = habitacion; }
+}   
