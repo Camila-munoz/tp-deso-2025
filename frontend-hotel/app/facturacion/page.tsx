@@ -1,7 +1,8 @@
 "use client";
 import { useState, useRef } from "react"; // 1. Importamos useRef
 import { useRouter } from "next/navigation";
-import { previsualizarFactura, confirmarFactura, buscarOcupantes } from "@/services/api";
+import { previsualizarFactura, confirmarFactura } from "@/services/api";
+
 // --- TIPOS ---
 interface ItemFactura {
   concepto: string;
@@ -58,51 +59,54 @@ export default function FacturacionPage() {
     if (!numHabitacion.trim()) {
       erroresDetectados.push("- El número de habitación es obligatorio.");
       if (!focoAsignado) {
+        // Guardamos la intención de enfocar este input si falla
+        // Lo haremos efectivo al cerrar el modal de error o inmediatamente
         focoAsignado = true;
+        // Nota: El foco real se aplica cuando el usuario cierra el modal de error,
+        // pero guardamos cuál es el "primer campo faltante".
       }
+    } 
+    // Simulación de validación de negocio (Habitación no ocupada)
+    // En un caso real, esto vendría de una consulta rápida al backend.
+    // Aquí simulamos que la habitación "100" está vacía para probar el error.
+    else if (numHabitacion === "100") { 
+       erroresDetectados.push("- La habitación indicada no se encuentra ocupada.");
+       if (!focoAsignado) focoAsignado = true;
     }
+
     // 2. Validar Hora de Salida
     if (!horaSalida.trim()) {
       erroresDetectados.push("- La hora de salida es obligatoria.");
+      // Si el anterior no capturó el foco, lo captura este
+      // Req 3.A.2: "El sistema pone el foco en el primer campo faltante"
       if (!focoAsignado) {
-
+         // Marcaremos este input para foco manual luego
+         // En React con modales, a veces conviene setear una variable de estado "campoConError"
+         // Pero usaremos la referencia directa en el cierre del modal.
       }
     } else {
+      // Validación extra de formato de hora (opcional pero recomendada)
       const regexHora = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
       if (!regexHora.test(horaSalida)) {
         erroresDetectados.push("- La hora debe tener formato HH:mm (ej: 10:00).");
       }
     }
+
+    // 3.A.1: Si hay errores, mostrar mensaje único con TODOS los errores explícitos
     if (erroresDetectados.length > 0) {
       setMensajesError(erroresDetectados);
       setErrorModalOpen(true);
       return; // Cortamos el flujo, volvemos al punto 3 del flujo principal (estado inicial)
     }
 
-    // 2. Validación contra el BACKEND (Habitación Ocupada)
-    setLoading(true);
-    try {
-      // LLAMADA REAL A LA API
-      const ocupantes = await buscarOcupantes(numHabitacion);
-      
-      // Si llegamos aquí, la API respondió OK (200)
-      setHuespedes(ocupantes); // Asignamos los datos reales a la tabla
-      setPaso(2); // Avanzamos a la siguiente pantalla
-
-    } catch (error: any) {
-      // CAPTURA DE ERRORES DEL BACKEND (404, 500, etc)
-      // Aquí entra si la habitación no está ocupada (404)
-      setMensajesError([`- ${error.message}`]);
-      setErrorModalOpen(true);
-      
-      // Si el error fue de la habitación, aseguramos que el foco vaya ahí
-      if (!focoAsignado) {
-          // Asumimos que el error de API se refiere a la habitación
-          // (Podrías refinar esto si tu API devuelve códigos de error específicos para campos)
-      }
-    } finally {
-      setLoading(false);
-    }
+    // Si pasa validaciones, continuamos...
+    
+    // MOCK: Aquí iría la llamada a la API para traer ocupantes reales
+    setHuespedes([
+      { id: 10, apellido: "PEREZ", nombre: "JUAN", tipoDoc: "DNI", documento: "30.111.222" },
+      { id: 11, apellido: "GOMEZ", nombre: "MARIA", tipoDoc: "DNI", documento: "28.444.555" },
+    ]);
+    setPaso(2);
   };
 
   // Función para cerrar el modal de error y poner el foco (Req 3.A.2)

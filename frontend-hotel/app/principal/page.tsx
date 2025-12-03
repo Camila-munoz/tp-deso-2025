@@ -1,5 +1,6 @@
 "use client";
 
+import { label } from "framer-motion/client";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -16,8 +17,8 @@ export default function PrincipalPage() {
   const opciones = [
     { label: "Buscar Huésped", path: "/huespedes" },
     { label: "Crear Huésped", path: "/huespedes/nuevo" },
-    { label: "Estado de Habitaciones", path: "/habitaciones" },
     { label: "Crear Reserva", path: "/reservas" },
+    {label: "Check-In", path: "/ocupar" },
     { label: "Cancelar Reserva", path: "/cancelar-reserva" },
     { label: "Facturar", path: "/facturacion" },
   ];
