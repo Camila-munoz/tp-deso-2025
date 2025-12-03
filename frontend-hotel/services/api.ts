@@ -1,7 +1,7 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// Si existe la variable de entorno la usa, si no, usa localhost:8080 por defecto
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 
 // --- AUTENTICACIÓN (CU01) ---
-
 export interface ConserjeLogin {
   nombre: string;
   contrasena: string;
@@ -10,25 +10,19 @@ export interface ConserjeLogin {
 export const autenticarUsuario = async (datos: ConserjeLogin) => {
   const response = await fetch(`${API_URL}/conserjes/login`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(datos),
   });
 
   const data = await response.json();
-
   if (!response.ok) {
     throw new Error(data.message || "Error al autenticar");
   }
-
   return data;
 };
 
 // --- HUÉSPEDES (CU02 y CU09) ---
-
 export const buscarHuespedes = async (filtros: any) => {
-  // Limpiamos filtros vacíos
   const params = new URLSearchParams();
   Object.keys(filtros).forEach(key => {
     if (filtros[key]) params.append(key, filtros[key]);
@@ -45,7 +39,6 @@ export const crearHuesped = async (huesped: any) => {
     body: JSON.stringify(huesped),
   });
 
-  // Si devuelve error 400, puede ser el caso de duplicado
   if (!res.ok) {
     const errorData = await res.text(); // A veces Spring devuelve texto plano
     throw { status: res.status, message: errorData };
@@ -64,7 +57,6 @@ export const crearHuespedForzado = async (huesped: any) => {
 };
 
 // --- FACTURACIÓN (CU07) ---
-
 export const previsualizarFactura = async (idEstadia: number) => {
   const res = await fetch(`${API_URL}/facturas/previsualizar?idEstadia=${idEstadia}`);
   if (!res.ok) {
@@ -87,8 +79,7 @@ export const confirmarFactura = async (facturaData: any) => {
   return res.json();
 };
 
-// --- HABITACIONES (CU05) ---
-
+// --- HABITACIONES (CU05 - Grilla) ---
 export const getHabitaciones = async () => {
   const res = await fetch(`${API_URL}/habitaciones`);
   if (!res.ok) throw new Error("Error al obtener habitaciones");
@@ -96,11 +87,45 @@ export const getHabitaciones = async () => {
 };
 
 export const getEstadoHabitaciones = async (desde: string, hasta: string) => {
-  // backend: /api/habitaciones/estado?fechaDesde=...&fechaHasta=...
   const res = await fetch(`${API_URL}/habitaciones/estado?fechaDesde=${desde}&fechaHasta=${hasta}`);
   if (!res.ok) {
     const error = await res.json();
     throw new Error(error.message || "Error al consultar estado");
   }
   return res.json();
+};
+
+// =================================================================
+// AGREGADOS NUEVOS (CU04 y CU15) - INTEGRACIÓN
+// =================================================================
+
+// --- RESERVAS (CU04) ---
+export const crearReserva = async (data: any) => {
+  const res = await fetch(`${API_URL}/reservas`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  
+  if (!res.ok) {
+    // Intentamos leer el JSON de error, si falla usamos un mensaje genérico
+    const errorData = await res.json().catch(() => ({ message: "Error desconocido al reservar" }));
+    throw new Error(errorData.message || "Error al crear la reserva");
+  }
+  return await res.json();
+};
+
+// --- ESTADÍAS / OCUPACIÓN (CU15) ---
+export const crearEstadia = async (data: any) => {
+  const res = await fetch(`${API_URL}/estadias`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ message: "Error desconocido al ocupar" }));
+    throw new Error(errorData.message || "Error al realizar el check-in");
+  }
+  return await res.json();
 };
