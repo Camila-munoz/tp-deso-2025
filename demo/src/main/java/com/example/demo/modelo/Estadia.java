@@ -20,14 +20,6 @@ public class Estadia {
     
     @Column(name = "cantidad_dias")
     private int cantidadDias; 
-    
-    @ManyToOne
-    @JoinColumn(name = "ID_Habitacion")
-    private Habitacion habitacion;
-
-    @ManyToOne
-    @JoinColumn(name = "ID_Huesped")
-    private Huesped huesped;
 
     @Column(name = "check_in")
     private LocalDateTime checkIn; 
@@ -35,8 +27,17 @@ public class Estadia {
     @Column(name = "check_out")
     private LocalDateTime checkOut;
     
-    @Column(name = "ID_Reserva")
+    @ManyToOne
+    @JoinColumn(name = "ID_Habitacion")
+    private Habitacion habitacion;
+
+
+    @Column(name = "ID_Reserva") 
     private Integer idReserva;
+
+    @ManyToOne
+    @JoinColumn(name = "ID_Huesped")
+    private Huesped huesped;
 
     // CONSTRUCTOR VACÍO
     public Estadia() { }
@@ -57,9 +58,6 @@ public class Estadia {
     public Habitacion getHabitacion() { return habitacion; }
     public void setHabitacion(Habitacion habitacion) { this.habitacion = habitacion; }
 
-    public Huesped getHuesped() { return huesped; }
-    public void setHuesped(Huesped huesped) { this.huesped = huesped; }
-
     public LocalDateTime getCheckIn() { return checkIn; }
     public void setCheckIn(LocalDateTime checkIn) { this.checkIn = checkIn; }
 
@@ -68,4 +66,7 @@ public class Estadia {
 
     public Integer getIdReserva() { return idReserva; }
     public void setIdReserva(Integer idReserva) { this.idReserva = idReserva; }
+
+    public Huesped getHuesped() { return huesped; }
+    public void setHuesped(Huesped huesped) { this.huesped = huesped; }
 }
