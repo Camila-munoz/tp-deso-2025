@@ -28,14 +28,16 @@ export const autenticarUsuario = async (datos: ConserjeLogin) => {
 // --- HUÉSPEDES (CU02 y CU09) ---
 
 export const buscarHuespedes = async (filtros: any) => {
-  // Limpiamos filtros vacíos
   const params = new URLSearchParams();
   Object.keys(filtros).forEach(key => {
     if (filtros[key]) params.append(key, filtros[key]);
   });
 
   const res = await fetch(`${API_URL}/huespedes/buscar?${params.toString()}`);
-  return res.json();
+
+  const data = await res.json();
+
+  return data; // mantiene success, message y data
 };
 
 export const crearHuesped = async (huesped: any) => {
@@ -62,6 +64,7 @@ export const crearHuespedForzado = async (huesped: any) => {
   if (!res.ok) throw new Error("Error al forzar el alta");
   return res.json();
 };
+
 
 // --- FACTURACIÓN (CU07) ---
 
