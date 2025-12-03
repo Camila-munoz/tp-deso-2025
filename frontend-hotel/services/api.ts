@@ -97,7 +97,6 @@ export const getEstadoHabitaciones = async (desde: string, hasta: string) => {
     throw new Error(error.message || "Error al consultar estado");
   }
   return res.json();
-<<<<<<< HEAD
 };
 
 // =================================================================
@@ -133,7 +132,6 @@ export const crearEstadia = async (data: any) => {
     throw new Error(errorData.message || "Error al realizar el check-in");
   }
   return await res.json();
-=======
 
   
 };
@@ -214,5 +212,4 @@ export const buscarOcupantes = async (nroHabitacion: string) => {
     throw new Error("Error al buscar ocupantes.");
   }
   return res.json();
->>>>>>> 184c1c37a88dfd64cd44eb15ef264ea4f1038fb3
 };

@@ -1,13 +1,14 @@
 package com.example.demo.repositorios;
 
-import com.example.demo.modelo.Reserva;
+import java.time.LocalDate;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
-import java.util.List;
+import com.example.demo.modelo.Reserva;
 
 @Repository
 public interface ReservaRepositorio extends JpaRepository<Reserva, Integer> {
@@ -24,6 +25,10 @@ public interface ReservaRepositorio extends JpaRepository<Reserva, Integer> {
             @Param("fechaFin") LocalDate fechaFin
     );
 
-    List<Reserva> findByHuespedId(Integer idHuesped);
+    // Busca por el apellido guardado (CU6 Cancelar Reserva)
+    @Query("SELECT r FROM Reserva r WHERE " +
+           "LOWER(r.apellidoHuesped) LIKE LOWER(CONCAT(:apellido, '%')) " +
+           "AND r.estado <> com.example.demo.modelo.EstadoReserva.CANCELADA")
+    List<Reserva> buscarPorApellido(@Param("apellido") String apellido);
 
 }

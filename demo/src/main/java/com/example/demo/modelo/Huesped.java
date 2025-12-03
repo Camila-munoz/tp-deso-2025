@@ -3,6 +3,8 @@ package com.example.demo.modelo;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Entity
 @Table(name = "Huesped")
 public class Huesped {
@@ -55,6 +57,7 @@ public class Huesped {
     
     @ManyToOne
     @JoinColumn(name = "ID_Estadia")
+    @JsonIgnoreProperties("huesped")
     private Estadia estadia;
 
     // Constructores

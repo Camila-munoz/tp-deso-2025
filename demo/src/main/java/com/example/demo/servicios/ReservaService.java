@@ -80,6 +80,10 @@ public class ReservaService {
     }
 
     // --- CU06: CANCELAR RESERVA ---
+    public List<Reserva> buscarParaCancelar(String apellido) {
+        return reservaRepositorio.buscarPorApellido(apellido);
+    }
+
     public void cancelarReserva(Integer idReserva) throws Exception {
         Reserva reserva = reservaRepositorio.findById(idReserva)
                 .orElseThrow(() -> new Exception("Reserva no encontrada con ID: " + idReserva));
@@ -91,29 +95,8 @@ public class ReservaService {
         reserva.setEstado(EstadoReserva.CANCELADA);
         reservaRepositorio.save(reserva);
     }
-    
+
     public List<Reserva> listarTodas() {
         return reservaRepositorio.findAll();
-    }
-    // --- NUEVO: Buscar reservas por huésped ---
-    public List<Reserva> buscarPorHuesped(Integer idHuesped) {
-        return reservaRepositorio.findByHuespedId(idHuesped);
-    }
-
-    // --- NUEVO: Cancelar múltiples reservas (opcional) ---
-    public int cancelarMultiplesReservas(List<Integer> idsReservas) throws Exception {
-        int canceladas = 0;
-        
-        for (Integer idReserva : idsReservas) {
-            try {
-                cancelarReserva(idReserva);
-                canceladas++;
-            } catch (Exception e) {
-                // Continuar con las demás reservas
-                System.err.println("Error al cancelar reserva " + idReserva + ": " + e.getMessage());
-            }
-        }
-        
-        return canceladas;
     }
 }
