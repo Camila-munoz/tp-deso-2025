@@ -24,4 +24,6 @@ public interface ReservaRepositorio extends JpaRepository<Reserva, Integer> {
             @Param("fechaFin") LocalDate fechaFin
     );
 
+    List<Reserva> findByHuespedId(Integer idHuesped);
+
 }

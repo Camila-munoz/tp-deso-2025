@@ -16,7 +16,6 @@ public interface EstadiaRepositorio extends JpaRepository<Estadia, Integer> {
     @Query("SELECT e FROM Estadia e WHERE e.huesped.id = :idHuesped")
     List<Estadia> findByHuespedID(@Param("idHuesped") Integer idHuesped);
 
-<<<<<<< HEAD
     // Busca estadías que se solapen con el rango de fechas solicitado
     @Query("SELECT e FROM Estadia e " +
            "WHERE e.habitacion.id = :idHabitacion " +
@@ -27,11 +26,7 @@ public interface EstadiaRepositorio extends JpaRepository<Estadia, Integer> {
             @Param("fechaInicio") LocalDateTime fechaInicio,
             @Param("fechaFin") LocalDateTime fechaFin
     );
-=======
-    // --- AGREGAR ESTE MÉTODO ---
-    // Busca una estadía asociada a la habitación Y que la habitación figure como OCUPADA.
-    // Asumimos que "idHabitacion" es el ID o Número que usas para identificarla.
+
     @Query("SELECT e FROM Estadia e WHERE e.habitacion.id = :idHabitacion AND e.habitacion.estado = 'OCUPADA'")
     Optional<Estadia> findByHabitacionIdAndOcupada(@Param("idHabitacion") Integer idHabitacion);
->>>>>>> 184c1c37a88dfd64cd44eb15ef264ea4f1038fb3
 }

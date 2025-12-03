@@ -8,15 +8,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-<<<<<<< HEAD
 import java.util.List;
-=======
-import java.util.ArrayList;
->>>>>>> 184c1c37a88dfd64cd44eb15ef264ea4f1038fb3
 import java.util.Map;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import org.springframework.http.HttpStatus;
 

@@ -1,21 +1,11 @@
 package com.example.demo.controladores;
 
-<<<<<<< HEAD
-=======
-import com.example.demo.excepciones.ValidacionException;
-import com.example.demo.modelo.EstadoReserva;
-import com.example.demo.modelo.Reserva;
-import com.example.demo.servicios.ReservaService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
->>>>>>> 184c1c37a88dfd64cd44eb15ef264ea4f1038fb3
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -26,8 +16,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import com.example.demo.excepciones.ValidacionException;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.modelo.EstadoReserva;
 import com.example.demo.modelo.Reserva;
 import com.example.demo.servicios.ReservaService;
 
