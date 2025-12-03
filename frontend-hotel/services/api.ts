@@ -133,4 +133,74 @@ export const crearEstadia = async (data: any) => {
   }
   return await res.json();
 };
+// --- CU10 MODIFICAR / CU11 BORRAR ---
+
+// 1. Buscar los datos viejos para llenar el formulario
+
+// GET /api/huespedes/{tipo}/{nro}
+
+export const obtenerHuespedPorDocumento = async (tipo: string, nro: string) => {
+  const res = await fetch(`${API_URL}/huespedes/${tipo}/${nro}`);
+  if (!res.ok) throw new Error("No se pudo cargar el huésped");
+  return res.json();
+};
+// 2. Enviar los cambios
+// PUT /api/huespedes
+export const modificarHuesped = async (huesped: any) => {
+  const res = await fetch(`${API_URL}/huespedes`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(huesped),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.text();
+    // Manejo de errores específicos del CU (ej: duplicados o validaciones)
+    throw new Error(errorData || "Error al modificar");
+  }
+  return res.json();
+};
+
+
+
+// 3. Borrar
+
+// DELETE /api/huespedes/{tipo}/{nro}
+export const darBajaHuesped = async (tipo: string, nro: string) => {
+  const res = await fetch(`${API_URL}/huespedes/${tipo}/${nro}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    const errorData = await res.text();
+    throw new Error(errorData || "Error al eliminar");
+  }
+
+  return true;
+
+};
+
+export const verificarHuespedAlojado = async (id: number) => {
+  const res = await fetch(`${API_URL}/estadias/huesped/${id}/alojado`);
+  if (!res.ok) throw new Error("Error al verificar historial");
+  return res.json();
+};
+export const modificarHuespedForzado = async (huesped: any) => {
+  const res = await fetch(`${API_URL}/huespedes/forzar`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(huesped),
+  });
+
+ 
+
+  if (!res.ok) {
+    const errorData = await res.text();
+    throw new Error(errorData || "Error al forzar modificación");
+  }
+
+  return res.json();
+
+};
+
 
