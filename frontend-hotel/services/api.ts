@@ -130,6 +130,11 @@ export const crearEstadia = async (data: any) => {
   return await res.json();
 };
 
+export const obtenerTitularConflicto = async (idHabitacion: number, fecha: string) => {
+  const res = await fetch(`${API_URL}/reservas/titular-conflicto?idHabitacion=${idHabitacion}&fecha=${fecha}`);
+  return res.json();
+};
+
 // --- CU06: CANCELAR ---
 export const buscarReservasPorApellido = async (apellido: string) => {
   const res = await fetch(`${API_URL}/reservas/buscar?apellido=${apellido}`);
