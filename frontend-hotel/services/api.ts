@@ -1,6 +1,10 @@
 // Si existe la variable de entorno la usa, si no, usa localhost:8080 por defecto
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 
+
+console.log("API_URL =", API_URL);
+
+
 // --- AUTENTICACIÓN (CU01) ---
 export interface ConserjeLogin {
   nombre: string;
