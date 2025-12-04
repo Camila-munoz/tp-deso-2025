@@ -25,10 +25,14 @@ public interface ReservaRepositorio extends JpaRepository<Reserva, Integer> {
             @Param("fechaFin") LocalDate fechaFin
     );
 
-    // Busca por el apellido guardado (CU6 Cancelar Reserva)
+    // --- CU06: BÚSQUEDA POR APELLIDO (Obligatorio) Y NOMBRE (Opcional) ---
     @Query("SELECT r FROM Reserva r WHERE " +
            "LOWER(r.apellidoHuesped) LIKE LOWER(CONCAT(:apellido, '%')) " +
+           "AND (:nombre IS NULL OR LOWER(r.nombreHuesped) LIKE LOWER(CONCAT(:nombre, '%'))) " +
            "AND r.estado <> com.example.demo.modelo.EstadoReserva.CANCELADA")
-    List<Reserva> buscarPorApellido(@Param("apellido") String apellido);
+    List<Reserva> buscarActivasPorCriterios(
+            @Param("apellido") String apellido, 
+            @Param("nombre") String nombre
+    );
 
 }

@@ -99,10 +99,6 @@ export const getEstadoHabitaciones = async (desde: string, hasta: string) => {
   return res.json();
 };
 
-// =================================================================
-// AGREGADOS NUEVOS (CU04 y CU15) - INTEGRACIÓN
-// =================================================================
-
 // --- RESERVAS (CU04) ---
 export const crearReserva = async (data: any) => {
   const res = await fetch(`${API_URL}/reservas`, {
@@ -133,6 +129,24 @@ export const crearEstadia = async (data: any) => {
   }
   return await res.json();
 };
+
+// --- CU06: CANCELAR ---
+export const buscarReservasPorApellido = async (apellido: string) => {
+  const res = await fetch(`${API_URL}/reservas/buscar?apellido=${apellido}`);
+  return res.json();
+};
+
+export const cancelarReservaAPI = async (id: number) => {
+  const res = await fetch(`${API_URL}/reservas/${id}/cancelar`, {
+    method: "PUT",
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || "Error al cancelar");
+  }
+  return res.json();
+};
+
 // --- CU10 MODIFICAR / CU11 BORRAR ---
 
 // 1. Buscar los datos viejos para llenar el formulario

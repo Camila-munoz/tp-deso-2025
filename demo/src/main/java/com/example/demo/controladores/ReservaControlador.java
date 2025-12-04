@@ -47,37 +47,27 @@ public class ReservaControlador {
     }
 
     // --- CU06: CANCELAR RESERVA ---
-    // --- Buscar reservas por huésped ---
+    // --- BUSCAR CON FILTROS ---
     @GetMapping("/buscar")
-    public ResponseEntity<?> buscarPorApellido(@RequestParam String apellido) {
+    public ResponseEntity<?> buscar(
+            @RequestParam String apellido,
+            @RequestParam(required = false) String nombre) {
         try {
-            List<Reserva> reservas = reservaService.buscarParaCancelar(apellido);
-            
-            if (reservas.isEmpty()) {
-                return ResponseEntity.status(404).body(Map.of("message", "No se encontraron reservas para el apellido: " + apellido));
-            }
-            
+            List<Reserva> reservas = reservaService.buscarParaCancelar(apellido, nombre);
             return ResponseEntity.ok(reservas);
-            
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 
-    // --- Cancelar reserva por ID ---
-    @PutMapping("/{id}/cancelar")
-    public ResponseEntity<?> cancelarReserva(@PathVariable Integer id) {
+    // --- CANCELAR MÚLTIPLES ---
+    @PostMapping("/cancelar-multiples")
+    public ResponseEntity<?> cancelarMultiples(@RequestBody List<Integer> ids) {
         try {
-            reservaService.cancelarReserva(id);
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Reserva cancelada correctamente"
-            ));
+            reservaService.cancelarMultiplesReservas(ids);
+            return ResponseEntity.ok(Map.of("success", true, "message", "Reservas canceladas correctamente"));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "success", false,
-                "message", "Error al cancelar: " + e.getMessage()
-            ));
+            return ResponseEntity.badRequest().body(Map.of("message", "Error al cancelar: " + e.getMessage()));
         }
     }
     

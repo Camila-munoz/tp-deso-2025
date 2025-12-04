@@ -14,7 +14,6 @@ import com.example.demo.modelo.EstadoReserva;
 import com.example.demo.modelo.Habitacion;
 import com.example.demo.modelo.Reserva;
 import com.example.demo.repositorios.HabitacionRepositorio;
-import com.example.demo.repositorios.HuespedRepositorio;
 import com.example.demo.repositorios.ReservaRepositorio;
 
 @Service
@@ -25,8 +24,6 @@ public class ReservaService {
     private ReservaRepositorio reservaRepositorio;
     @Autowired
     private HabitacionRepositorio habitacionRepositorio;
-    @Autowired
-    private HuespedRepositorio huespedRepositorio;
 
     // --- CU04: RESERVAR HABITACIÓN ---
     public List<Reserva> crearReserva(
@@ -80,22 +77,34 @@ public class ReservaService {
     }
 
     // --- CU06: CANCELAR RESERVA ---
-    public List<Reserva> buscarParaCancelar(String apellido) {
-        return reservaRepositorio.buscarPorApellido(apellido);
+    // --- BUSCAR RESERVA PARA CANCELAR ---
+    public List<Reserva> buscarParaCancelar(String apellido, String nombre) {
+        // Si nombre viene vacío, pasamos null para que la query lo ignore
+        String nombreQuery = (nombre != null && !nombre.trim().isEmpty()) ? nombre : null;
+        return reservaRepositorio.buscarActivasPorCriterios(apellido, nombreQuery);
     }
 
+    // --- CANCELAR INDIVIDUAL ---
     public void cancelarReserva(Integer idReserva) throws Exception {
-        Reserva reserva = reservaRepositorio.findById(idReserva)
-                .orElseThrow(() -> new Exception("Reserva no encontrada con ID: " + idReserva));
-
-        if (reserva.getEstado() == EstadoReserva.CANCELADA) {
-            throw new ValidacionException("La reserva ya estaba cancelada.");
+        Reserva r = reservaRepositorio.findById(idReserva)
+                .orElseThrow(() -> new Exception("Reserva no encontrada"));
+        
+        if (r.getEstado() == EstadoReserva.CANCELADA) {
+            throw new ValidacionException("Ya estaba cancelada.");
         }
-
-        reserva.setEstado(EstadoReserva.CANCELADA);
-        reservaRepositorio.save(reserva);
+        
+        r.setEstado(EstadoReserva.CANCELADA);
+        reservaRepositorio.save(r);
     }
 
+    // --- CANCELAR MÚLTIPLES ---
+    public void cancelarMultiplesReservas(List<Integer> ids) throws Exception {
+        for (Integer id : ids) {
+            cancelarReserva(id);
+        }
+    }
+
+    // Listar todas las reservas
     public List<Reserva> listarTodas() {
         return reservaRepositorio.findAll();
     }
