@@ -41,23 +41,10 @@ public class EstadiaService {
     @Transactional
     public Estadia crearEstadia(CrearEstadiaRequest request) throws Exception {
 
-        // 1. Buscar la Habitación
+        // 1. Validar Habitación
         Habitacion habitacion = habitacionRepositorio.findById(request.getIdHabitacion())
                 .orElseThrow(() -> new Exception("Habitación no encontrada con ID: " + request.getIdHabitacion()));
 
-        // 2. Buscar el Huésped
-        Huesped huespedTitular = huespedRepositorio.findById(request.getIdHuespedTitular())
-                .orElseThrow(() -> new Exception("Huésped no encontrado con ID: " + request.getIdHuespedTitular()));
-
-        // 3. Buscar Acompañantes (si hay)
-        List<Huesped> acompanantes = new ArrayList<>();
-        if (request.getIdHuespedesAcompanantes() != null) {
-            for (Integer id : request.getIdHuespedesAcompanantes()) {
-                acompanantes.add(huespedRepositorio.findById(id).orElseThrow(() -> new Exception("Acompañante ID " + id + " no encontrado")));
-            }
-        }
-
-        // 4. Validar Estado de la Habitación
         if (habitacion.getEstado() == EstadoHabitacion.OCUPADA) {
             throw new ValidacionException("La habitación " + habitacion.getNumero() + " ya está OCUPADA. No se puede realizar el check-in.");
         }
@@ -65,8 +52,23 @@ public class EstadiaService {
             throw new ValidacionException("La habitación " + habitacion.getNumero() + " está FUERA DE SERVICIO.");
         }
 
-        // 5. Lógica de Reserva (Validación)
-        // Verificamos si el check-in viene asociado a una reserva existente.
+        // 2. Validar Titular
+        Integer idTitular = request.getIdHuespedTitular(); 
+        Huesped huespedTitular = huespedRepositorio.findById(idTitular)
+                .orElseThrow(() -> new Exception("Huésped titular no encontrado"));
+        
+        // 3. Validar Acompañantes
+        List<Huesped> acompanantes = new ArrayList<>();
+        if (request.getIdHuespedesAcompanantes() != null) {
+            for(Integer id : request.getIdHuespedesAcompanantes()) {
+                if (!id.equals(idTitular)) { // Evitar duplicar titular como acompañante
+                    acompanantes.add(huespedRepositorio.findById(id)
+                        .orElseThrow(() -> new Exception("Acompañante ID " + id + " no encontrado")));
+                }
+            }
+        }
+
+        // 4. Validar reserva
         if (request.getIdReserva() != null) {
             Reserva reserva = reservaRepositorio.findById(request.getIdReserva())
                     .orElseThrow(() -> new ValidacionException("La reserva indicada no existe."));
@@ -76,22 +78,19 @@ public class EstadiaService {
                 throw new ValidacionException("Error: La reserva seleccionada corresponde a la habitación " 
                     + reserva.getHabitacion().getNumero() + ", no a la " + habitacion.getNumero());
             }
-
             // Validamos que la reserva no esté cancelada
             if (reserva.getEstado() == EstadoReserva.CANCELADA) {
                 throw new ValidacionException("La reserva seleccionada se encuentra CANCELADA.");
             }
         }
-        // NOTA: Si request.getIdReserva() es NULL, el sistema asume que es un ingreso sin reserva previa (Walk-in)
-        // y permite continuar aunque la habitación figure como RESERVADA (lógica de "Ocupar Igual").
+        // NOTA: Si es NULL, es un Walk-in y el sistema permite continuar (Ocupar Igual).
 
-
-        // 6. Crear el objeto Estadia
+        // 5. Crear Estadia
         Estadia estadia = new Estadia();
         estadia.setHabitacion(habitacion);
         estadia.setHuesped(huespedTitular);
 
-        // --- FECHAS Y HORARIOS (REQUISITO PDF) ---
+        // --- FECHAS Y HORARIOS ---
         // Check-in: Ahora mismo
         estadia.setCheckIn(LocalDateTime.now());
         
@@ -109,20 +108,21 @@ public class EstadiaService {
         }
 
         
-        // 7. ACTUALIZAR ESTADO HABITACIÓN -> OCUPADA
-        // Esto es lo que cambia el color en la grilla a Rojo
+        // 6. Actualizar Estado Habitación a OCUPADA
         habitacion.setEstado(EstadoHabitacion.OCUPADA);
         habitacionRepositorio.save(habitacion);
 
         Estadia estadiaGuardada = estadiaRepositorio.save(estadia);
 
+        // 7. Actualizar titular y acompañantes
         huespedTitular.setEstadia(estadiaGuardada);
         huespedRepositorio.save(huespedTitular);
 
-        System.out.println("Estadía creada con ID: " + estadiaGuardada.getId() + 
-                         ", Huéspedes: " + estadiaGuardada.getCantidadHuespedes() + 
-                         ", Días: " + estadiaGuardada.getCantidadDias());
-        
+        for (Huesped a : acompanantes) {
+            a.setEstadia(estadiaGuardada);
+            huespedRepositorio.save(a);
+        }
+
         return estadiaGuardada;
     }
 
