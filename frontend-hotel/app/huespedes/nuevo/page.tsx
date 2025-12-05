@@ -8,8 +8,8 @@ import { crearHuesped, crearHuespedForzado } from "@/services/api"
 export default function AltaHuespedPage() {
   const router = useRouter()
 
-  // --- ESTADO DEL FORMULARIO ---
-  // Inicializamos todo vacío
+  // --- FORMULARIO ---
+ 
   const initialState = {
     apellido: "",
     nombre: "",
@@ -61,7 +61,6 @@ export default function AltaHuespedPage() {
     "pais",
   ]
 
-  // Manejador de cambios en inputs - convierte a mayúsculas campos literales
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     const newValue = camposMayusculas.includes(name) ? value.toUpperCase() : value
@@ -115,14 +114,13 @@ export default function AltaHuespedPage() {
 
     if (faltantes.length > 0) {
       setErrores(faltantes)
-      return // NO avanza — cumple CU 2.A (muestra errores sin tapar pantalla)
+      return
     }
 
-    // Sin errores → limpiar cartel
     setErrores([])
     setCargando(true)
 
-    // --- 2. Armar payload con estructura del backend ---
+    // --- 2. Armar estructura ---
     const payload = {
       nombre: form.nombre,
       apellido: form.apellido,
@@ -148,7 +146,7 @@ export default function AltaHuespedPage() {
     }
 
     try {
-      // --- 3. Crear o crear forzado ---
+      // --- 3. Crear ---
       if (forzar) {
         await crearHuespedForzado(payload)
         setModalDuplicado(null)
@@ -170,7 +168,7 @@ export default function AltaHuespedPage() {
     }
   }
 
-  // --- LÓGICA DEL MODAL ÉXITO ---
+  // --- LÓGICA ÉXITO ---
   const handleCargarOtro = (respuesta: boolean) => {
     setModalExito(false)
     if (respuesta) {
@@ -182,8 +180,6 @@ export default function AltaHuespedPage() {
     }
   }
 
-  // Llamar al endpoint forzar usando los estados existentes de tu page
-  // Reutiliza el mismo payload que en handleSubmit
   const handleAceptarIgualmente = async () => {
     const payload = {
       nombre: form.nombre,
@@ -212,17 +208,15 @@ export default function AltaHuespedPage() {
     try {
       setCargando(true)
 
-      // Llamada consistente: crearHuespedForzado lanza {status, message} en error
+  
       const resultado = await crearHuespedForzado(payload)
 
-      // Si llegamos aquí, se guardó OK
-      setModalDuplicado(null) // cerramos cartel duplicado
-      setModalExito(true) // mostramos modal de éxito (flujo va al punto 3)
+      
+      setModalDuplicado(null) 
+      setModalExito(true) 
     } catch (err: any) {
-      // Err puede ser {status, message} según la implementación recomendada arriba
+      
       if (err && err.status) {
-        // Mostrar el mensaje devuelto por backend en el mismo modal o con alert
-        // Aquí lo mostramos usando el modal de duplicado (reemplaza texto si querés)
         setModalDuplicado(err.message || "Error al forzar el alta.")
       } else {
         alert("Error inesperado al forzar el alta: " + (err?.message || err))
@@ -264,7 +258,7 @@ export default function AltaHuespedPage() {
 
       {/* --- FORMULARIO --- */}
       <div className="max-w-6xl mx-auto bg-gray-200 px-10 pb-10">
-        {/* SECCIÓN DATOS PERSONALES (CORREGIDO) */}
+        {/* SECCIÓN DATOS PERSONALES */}
         {errores.length > 0 && (
           <div className="bg-red-200 border border-red-600 text-red-800 p-4 mb-6">
             <h3 className="font-bold text-lg mb-2">Debe completar los siguientes campos obligatorios:</h3>
@@ -280,9 +274,7 @@ export default function AltaHuespedPage() {
           Datos Personales
         </h2>
 
-        {/* Usamos una grilla de 3 columnas reales */}
         <div className="grid grid-cols-3 gap-6 mb-8">
-          {/* --- FILA 1 --- */}
           <div>
             <label className="block font-bold mb-1">
               Apellido <span className="text-red-600">(*)</span>
@@ -322,7 +314,6 @@ export default function AltaHuespedPage() {
             />
           </div>
 
-          {/* --- FILA 2 --- */}
           <div>
             <label className="block font-bold mb-1">
               Tipo de Documento <span className="text-red-600">(*)</span>
@@ -364,7 +355,6 @@ export default function AltaHuespedPage() {
             />
           </div>
 
-          {/* --- FILA 3 --- */}
           <div>
             <label className="block font-bold mb-1">
               Posición frente al IVA <span className="text-red-600">(*)</span>
@@ -406,7 +396,6 @@ export default function AltaHuespedPage() {
             />
           </div>
 
-          {/* --- FILA 4 --- */}
           <div>
             <label className="block font-bold mb-1">
               Nacionalidad <span className="text-red-600">(*)</span>
@@ -433,7 +422,7 @@ export default function AltaHuespedPage() {
               placeholder="Ingrese la ocupación"
             />
           </div>
-          {/* Espacio vacío para completar la grilla */}
+          
           <div></div>
         </div>
 
@@ -578,7 +567,7 @@ export default function AltaHuespedPage() {
         </div>
       </div>
 
-      {/* --- MODAL ÉXITO (Imagen 2) --- */}
+      {/* --- MODAL ÉXITO --- */}
       {modalExito && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-gray-200 border-2 border-gray-500 shadow-2xl p-8 w-[600px] text-center">
@@ -614,7 +603,7 @@ export default function AltaHuespedPage() {
         </div>
       )}
 
-      {/* --- MODAL ERROR DUPLICADO (Agregado para manejar el backend) --- */}
+      {/* --- MODAL ERROR --- */}
       {modalDuplicado && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white border-2 border-red-600 shadow-2xl p-8 w-[500px] text-center">

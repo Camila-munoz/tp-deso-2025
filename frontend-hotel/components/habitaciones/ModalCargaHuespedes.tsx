@@ -17,7 +17,6 @@ export default function ModalCargaHuespedes({ isOpen, habitacionNumero, onAcepta
   const [buscando, setBuscando] = useState(false);
   const [mensaje, setMensaje] = useState("");
   
-  // Mapa de seleccionados
   const [seleccionados, setSeleccionados] = useState<Map<number, { data: any, rol: string }>>(new Map());
 
   if (!isOpen) return null;
@@ -40,7 +39,6 @@ export default function ModalCargaHuespedes({ isOpen, habitacionNumero, onAcepta
   const setRol = (h: any, rol: 'TITULAR' | 'ACOMPAÑANTE') => {
     const newMap = new Map(seleccionados);
     
-    // Lógica toggle: Si ya tiene el rol, lo quita
     if (newMap.get(h.id)?.rol === rol) { 
         newMap.delete(h.id); 
     } else {
@@ -81,7 +79,6 @@ export default function ModalCargaHuespedes({ isOpen, habitacionNumero, onAcepta
             </button>
         </div>
 
-        {/* BUSCADOR (Bien visible arriba) */}
         <div className="bg-[#b3e5fc] p-4 rounded border border-blue-300 mb-4 shadow-sm">
              <div className="grid grid-cols-4 gap-2 mb-3">
                 <input 
@@ -130,7 +127,6 @@ export default function ModalCargaHuespedes({ isOpen, habitacionNumero, onAcepta
                 <tbody>
                     {resultados.map(h => {
                         const sel = seleccionados.get(h.id);
-                        // Color de fila según selección
                         let rowClass = "hover:bg-gray-50";
                         if (sel?.rol === 'TITULAR') rowClass = "bg-green-100";
                         if (sel?.rol === 'ACOMPAÑANTE') rowClass = "bg-blue-50";

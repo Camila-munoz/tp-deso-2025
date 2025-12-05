@@ -31,12 +31,9 @@ export default function Grilla({ habitaciones, estados, dias, onCellClick, selec
     );
 
     if (enCarrito) {
-        // ¡AQUÍ ESTÁ LA MAGIA!
-        // Si el item tiene un color forzado (ej: Rojo para Ocupar), lo usa.
-        // Si no (ej: Reservar), usa el Azul por defecto.
         return enCarrito.colorForzado || "bg-blue-600 text-white";
     }
-    // 2. Selección en curso (Arrastre visual)
+    // 2. Selección en curso
     if (seleccionInicio && seleccionInicio.idHab === idHab) {
         const fInicio = new Date(seleccionInicio.fechaIso).getTime();
         const fActual = new Date(fechaIso).getTime();
@@ -45,7 +42,6 @@ export default function Grilla({ habitaciones, estados, dias, onCellClick, selec
         const max = Math.max(fInicio, fHover);
 
         if (fActual >= min && fActual <= max) {
-            // Si estoy arrastrando sobre una ocupada, aviso visual
             if (estadoBD !== "LIBRE" && estadoBD !== "RESERVADA") return "bg-red-500 opacity-50 cursor-not-allowed";
             return "bg-blue-300"; 
         }

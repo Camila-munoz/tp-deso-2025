@@ -8,7 +8,7 @@ import Link from "next/link"
 export default function ReservasPage() {
   const router = useRouter()
 
-  // --- HELPER: FECHA + 1 DÍA (Para Check-out y cálculos) ---
+  // --- FECHA + 1 DÍA (Para Check-out y cálculos) ---
   const getNextDayISO = (dateStr: string) => {
     const date = new Date(dateStr + "T00:00:00")
     date.setDate(date.getDate() + 1)
@@ -202,7 +202,6 @@ export default function ReservasPage() {
     }
   }
 
-  // Submit Final
   const handleSubmit = async () => {
   const errors = {
     apellido: !form.apellido.trim(),
@@ -338,7 +337,6 @@ export default function ReservasPage() {
         </div>
       )}
 
-      {/* LEYENDA */}
       {busquedaRealizada && (
         <div className="flex justify-center items-center gap-10 mb-8 bg-[#E0E0E0] py-4 w-full max-w-[95%] border-2 border-gray-400 rounded-b-xl shadow-inner">
           <div className="flex items-center gap-2">
@@ -395,7 +393,7 @@ export default function ReservasPage() {
         </div>
       )}
 
-      {/* --- MODAL RESUMEN (CORREGIDO: SCROLL INTERNO) --- */}
+      {/* --- MODAL RESUMEN --- */}
       {paso === "RESUMEN" && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm">
           {/* 1. Modal container: Max Height + Flex Col para estructurar */}
@@ -411,7 +409,6 @@ export default function ReservasPage() {
               </button>
             </div>
 
-            {/* 3. Cuerpo (Tabla): flex-1 para ocupar espacio y overflow-y-auto para scroll */}
             <div className="p-0 overflow-y-auto flex-1 min-h-0">
               <table className="w-full text-center text-sm border-collapse">
                 <thead className="bg-[#B2EBF2] text-black font-bold uppercase border-b-2 border-black sticky top-0">
@@ -437,7 +434,6 @@ export default function ReservasPage() {
               </table>
             </div>
 
-            {/* 4. Footer (Botones): Shrink-0 para que siempre sea visible al fondo */}
             <div className="p-8 flex justify-around items-center bg-gray-100 border-t-2 border-black shrink-0">
               <button
                 onClick={() => setPaso("DATOS")}

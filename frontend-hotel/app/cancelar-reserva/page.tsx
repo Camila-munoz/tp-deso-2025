@@ -14,8 +14,8 @@ export default function CancelarReservaPage() {
   const [buscando, setBuscando] = useState(false);
   
   // Mensajes de error específicos
-  const [errorApellido, setErrorApellido] = useState(""); // Para el campo individual
-  const [mensajeGeneral, setMensajeGeneral] = useState(""); // Para "No se encontraron..."
+  const [errorApellido, setErrorApellido] = useState(""); 
+  const [mensajeGeneral, setMensajeGeneral] = useState("");
 
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
   const [mostrarExito, setMostrarExito] = useState(false);
@@ -108,7 +108,7 @@ export default function CancelarReservaPage() {
         <Link href="/" className="text-gray-500 hover:text-red-800 font-bold flex items-center gap-1"><span>⬅</span> MENÚ</Link>
       </div>
 
-      {/* TÍTULO (Estilo CU04) */}
+      {/* TÍTULO */}
       <h1 className="text-4xl text-center text-red-900 font-bold mb-8 font-serif tracking-widest border-b-2 border-red-200 pb-4 px-10 mt-2">
         CANCELAR RESERVA
       </h1>
@@ -116,10 +116,10 @@ export default function CancelarReservaPage() {
       {/* --- FORMULARIO DE BÚSQUEDA --- */}
       <div className="bg-white px-10 py-8 rounded-xl shadow-md border border-gray-200 flex flex-col gap-6 mb-8 w-full max-w-4xl">
         
-        {/* Fila de Inputs */}
+        {/* Inputs */}
         <div className="flex items-start gap-6">
             
-            {/* Columna Apellido (Con error absoluto para no empujar) */}
+            {/* Columna Apellido  */}
             <div className="flex-1 relative">
                 <label className="font-bold text-gray-600 text-sm mb-1 uppercase block">Apellido *</label>
                 <input 
@@ -150,7 +150,7 @@ export default function CancelarReservaPage() {
                 />
             </div>
 
-            {/* Botón (Alineado con los inputs) */}
+            {/* Botón */}
             <div className="h-[70px] flex items-center pt-6">
                 <button 
                     onClick={handleBuscar} 
@@ -162,7 +162,7 @@ export default function CancelarReservaPage() {
             </div>
         </div>
 
-        {/* Mensaje General (Centrado abajo) */}
+        {/* Mensaje General */}
         {mensajeGeneral && (
             <div className="w-full text-center border-t pt-4 mt-2">
                 <p className="text-red-600 font-bold bg-red-50 py-2 px-4 rounded inline-block shadow-sm">
@@ -181,7 +181,7 @@ export default function CancelarReservaPage() {
                         <th className="p-4 border-b w-24">Seleccionar</th>
                         <th className="p-4 border-b text-left">Huésped</th>
                         <th className="p-4 border-b">Habitación</th>
-                        <th className="p-4 border-b">Tipo</th> {/* Nueva Columna */}
+                        <th className="p-4 border-b">Tipo</th>
                         <th className="p-4 border-b">Ingreso</th>
                         <th className="p-4 border-b">Egreso</th>
                     </tr>
@@ -266,7 +266,7 @@ export default function CancelarReservaPage() {
         </div>
       )}
 
-      {/* --- MODAL DE ÉXITO (POPUP) --- */}
+      {/* --- MODAL DE ÉXITO --- */}
       {mostrarExito && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[100] backdrop-blur-sm animate-in zoom-in duration-200">
              <div className="bg-white p-10 rounded-xl shadow-2xl text-center w-[500px] border-b-8 border-green-500 relative">
@@ -283,7 +283,6 @@ export default function CancelarReservaPage() {
                     Presione una tecla para continuar...
                  </p>
                  
-                 {/* Botón invisible para accesibilidad */}
                  <button className="sr-only" autoFocus onClick={() => setMostrarExito(false)}>Cerrar</button>
              </div>
         </div>

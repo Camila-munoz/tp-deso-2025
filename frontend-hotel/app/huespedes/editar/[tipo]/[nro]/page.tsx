@@ -3,7 +3,6 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation"; 
 import { obtenerHuespedPorDocumento, modificarHuesped, modificarHuespedForzado, darBajaHuesped, verificarHuespedAlojado } from "@/services/api";
 
-// --- 1. COMPONENTES HELPERS (DEFINIDOS AFUERA) ---
 
 const InputField = ({ label, name, value, onChange, error, type = "text", disabled = false, required = false, inputRef }: any) => (
   <div>
@@ -51,13 +50,10 @@ const SelectField = ({ label, name, value, onChange, error, options, disabled = 
   </div>
 );
 
-// --- 2. COMPONENTE PRINCIPAL ---
-
 export default function ModificarHuespedPage() {
   const router = useRouter();
   const params = useParams();
   
-  // REFERENCIA PARA EL FOCO
   const documentoRef = useRef<HTMLInputElement>(null);
 
   // Estados de Modales
@@ -68,7 +64,7 @@ export default function ModificarHuespedPage() {
   const [modalConfirmarCancelar, setModalConfirmarCancelar] = useState(false);
   const [modalCuidadoDuplicado, setModalCuidadoDuplicado] = useState(false);
 
-  // Estado del formulario
+  // Formulario
   const [form, setForm] = useState<any>({
     id: null,
     nombre: "", apellido: "", fechaNacimiento: "",
@@ -121,7 +117,7 @@ export default function ModificarHuespedPage() {
     cargarDatos();
   }, [params, router]);
 
-  // --- NUEVO: DETECTOR DE "CUALQUIER TECLA" PARA CONTINUAR ---
+  // --- DETECTOR DE "CUALQUIER TECLA" PARA CONTINUAR ---
   useEffect(() => {
     // Si no están los modales finales de borrado, no hacemos nada
     if (!modalExitoBorrar && !modalErrorBorrar) return;
@@ -136,15 +132,12 @@ export default function ModificarHuespedPage() {
       }
     };
 
-    // Agregar el escuchador al objeto window
     window.addEventListener('keydown', handleAnyKey);
     
-    // Limpiar al desmontar para evitar duplicados
     return () => window.removeEventListener('keydown', handleAnyKey);
   }, [modalExitoBorrar, modalErrorBorrar, router]);
 
 
-  // Manejador de cambios
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     let { name, value, type } = e.target as HTMLInputElement;
 
@@ -288,20 +281,20 @@ export default function ModificarHuespedPage() {
       setProcesando(false);
     }
   };
-  // --- DETECTOR DE TECLADO CORREGIDO ---
+  
   useEffect(() => {
     if (!modalErrorBorrar) return;
 
     const handleKeyUp = (e: KeyboardEvent) => {
-       // 1. Detenemos que el Enter active cosas de fondo (como el submit del formulario)
+       
        e.preventDefault();
        e.stopPropagation();
 
-       // 2. Cerramos el modal
+       
        setModalErrorBorrar(false);
     };
 
-    // USAMOS 'keyup' EN LUGAR DE 'keydown'
+    
     window.addEventListener('keyup', handleKeyUp);
     
     return () => window.removeEventListener('keyup', handleKeyUp);

@@ -247,10 +247,10 @@ export default function OcuparPage() {
   const handleSeguirCargando = () => setModal("CARGA")
 
   const handleCargarOtra = () => {
-  // Volver al paso de selección de habitación
-  setModal("NONE");            // Cerramos el modal de opciones
-  setItemActual(null);         // Limpiamos el item actual
-  setModoBloqueoVisual(false); // Desbloqueamos la interfaz para poder seleccionar otra habitación
+ 
+  setModal("NONE");          
+  setItemActual(null);        
+  setModoBloqueoVisual(false); 
 };
 
   const handleSalir = async () => {
