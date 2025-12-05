@@ -204,48 +204,49 @@ export default function ReservasPage() {
 
   // Submit Final
   const handleSubmit = async () => {
-    const errors = {
-      apellido: !form.apellido.trim(),
-      nombre: !form.nombre.trim(),
-      telefono: !form.telefono.trim(),
-    }
-
-    setFieldErrors(errors)
-
-    if (errors.apellido) {
-      apellidoRef.current?.focus()
-      return
-    }
-    if (errors.nombre) {
-      nombreRef.current?.focus()
-      return
-    }
-    if (errors.telefono) {
-      telefonoRef.current?.focus()
-      return
-    }
-
-    try {
-      const detalles = carrito.map((item) => ({
-        idHabitacion: item.idHab,
-        fechaEntrada: item.inicio,
-        fechaSalida: getNextDayISO(item.fin),
-      }))
-
-      await crearReserva({
-        detalles: detalles,
-        nombre: form.nombre,
-        apellido: form.apellido,
-        telefono: form.telefono,
-      })
-
-      setPaso("EXITO")
-      handleBuscar()
-    } catch (e: any) {
-      setMensajeError(e.message)
-      setModalErrorOpen(true)
-    }
+  const errors = {
+    apellido: !form.apellido.trim(),
+    nombre: !form.nombre.trim(),
+    telefono: !form.telefono.trim(),
   }
+
+  setFieldErrors(errors)
+
+  if (errors.apellido) {
+    apellidoRef.current?.focus()
+    return
+  }
+  if (errors.nombre) {
+    nombreRef.current?.focus()
+    return
+  }
+  if (errors.telefono) {
+    telefonoRef.current?.focus()
+    return
+  }
+
+  try {
+    const detalles = carrito.map((item) => ({
+      idHabitacion: item.idHab,
+      fechaEntrada: item.inicio,
+      fechaSalida: item.fin, // <- corregido: no sumar 1 día
+    }))
+
+    await crearReserva({
+      detalles: detalles,
+      nombre: form.nombre,
+      apellido: form.apellido,
+      telefono: form.telefono,
+    })
+
+    setPaso("EXITO")
+    handleBuscar()
+  } catch (e: any) {
+    setMensajeError(e.message)
+    setModalErrorOpen(true)
+  }
+}
+
 
   const getDias = () => {
     const start = new Date(fechaDesde + "T00:00:00")
