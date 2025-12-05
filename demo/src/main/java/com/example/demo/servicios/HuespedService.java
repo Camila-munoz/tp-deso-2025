@@ -56,7 +56,7 @@ public class HuespedService {
 
         if (existente.isPresent()) {
             // Este caso fuerza al controlador a preguntar al usuario si desea guardar un duplicado (CU09, Flujo Alternativo 2.B)
-            throw new ValidacionException("El huésped ya existe con ese tipo y número de documento. La operación debe ser modificada o forzada.");
+            throw new ValidacionException("El tipo y número de documento ya existen en el sistema");
         }
         
         // 3. Guardar y retornar
@@ -70,10 +70,38 @@ public class HuespedService {
      * @return El huésped guardado.
      */
     public Huesped altaHuespedForzada(Huesped huesped) {
-        // Aseguramos que sea un nuevo registro (si el ID estaba cargado por error)
-        huesped.setId(null); 
-        return huespedRepositorio.save(huesped);
+
+    // 1. Busco si ya existe uno con ese DNI/TIPO
+    Optional<Huesped> existenteOpt = huespedRepositorio.findByDocumento(
+            huesped.getTipoDocumento(),
+            huesped.getNumeroDocumento()
+    );
+
+    if (existenteOpt.isPresent()) {
+        Huesped existente = existenteOpt.get();
+
+        existente.setNombre(huesped.getNombre());
+        existente.setApellido(huesped.getApellido());
+        existente.setCuit(huesped.getCuit());
+        existente.setEmail(huesped.getEmail());
+        existente.setTelefono(huesped.getTelefono());
+        existente.setFechaNacimiento(huesped.getFechaNacimiento());
+        existente.setNacionalidad(huesped.getNacionalidad());
+        existente.setOcupacion(huesped.getOcupacion());
+        existente.setPosicionIVA(huesped.getPosicionIVA());
+
+        if (huesped.getDireccion() != null) {
+            existente.setDireccion(huesped.getDireccion());
+        }
+
+        return huespedRepositorio.save(existente);  
     }
+
+    // 3. Si no existía, hago un alta normal
+    huesped.setId(null);
+    return huespedRepositorio.save(huesped);  // INSERT limpio
+}
+
     
     // --- CU02: Buscar huésped por documento exacto (Mantenido del código anterior) ---
     public Huesped buscarHuesped(String tipoDoc, String nroDoc) throws EntidadNoEncontradaException {

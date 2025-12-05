@@ -59,9 +59,25 @@ export const crearHuespedForzado = async (huesped: any) => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(huesped),
   });
-  if (!res.ok) throw new Error("Error al forzar el alta");
-  return res.json();
+
+  // Intentamos parsear JSON si viene, si no, leemos como text
+  const contentType = res.headers.get("content-type") || "";
+  let body: any = null;
+  if (contentType.includes("application/json")) {
+    body = await res.json().catch(() => null);
+  } else {
+    body = await res.text().catch(() => null);
+  }
+
+  if (!res.ok) {
+    // Homogeneizamos el error para que frontend pueda manejarlo
+    const message = (body && (body.message || body)) || `Error (${res.status}) al forzar el alta`;
+    throw { status: res.status, message };
+  }
+
+  return body;
 };
+
 
 
 // --- FACTURACIÓN (CU07) ---

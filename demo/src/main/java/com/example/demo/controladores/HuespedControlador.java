@@ -104,14 +104,10 @@ public class HuespedControlador {
     // Se usa cuando el frontend recibe el error de ValidacionException ("Huésped ya existe") 
     // y el usuario elige "ACEPTAR" guardar el duplicado.
     @PostMapping("/forzar")
-    public ResponseEntity<?> crearForzado(@RequestBody Huesped huesped) {
-        try {
-            Huesped nuevoHuesped = huespedService.altaHuespedForzada(huesped); 
-            return ResponseEntity.status(HttpStatus.CREATED).body(nuevoHuesped);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error interno al forzar el alta: " + e.getMessage());
-        }
+    public ResponseEntity<?> crearHuespedForzado(@RequestBody Huesped huesped) {
+
+        Huesped resultado = huespedService.altaHuespedForzada(huesped);
+        return ResponseEntity.ok(resultado);
     }
 
     // --- 4. MODIFICAR (CU10) ---
