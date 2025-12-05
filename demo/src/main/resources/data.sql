@@ -8,12 +8,12 @@ USE hotel_premier;
 
 -- 1.1 Direcciones
 INSERT INTO Direccion (calle, numero, piso, departamento, cod_postal, localidad, provincia, pais) VALUES 
-('Av. Corrientes', 1234, NULL, NULL, '1043', 'CABA', 'Buenos Aires', 'Argentina'),
-('Bv. Galvez', 1550, 4, 'B', '3000', 'Santa Fe', 'Santa Fe', 'Argentina'),
-('San Martin', 2020, NULL, NULL, '2000', 'Rosario', 'Santa Fe', 'Argentina'),
-('Av. Siempre Viva', 742, NULL, NULL, '5500', 'Springfield', 'Mendoza', 'Argentina'),
-('Calle Falsa', 123, NULL, NULL, '1234', 'Shelbyville', 'Mendoza', 'Argentina'),
-('Calle Luna', 456, 2, 'A', '5678', 'Capital', 'Mendoza', 'Argentina');
+('AV. CORRIENTES', 1234, NULL, NULL, '1043', 'CABA', 'Buenos Aires', 'Argentina'),
+('BV. GALVEZ', 1550, 4, 'B', '3000', 'Santa Fe', 'Santa Fe', 'Argentina'),
+('SAN MARTIN', 2020, NULL, NULL, '2000', 'Rosario', 'Santa Fe', 'Argentina'),
+('AV. SIEMPRE VIVA', 742, NULL, NULL, '5500', 'Springfield', 'Mendoza', 'Argentina'),
+('CALLE FALSA', 123, NULL, NULL, '1234', 'Shelbyville', 'Mendoza', 'Argentina'),
+('CALLE LUNA', 456, 2, 'A', '5678', 'Capital', 'Mendoza', 'Argentina');
 
 
 -- 1.2 Tipos de Habitación
@@ -102,17 +102,17 @@ INSERT INTO Habitacion (ID_Habitacion, numero, estado, cantidad, costo, capacida
 -- 3. HUESPEDES
 -- ==================================================================
 INSERT INTO Huesped (ID_Huesped, nombre, apellido, nro_documento, tipo_documento, cuit, posicion_IVA, edad, telefono, email, nacionalidad, ID_Direccion) VALUES 
-(1,'Lionel', 'Messi', '10101010', 'DNI', NULL, 'CONSUMIDOR_FINAL', 36, '341111222', 'lio@mail.com', 'Argentina', 1),
-(2,'Maria', 'Becerra', '20202020', 'DNI', '27202020201', 'RESPONSABLE_INSCRIPTO', 24, '11223344', 'maria@music.com', 'Argentina', 2),
-(3,'Brad', 'Pitt', '99887766', 'PASAPORTE', NULL, 'CONSUMIDOR_FINAL', 60, '15550000', 'brad@hollywood.com', 'EEUU', 4),
-(4,'Angelina', 'Jolie', '66778899', 'PASAPORTE', NULL, 'CONSUMIDOR_FINAL', 55, '15551111', 'angelina@hollywood.com', 'EEUU', 4),
-(5,'Carlos', 'Gonzalez', '30303030', 'DNI', '27303030303', 'MONOTRIBUTO', 40, '22334455', 'carlos@gonzalez.com', 'Argentina', 3),
-(6,'Sofia', 'Lopez', '40404040', 'DNI', NULL, 'CONSUMIDOR_FINAL', 30, '33445566', 'sofia@lopez.com', 'Argentina', 2),
-(7,'John', 'Doe', '11223344', 'PASAPORTE', NULL, 'CONSUMIDOR_FINAL', 45, '44556677', 'john@doe.com', 'USA', 5),
-(8,'Jane', 'Smith', '55667788', 'PASAPORTE', NULL, 'CONSUMIDOR_FINAL', 38, '55667788', 'jane@smith.com', 'USA', 5),
-(9,'Pedro', 'Alvarez', '50505050', 'DNI', '27505050505', 'RESPONSABLE_INSCRIPTO', 28, '66778899', 'pedro@alvarez.com', 'Argentina', 3),
-(10,'Lucia', 'Fernandez', '60606060', 'DNI', NULL, 'CONSUMIDOR_FINAL', 32, '77889900', 'lucia@fernandez.com', 'Argentina', 2),
-(11,'Michael', 'Johnson', '33445566', 'PASAPORTE', NULL, 'CONSUMIDOR_FINAL', 50, '88990011', 'michael@johnson.com', 'USA', 5),
-(12,'Emily', 'Davis', '77889900', 'PASAPORTE', NULL, 'CONSUMIDOR_FINAL', 29, '99001122', 'emily@davis.com', 'USA', 5),
-(13,'Diego', 'Maradona', '70707070', 'DNI', NULL, 'CONSUMIDOR_FINAL', 60, '10111213', 'diego@maradona.com', 'Argentina', 1),
-(14,'Carlota', 'Perez', '80808080', 'DNI', '27808080808', 'MONOTRIBUTO', 35, '12131415', 'carlota@perez.com', 'Argentina', 2);
+(1,'LIONEL', 'MESSI', '10101010', 'DNI', NULL, 'CONSUMIDOR_FINAL', 36, '341111222', 'lio@mail.com', 'ARGENTINA', 1),
+(2,'MARIA', 'BECERRA', '20202020', 'DNI', '27202020201', 'RESPONSABLE_INSCRIPTO', 24, '11223344', 'maria@music.com', 'ARGENTINA', 2),
+(3,'BRAD', 'PITT', '99887766', 'PASAPORTE', NULL, 'CONSUMIDOR_FINAL', 60, '15550000', 'brad@hollywood.com', 'EEUU', 4),
+(4,'ANGELINA', 'JOLIE', '66778899', 'PASAPORTE', NULL, 'CONSUMIDOR_FINAL', 55, '15551111', 'angelina@hollywood.com', 'EEUU', 4),
+(5,'CARLOS', 'GONZALEZ', '30303030', 'DNI', '27303030303', 'MONOTRIBUTO', 40, '22334455', 'carlos@gonzalez.com', 'ARGENTINA', 3),
+(6,'SOFIA', 'LOPEZ', '40404040', 'DNI', NULL, 'CONSUMIDOR_FINAL', 30, '33445566', 'sofia@lopez.com', 'ARGENTINA', 2),
+(7,'JOHN', 'DOE', '11223344', 'PASAPORTE', NULL, 'CONSUMIDOR_FINAL', 45, '44556677', 'john@doe.com', 'USA', 5),
+(8,'JANE', 'SMITH', '55667788', 'PASAPORTE', NULL, 'CONSUMIDOR_FINAL', 38, '55667788', 'jane@smith.com', 'USA', 5),
+(9,'PEDRO', 'ALVAREZ', '50505050', 'DNI', '27505050505', 'RESPONSABLE_INSCRIPTO', 28, '66778899', 'pedro@alvarez.com', 'ARGENTINA', 3),
+(10,'LUCIA', 'FERNANDEZ', '60606060', 'DNI', NULL, 'CONSUMIDOR_FINAL', 32, '77889900', 'lucia@fernandez.com', 'ARGENTINA', 2),
+(11,'MICHAEL', 'JOHNSON', '33445566', 'PASAPORTE', NULL, 'CONSUMIDOR_FINAL', 50, '88990011', 'michael@johnson.com', 'USA', 5),
+(12,'EMILY', 'DAVIS', '77889900', 'PASAPORTE', NULL, 'CONSUMIDOR_FINAL', 29, '99001122', 'emily@davis.com', 'USA', 5),
+(13,'DIEGO', 'MARADONA', '70707070', 'DNI', NULL, 'CONSUMIDOR_FINAL', 60, '10111213', 'diego@maradona.com', 'ARGENTINA', 1),
+(14,'CARLOTA', 'PEREZ', '80808080', 'DNI', '27808080808', 'MONOTRIBUTO', 35, '12131415', 'carlota@perez.com', 'ARGENTINA', 2);
