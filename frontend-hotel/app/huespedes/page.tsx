@@ -95,7 +95,7 @@ export default function HuespedesPage() {
         <h1 className="text-4xl font-bold text-red-700 drop-shadow-md font-serif tracking-wider">
           BUSCAR HUÉSPED (CU02)
         </h1>
-        <button onClick={() => router.push('/')} className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white font-bold border-2 border-black hover:bg-red-600 shadow-md">
+        <button onClick={() => router.push('http://localhost:3000/principal')} className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white font-bold border-2 border-black hover:bg-red-600 shadow-md">
           X
         </button>
       </div>

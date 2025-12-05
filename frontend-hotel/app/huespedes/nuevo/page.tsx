@@ -20,7 +20,8 @@ export default function AltaHuespedPage() {
   };
 
   const [form, setForm] = useState(initialState);
-  
+  const [errores, setErrores] = useState<string[]>([]);
+
   // --- ESTADOS DE UI ---
   const [modalExito, setModalExito] = useState(false);
   const [modalDuplicado, setModalDuplicado] = useState<string | null>(null); // Mensaje de error si hay duplicado
@@ -30,56 +31,98 @@ export default function AltaHuespedPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+  const [modalCancelar, setModalCancelar] = useState(false);
+
+const validarCamposObligatorios = () => {
+  const faltantes: string[] = [];
+
+  if (!form.apellido.trim()) faltantes.push("Apellido");
+  if (!form.nombre.trim()) faltantes.push("Nombre");
+  if (!form.fechaNacimiento.trim()) faltantes.push("Fecha de nacimiento");
+  if (!form.tipoDocumento.trim()) faltantes.push("Tipo de documento");
+  if (!form.numeroDocumento.trim()) faltantes.push("Número de documento");
+  if (!form.posicionIVA.trim()) faltantes.push("Posición frente al IVA");
+  if (!form.telefono.trim()) faltantes.push("Teléfono");
+  if (!form.nacionalidad.trim()) faltantes.push("Nacionalidad");
+  if (!form.ocupacion.trim()) faltantes.push("Ocupación");
+
+  // Dirección
+  if (!form.calle.trim()) faltantes.push("Calle");
+  if (!form.numero.trim()) faltantes.push("Número");
+  if (!form.codigoPostal.trim()) faltantes.push("Código Postal");
+  if (!form.localidad.trim()) faltantes.push("Localidad");
+  if (!form.provincia.trim()) faltantes.push("Provincia");
+  if (!form.pais.trim()) faltantes.push("País");
+
+  return faltantes;
+};
 
   // --- LÓGICA DE ENVÍO ---
   const handleSubmit = async (forzar: boolean = false) => {
-    setCargando(true);
-    
-    // 1. Armar el objeto con la estructura que espera el Backend (Dirección anidada)
-    const payload = {
-      nombre: form.nombre,
-      apellido: form.apellido,
-      tipoDocumento: form.tipoDocumento,
-      numeroDocumento: form.numeroDocumento,
-      cuit: form.cuit,
-      posicionIVA: form.posicionIVA,
-      telefono: form.telefono,
-      email: form.email,
-      fechaNacimiento: form.fechaNacimiento,
-      nacionalidad: form.nacionalidad,
-      ocupacion: form.ocupacion,
-      direccion: {
-        calle: form.calle,
-        numero: Number(form.numero), // Convertir a número
-        departamento: form.departamento,
-        piso: form.piso ? Number(form.piso) : null,
-        codPostal: form.codigoPostal,
-        localidad: form.localidad,
-        provincia: form.provincia,
-        pais: form.pais
-      }
-    };
 
-    try {
-      if (forzar) {
-        await crearHuespedForzado(payload);
-        setModalDuplicado(null);
-      } else {
-        await crearHuesped(payload);
-      }
-      // Si todo sale bien:
-      setModalExito(true);
-    } catch (err: any) {
-      if (err.status === 400 && !forzar) {
-        // Es un duplicado (Error de validación del backend)
-        setModalDuplicado(err.message || "El huésped ya existe.");
-      } else {
-        alert("Error al guardar: " + err.message);
-      }
-    } finally {
-      setCargando(false);
+  // --- 1. Validar campos obligatorios ---
+  const faltantes = validarCamposObligatorios();
+
+  if (faltantes.length > 0) {
+    setErrores(faltantes);
+    return;  // NO avanza — cumple CU 2.A (muestra errores sin tapar pantalla)
+  }
+
+  // Sin errores → limpiar cartel
+  setErrores([]);
+  setCargando(true);
+
+  // --- 2. Armar payload con estructura del backend ---
+  const payload = {
+    nombre: form.nombre,
+    apellido: form.apellido,
+    tipoDocumento: form.tipoDocumento,
+    numeroDocumento: form.numeroDocumento,
+    cuit: form.cuit,
+    posicionIVA: form.posicionIVA,
+    telefono: form.telefono,
+    email: form.email,
+    fechaNacimiento: form.fechaNacimiento,
+    nacionalidad: form.nacionalidad,
+    ocupacion: form.ocupacion,
+    direccion: {
+      calle: form.calle,
+      numero: Number(form.numero),
+      departamento: form.departamento,
+      piso: form.piso ? Number(form.piso) : null,
+      codPostal: form.codigoPostal,
+      localidad: form.localidad,
+      provincia: form.provincia,
+      pais: form.pais
     }
   };
+
+  try {
+    // --- 3. Crear o crear forzado ---
+    if (forzar) {
+      await crearHuespedForzado(payload);
+      setModalDuplicado(null);
+    } else {
+      await crearHuesped(payload);
+    }
+
+    // --- 4. Mostrar modal de éxito ---
+    setModalExito(true);
+
+  } catch (err: any) {
+
+    // --- 5. Manejo caso duplicado ---
+    if (err.status === 400 && !forzar) {
+      setModalDuplicado(err.message || "El huésped ya existe.");
+    } else {
+      alert("Error al guardar: " + err.message);
+    }
+
+  } finally {
+    setCargando(false);
+  }
+};
+
 
   // --- LÓGICA DEL MODAL ÉXITO ---
   const handleCargarOtro = (respuesta: boolean) => {
@@ -89,9 +132,60 @@ export default function AltaHuespedPage() {
       setForm(initialState);
     } else {
       // NO: Volver a la búsqueda
-      router.push("/huespedes");
+      router.push("http://localhost:3000/principal");
     }
   };
+
+  // Llamar al endpoint forzar usando los estados existentes de tu page
+// Reutiliza el mismo payload que en handleSubmit
+const handleAceptarIgualmente = async () => {
+  const payload = {
+    nombre: form.nombre,
+    apellido: form.apellido,
+    tipoDocumento: form.tipoDocumento,
+    numeroDocumento: form.numeroDocumento,
+    cuit: form.cuit,
+    posicionIVA: form.posicionIVA,
+    telefono: form.telefono,
+    email: form.email,
+    fechaNacimiento: form.fechaNacimiento,
+    nacionalidad: form.nacionalidad,
+    ocupacion: form.ocupacion,
+    direccion: {
+      calle: form.calle,
+      numero: form.numero ? Number(form.numero) : null,
+      departamento: form.departamento,
+      piso: form.piso ? Number(form.piso) : null,
+      codPostal: form.codigoPostal,
+      localidad: form.localidad,
+      provincia: form.provincia,
+      pais: form.pais
+    }
+  };
+
+  try {
+    setCargando(true);
+
+    // Llamada consistente: crearHuespedForzado lanza {status, message} en error
+    const resultado = await crearHuespedForzado(payload);
+
+    // Si llegamos aquí, se guardó OK
+    setModalDuplicado(null); // cerramos cartel duplicado
+    setModalExito(true);     // mostramos modal de éxito (flujo va al punto 3)
+  } catch (err: any) {
+    // Err puede ser {status, message} según la implementación recomendada arriba
+    if (err && err.status) {
+      // Mostrar el mensaje devuelto por backend en el mismo modal o con alert
+      // Aquí lo mostramos usando el modal de duplicado (reemplaza texto si querés)
+      setModalDuplicado(err.message || "Error al forzar el alta.");
+    } else {
+      alert("Error inesperado al forzar el alta: " + (err?.message || err));
+    }
+  } finally {
+    setCargando(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gray-200 p-4 font-sans text-gray-900 relative">
@@ -122,6 +216,17 @@ export default function AltaHuespedPage() {
       <div className="max-w-6xl mx-auto bg-gray-200 px-10 pb-10">
         
 {/* SECCIÓN DATOS PERSONALES (CORREGIDO) */}
+{errores.length > 0 && (
+  <div className="bg-red-200 border border-red-600 text-red-800 p-4 mb-6">
+    <h3 className="font-bold text-lg mb-2">Debe completar los siguientes campos obligatorios:</h3>
+    <ul className="list-disc ml-6">
+      {errores.map((err, idx) => (
+        <li key={idx}>{err}</li>
+      ))}
+    </ul>
+  </div>
+)}
+
         <h2 className="text-2xl font-bold text-sky-400 mb-4" style={{ textShadow: '1px 1px 0 #fff' }}>Datos Personales</h2>
         
         {/* Usamos una grilla de 3 columnas reales */}
@@ -240,21 +345,23 @@ export default function AltaHuespedPage() {
         </div>
 
         {/* BOTONES INFERIORES */}
-        <div className="flex justify-between mt-12 px-16">
-          <button 
-            onClick={() => handleSubmit(false)}
-            className="bg-sky-300 border border-black px-12 py-2 font-bold shadow-md hover:bg-sky-400 active:translate-y-1 w-48"
-          >
-            {cargando ? "Guardando..." : "Siguiente"}
-          </button>
+<div className="flex justify-between mt-12 px-16">
+  <button 
+    onClick={() => handleSubmit(false)}
+    className="bg-sky-300 border border-black px-12 py-2 font-bold shadow-md hover:bg-sky-400 active:translate-y-1 w-48"
+  >
+    {cargando ? "Guardando..." : "Siguiente"}
+  </button>
 
-          <button 
-            onClick={() => router.back()}
-            className="bg-red-500 border border-black text-white px-12 py-2 font-bold shadow-md hover:bg-red-600 active:translate-y-1 w-48"
-          >
-            Cancelar
-          </button>
-        </div>
+  {/* BOTÓN CANCELAR */}
+  <button
+    onClick={() => setModalCancelar(true)}
+    className="bg-red-600 text-white border border-black px-12 py-2 font-bold shadow-md hover:bg-red-700 active:translate-y-1 w-48"
+  >
+    Cancelar
+  </button>
+</div>
+
 
       </div>
 
@@ -291,17 +398,51 @@ export default function AltaHuespedPage() {
       {modalDuplicado && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white border-2 border-red-600 shadow-2xl p-8 w-[500px] text-center">
-            <h3 className="text-xl font-bold text-red-600 mb-4">¡Atención!</h3>
+            <h3 className="text-xl font-bold text-red-600 mb-4">CUIDADO!</h3>
             <p className="mb-6 font-medium">{modalDuplicado}</p>
             <p className="mb-4 text-sm">¿Desea guardarlo igualmente?</p>
             <div className="flex justify-center gap-4">
-              <button onClick={() => handleSubmit(true)} className="bg-red-600 text-white px-4 py-2 rounded font-bold">SI, FORZAR</button>
+              <button onClick={() => handleSubmit(true)} className="bg-red-600 text-white px-4 py-2 rounded font-bold">ACEPTAR IGUALMENTE</button>
               <button onClick={() => setModalDuplicado(null)} className="bg-gray-300 px-4 py-2 rounded font-bold">CORREGIR</button>
             </div>
           </div>
         </div>
       )}
+{modalCancelar && (
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    <div className="bg-white border-2 border-gray-600 p-8 w-[500px] text-center shadow-2xl">
+
+      <h3 className="text-xl font-bold mb-4">
+        ¿Desea cancelar el alta del huésped?
+      </h3>
+
+      <div className="flex justify-center gap-6 mt-6">
+        
+        {/* --- SI → Terminar CU y volver al inicio --- */}
+        <button
+          onClick={() => {
+            setModalCancelar(false);
+            router.push("http://localhost:3000/principal");
+          }}
+          className="bg-red-600 text-white px-6 py-2 rounded font-bold hover:bg-red-700"
+        >
+          SI
+        </button>
+
+        {/* --- NO → Cerrar modal y mantener datos --- */}
+        <button
+          onClick={() => setModalCancelar(false)}
+          className="bg-gray-300 px-6 py-2 rounded font-bold hover:bg-gray-400"
+        >
+          NO
+        </button>
+      </div>
 
     </div>
+  </div>
+)}
+
+    </div>
+    
   );
 }
