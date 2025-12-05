@@ -107,14 +107,18 @@ public class ReservaService {
 
     // --- CU15: INFORMAR CONFLICTO DE RESERVA ---
     // Obtener datos de quien reserva para el cartel de conflicto
-    public Map<String, String> obtenerDetalleReservaConflicto(Integer idHabitacion, LocalDate fecha) {
+   public Map<String, String> obtenerDetalleReservaConflicto(Integer idHabitacion, LocalDate fecha) {
         return reservaRepositorio.findReservaEnFecha(idHabitacion, fecha)
-            .map(r -> Map.of(
-                "titular", r.getApellidoHuesped() + ", " + r.getNombreHuesped(),
-                "desde", r.getFechaEntrada().toString(),
-                "hasta", r.getFechaSalida().toString()
-            ))
-            .orElse(Map.of("titular", "Desconocido", "desde", "?", "hasta", "?"));
+            .map(r -> {
+                String apellido = r.getApellidoHuesped() != null ? r.getApellidoHuesped() : "Sin Apellido";
+                String nombre = r.getNombreHuesped() != null ? r.getNombreHuesped() : "Sin Nombre";
+                return Map.of(
+                    "titular", apellido + ", " + nombre,
+                    "desde", r.getFechaEntrada().toString(),
+                    "hasta", r.getFechaSalida().toString()
+                );
+            })
+            .orElse(Map.of("titular", "No encontrada", "desde", "--", "hasta", "--"));
     }
 
     // Listar todas las reservas

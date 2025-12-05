@@ -40,7 +40,7 @@ public interface ReservaRepositorio extends JpaRepository<Reserva, Integer> {
     // --- CU15: CONFLICTO ---
     // Busca quién tiene reservada la habitación en una fecha puntual
     @Query("SELECT r FROM Reserva r WHERE r.habitacion.id = :idHabitacion " +
-           "AND :fecha >= r.fechaEntrada AND :fecha < r.fechaSalida " +
+           "AND :fecha BETWEEN r.fechaEntrada AND r.fechaSalida " + 
            "AND r.estado = com.example.demo.modelo.EstadoReserva.CONFIRMADA")
     Optional<Reserva> findReservaEnFecha(
             @Param("idHabitacion") Integer idHabitacion, 

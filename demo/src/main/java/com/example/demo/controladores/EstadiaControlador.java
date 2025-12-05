@@ -23,20 +23,15 @@ public class EstadiaControlador {
     @Autowired
     private EstadiaService estadiaService;
 
-    /// --- CU15: OCUPAR (CHECK-IN) ---
-    @PostMapping
-    public ResponseEntity<?> crearEstadia(@RequestBody CrearEstadiaRequest request) {
+    // --- CU15: OCUPAR (CHECK-IN) ---
+    @PostMapping("/masivo")
+    public ResponseEntity<?> crearEstadiasMasivas(@RequestBody List<CrearEstadiaRequest> requests) {
         try {
-            if (request.getIdHabitacion() == null || request.getIdHuespedTitular() == null) {
-                return ResponseEntity.badRequest().body(Map.of("message", "Faltan datos obligatorios."));
-            }
-
-            Estadia nueva = estadiaService.crearEstadia(request);
+            List<Estadia> nuevas = estadiaService.crearEstadiasMasivas(requests);
             
             return ResponseEntity.ok(Map.of(
                 "success", true,
-                "message", "Check-in realizado con éxito.",
-                "estadia", nueva
+                "message", "Se registraron " + nuevas.size() + " ocupaciones correctamente."
             ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));

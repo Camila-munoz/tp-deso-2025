@@ -113,12 +113,10 @@ public class ReservaControlador {
     @GetMapping("/titular-conflicto")
     public ResponseEntity<?> obtenerTitular(@RequestParam Integer idHabitacion, @RequestParam String fecha) {
         try {
-            // Asumimos que el servicio devuelve un Map o DTO con los datos.
-            // Tienes que actualizar el servicio para esto.
             Map<String, String> datos = reservaService.obtenerDetalleReservaConflicto(idHabitacion, LocalDate.parse(fecha));
             return ResponseEntity.ok(datos);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("titular", "Error al buscar"));
+            return ResponseEntity.badRequest().body(Map.of("titular", "Error: " + e.getMessage()));
         }
     }
 }

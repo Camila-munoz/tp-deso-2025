@@ -134,6 +134,20 @@ export const crearEstadia = async (data: any) => {
   return await res.json();
 };
 
+export const crearEstadiasMasivas = async (data: any[]) => {
+  const res = await fetch(`${API_URL}/estadias/masivo`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || "Error al procesar ocupaciones.");
+  }
+  return res.json();
+};
+
 export const obtenerTitularConflicto = async (idHabitacion: number, fecha: string) => {
   const res = await fetch(`${API_URL}/reservas/titular-conflicto?idHabitacion=${idHabitacion}&fecha=${fecha}`);
   return res.json();

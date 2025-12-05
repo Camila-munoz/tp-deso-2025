@@ -6,9 +6,10 @@ interface Props {
   isOpen: boolean;
   habitacionNumero: string;
   onAceptar: (titular: any, acompanantes: any[]) => void;
+  onCancelar?: () => void;
 }
 
-export default function ModalCargaHuespedes({ isOpen, habitacionNumero, onAceptar }: Props) {
+export default function ModalCargaHuespedes({ isOpen, habitacionNumero, onAceptar, onCancelar }: Props) {
   const [filtros, setFiltros] = useState({ apellido: "", nombre: "", dni: "", tipoDoc: "DNI" });
   const [resultados, setResultados] = useState<any[]>([]);
   const [buscando, setBuscando] = useState(false);
