@@ -16,17 +16,6 @@ CREATE TABLE IF NOT EXISTS Direccion (
 );
 
 -- 2. HABITACIONES
-CREATE TABLE IF NOT EXISTS Habitacion (
-    ID_Habitacion INT AUTO_INCREMENT PRIMARY KEY,
-    numero VARCHAR(10) NOT NULL,
-    estado VARCHAR(20) NOT NULL CHECK (estado IN ('LIBRE','RESERVADA','OCUPADA','FUERA_DE_SERVICIO')),
-    cantidad INT NOT NULL,
-    costo DECIMAL(10, 2) NOT NULL,
-    capacidad INT NOT NULL,
-    porcentaje_descuento DECIMAL(5, 2) NOT NULL,
-    ID_TipoHabitacion INT NOT NULL,
-    FOREIGN KEY (ID_TipoHabitacion) REFERENCES TipoHabitacion(ID_TipoHabitacion)
-);
 
 CREATE TABLE IF NOT EXISTS TipoHabitacion (
     ID_TipoHabitacion INT AUTO_INCREMENT PRIMARY KEY,
@@ -42,6 +31,18 @@ CREATE TABLE IF NOT EXISTS TipoHabitacion (
         'INDIVIDUAL ESTANDAR',
         'SUPERIOR FAMILY PLAN'
     ))
+);
+
+CREATE TABLE IF NOT EXISTS Habitacion (
+    ID_Habitacion INT AUTO_INCREMENT PRIMARY KEY,
+    numero VARCHAR(10) NOT NULL,
+    estado VARCHAR(20) NOT NULL CHECK (estado IN ('LIBRE','RESERVADA','OCUPADA','FUERA_DE_SERVICIO')),
+    cantidad INT NOT NULL,
+    costo DECIMAL(10, 2) NOT NULL,
+    capacidad INT NOT NULL,
+    porcentaje_descuento DECIMAL(5, 2) NOT NULL,
+    ID_TipoHabitacion INT NOT NULL,
+    FOREIGN KEY (ID_TipoHabitacion) REFERENCES TipoHabitacion(ID_TipoHabitacion)
 );
 
 -- 3. USUARIOS Y CLIENTES
@@ -134,6 +135,13 @@ CREATE TABLE IF NOT EXISTS Persona_Juridica (
 );
 
 -- 6. FACTURACION
+
+CREATE TABLE IF NOT EXISTS Nota_Credito (
+    ID_NotaCredito INT AUTO_INCREMENT PRIMARY KEY,
+    descripcion TEXT NULL,
+    monto DECIMAL(10, 2) NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS Factura (
     ID_Factura INT AUTO_INCREMENT PRIMARY KEY,
     monto DECIMAL(10, 2) NOT NULL,
@@ -145,12 +153,6 @@ CREATE TABLE IF NOT EXISTS Factura (
     FOREIGN KEY (ID_NotaCredito) REFERENCES Nota_Credito(ID_NotaCredito),
     FOREIGN KEY (ID_Estadia) REFERENCES Estadia(ID_Estadia),
     FOREIGN KEY (ID_Responsable) REFERENCES Responsable_De_Pago(ID_Responsable)
-);
-
-CREATE TABLE IF NOT EXISTS Nota_Credito (
-    ID_NotaCredito INT AUTO_INCREMENT PRIMARY KEY,
-    descripcion TEXT NULL,
-    monto DECIMAL(10, 2) NOT NULL
 );
 
 -- 7. PAGOS Y MEDIOS DE PAGO
