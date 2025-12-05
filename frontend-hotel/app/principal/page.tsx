@@ -17,7 +17,7 @@ export default function PrincipalPage() {
   const opciones = [
     { label: "Buscar Huésped", path: "/huespedes" },
     { label: "Crear Huésped", path: "/huespedes/nuevo" },
-    { label: "Crear Reserva", path: "/reservas" },
+    { label: "Reservar Habitación", path: "/reservas" },
     {label: "Check-In", path: "/ocupar" },
     { label: "Cancelar Reserva", path: "/cancelar-reserva" },
     { label: "Facturar", path: "/facturacion" },

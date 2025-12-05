@@ -18,7 +18,7 @@ public interface ReservaRepositorio extends JpaRepository<Reserva, Integer> {
    @Query("SELECT r FROM Reserva r " +
            "WHERE r.habitacion.id = :idHabitacion " + 
            "AND r.estado <> com.example.demo.modelo.EstadoReserva.CANCELADA " +
-           "AND (r.fechaEntrada < :fechaFin AND r.fechaSalida > :fechaInicio)")
+           "AND (r.fechaEntrada <= :fechaFin AND r.fechaSalida >= :fechaInicio)")
     List<Reserva> findReservasConflictivas(
             @Param("idHabitacion") Integer idHabitacion,
             @Param("fechaInicio") LocalDate fechaInicio,
