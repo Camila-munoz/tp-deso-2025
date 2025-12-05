@@ -101,18 +101,18 @@ INSERT INTO Habitacion (ID_Habitacion, numero, estado, cantidad, costo, capacida
 -- ==================================================================
 -- 3. HUESPEDES
 -- ==================================================================
-INSERT INTO Huesped (nombre, apellido, nro_documento, tipo_documento, cuit, posicion_IVA, edad, telefono, email, nacionalidad, ID_Direccion) VALUES 
-('Lionel', 'Messi', '10101010', 'DNI', NULL, 'CONSUMIDOR_FINAL', 36, '341111222', 'lio@mail.com', 'Argentina', 1),
-('Maria', 'Becerra', '20202020', 'DNI', '27202020201', 'RESPONSABLE_INSCRIPTO', 24, '11223344', 'maria@music.com', 'Argentina', 2),
-('Brad', 'Pitt', '99887766', 'PASAPORTE', NULL, 'CONSUMIDOR_FINAL', 60, '15550000', 'brad@hollywood.com', 'EEUU', 4),
-('Angelina', 'Jolie', '66778899', 'PASAPORTE', NULL, 'CONSUMIDOR_FINAL', 55, '15551111', 'angelina@hollywood.com', 'EEUU', 4),
-('Carlos', 'Gonzalez', '30303030', 'DNI', '27303030303', 'MONOTRIBUTISTA', 40, '22334455', 'carlos@gonzalez.com', 'Argentina', 3),
-('Sofia', 'Lopez', '40404040', 'DNI', NULL, 'CONSUMIDOR_FINAL', 30, '33445566', 'sofia@lopez.com', 'Argentina', 2),
-('John', 'Doe', '11223344', 'PASAPORTE', NULL, 'CONSUMIDOR_FINAL', 45, '44556677', 'john@doe.com', 'USA', 5),
-('Jane', 'Smith', '55667788', 'PASAPORTE', NULL, 'CONSUMIDOR_FINAL', 38, '55667788', 'jane@smith.com', 'USA', 5),
-('Pedro', 'Alvarez', '50505050', 'DNI', '27505050505', 'RESPONSABLE_INSCRIPTO', 28, '66778899', 'pedro@alvarez.com', 'Argentina', 3),
-('Lucia', 'Fernandez', '60606060', 'DNI', NULL, 'CONSUMIDOR_FINAL', 32, '77889900', 'lucia@fernandez.com', 'Argentina', 2),
-('Michael', 'Johnson', '33445566', 'PASAPORTE', NULL, 'CONSUMIDOR_FINAL', 50, '88990011', 'michael@johnson.com', 'USA', 5),
-('Emily', 'Davis', '77889900', 'PASAPORTE', NULL, 'CONSUMIDOR_FINAL', 29, '99001122', 'emily@davis.com', 'USA', 5),
-('Diego', 'Maradona', '70707070', 'DNI', NULL, 'CONSUMIDOR_FINAL', 60, '10111213', 'diego@maradona.com', 'Argentina', 1),
-('Carlota', 'Perez', '80808080', 'DNI', '27808080808', 'MONOTRIBUTISTA', 35, '12131415', 'carlota@perez.com', 'Argentina', 2);
+INSERT INTO Huesped (ID_Huesped, nombre, apellido, nro_documento, tipo_documento, cuit, posicion_IVA, edad, telefono, email, nacionalidad, ID_Direccion) VALUES 
+(1,'Lionel', 'Messi', '10101010', 'DNI', NULL, 'CONSUMIDOR_FINAL', 36, '341111222', 'lio@mail.com', 'Argentina', 1),
+(2,'Maria', 'Becerra', '20202020', 'DNI', '27202020201', 'RESPONSABLE_INSCRIPTO', 24, '11223344', 'maria@music.com', 'Argentina', 2),
+(3,'Brad', 'Pitt', '99887766', 'PASAPORTE', NULL, 'CONSUMIDOR_FINAL', 60, '15550000', 'brad@hollywood.com', 'EEUU', 4),
+(4,'Angelina', 'Jolie', '66778899', 'PASAPORTE', NULL, 'CONSUMIDOR_FINAL', 55, '15551111', 'angelina@hollywood.com', 'EEUU', 4),
+(5,'Carlos', 'Gonzalez', '30303030', 'DNI', '27303030303', 'MONOTRIBUTO', 40, '22334455', 'carlos@gonzalez.com', 'Argentina', 3),
+(6,'Sofia', 'Lopez', '40404040', 'DNI', NULL, 'CONSUMIDOR_FINAL', 30, '33445566', 'sofia@lopez.com', 'Argentina', 2),
+(7,'John', 'Doe', '11223344', 'PASAPORTE', NULL, 'CONSUMIDOR_FINAL', 45, '44556677', 'john@doe.com', 'USA', 5),
+(8,'Jane', 'Smith', '55667788', 'PASAPORTE', NULL, 'CONSUMIDOR_FINAL', 38, '55667788', 'jane@smith.com', 'USA', 5),
+(9,'Pedro', 'Alvarez', '50505050', 'DNI', '27505050505', 'RESPONSABLE_INSCRIPTO', 28, '66778899', 'pedro@alvarez.com', 'Argentina', 3),
+(10,'Lucia', 'Fernandez', '60606060', 'DNI', NULL, 'CONSUMIDOR_FINAL', 32, '77889900', 'lucia@fernandez.com', 'Argentina', 2),
+(11,'Michael', 'Johnson', '33445566', 'PASAPORTE', NULL, 'CONSUMIDOR_FINAL', 50, '88990011', 'michael@johnson.com', 'USA', 5),
+(12,'Emily', 'Davis', '77889900', 'PASAPORTE', NULL, 'CONSUMIDOR_FINAL', 29, '99001122', 'emily@davis.com', 'USA', 5),
+(13,'Diego', 'Maradona', '70707070', 'DNI', NULL, 'CONSUMIDOR_FINAL', 60, '10111213', 'diego@maradona.com', 'Argentina', 1),
+(14,'Carlota', 'Perez', '80808080', 'DNI', '27808080808', 'MONOTRIBUTO', 35, '12131415', 'carlota@perez.com', 'Argentina', 2);
