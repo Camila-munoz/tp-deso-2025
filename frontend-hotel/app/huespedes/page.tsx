@@ -158,7 +158,7 @@ export default function HuespedesPage() {
           </svg>
         </div>
         <h1 className="text-4xl font-bold text-red-700 drop-shadow-md font-serif tracking-wider">
-          BUSCAR HUÉSPED (CU02)
+          BUSCAR HUÉSPED 
         </h1>
         <button
           onClick={() => router.push("/principal")}

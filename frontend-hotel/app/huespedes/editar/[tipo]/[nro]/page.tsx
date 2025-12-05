@@ -164,7 +164,7 @@ export default function ModificarHuespedPage() {
     const newErrors: any = {};
     let hayErrores = false;
 
-    const regexSoloTexto = /^[A-ZÁÉÍÓÚÜÑ\s]+$/;
+    const regexSoloTexto = /^[A-ZÁÉÍÓÚÜÑ\s.]+$/;
     const regexSoloNumeros = /^[0-9]+$/;
     const regexTelefono = /^[0-9-]+$/;
 

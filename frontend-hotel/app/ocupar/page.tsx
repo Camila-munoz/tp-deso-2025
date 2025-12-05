@@ -142,20 +142,6 @@ export default function OcuparPage() {
       const fin = d1 < d2 ? fechaIso : clickInicio.fechaIso
       const dias = Math.ceil(Math.abs(d2.getTime() - d1.getTime()) / 86400000) + 1
 
-      const datosFinalesHabitacion = datosFinales.find((d) => d.idHabitacion === hab.id)
-      if (datosFinalesHabitacion) {
-        setClickInicio(null)
-        return alert("Esta habitación ya fue ocupada en otra fecha. No se puede ocupar dos veces en distintas fechas.")
-      }
-
-      const existePendiente = itemsPendientes.find(
-        (item) => item.idHab === hab.id && !(fin < item.inicio || inicio > item.fin),
-      )
-      if (existePendiente) {
-        setClickInicio(null)
-        return alert("Esta habitación ya tiene un rango seleccionado. Deselecciona el anterior primero.")
-      }
-
       const fIter = new Date(inicio)
       const fEnd = new Date(fin)
       let esReservada = false
@@ -164,13 +150,10 @@ export default function OcuparPage() {
       while (fIter <= fEnd) {
         const iso = fIter.toISOString().split("T")[0]
         const st = estados[`${hab.id}_${iso}`] || "LIBRE"
-        if (st === "OCUPADA" || st === "FUERA_DE_SERVICIO") {
-  setItemActual({ idHab: hab.id, numero: hab.numero, estado: st });
-  setFechaClickOcupada(iso);
-  setMostrarModalOcupada(true); // Mostrar modal igual que fuera de servicio
-  setClickInicio(null);
-  return;
-}
+        if (st === "OCUPADA") {
+          setClickInicio(null)
+          return alert("Rango ocupado.")
+        }
         if (st === "RESERVADA") {
           esReservada = true
           fechaReserva = iso
@@ -264,9 +247,11 @@ export default function OcuparPage() {
   const handleSeguirCargando = () => setModal("CARGA")
 
   const handleCargarOtra = () => {
-    setModal("NONE")
-    setModoBloqueoVisual(false)
-  }
+  // Volver al paso de selección de habitación
+  setModal("NONE");            // Cerramos el modal de opciones
+  setItemActual(null);         // Limpiamos el item actual
+  setModoBloqueoVisual(false); // Desbloqueamos la interfaz para poder seleccionar otra habitación
+};
 
   const handleSalir = async () => {
     try {
@@ -311,32 +296,6 @@ export default function OcuparPage() {
   const getGrillaCarrito = () => {
     return itemsPendientes.map((i) => {
       const estaListo = datosFinales.some((d) => d.idHabitacion === i.idHab)
-
-      const fIter = new Date(i.inicio)
-      const fEnd = new Date(i.fin)
-      let hayOcupada = false
-
-      while (fIter <= fEnd) {
-        const iso = fIter.toISOString().split("T")[0]
-        const habitacionKey = `${i.idHab}_${iso}`
-        const estado = estados[habitacionKey] || "LIBRE"
-
-        if (estado === "OCUPADA") {
-          hayOcupada = true
-          break
-        }
-        fIter.setDate(fIter.getDate() + 1)
-      }
-
-      if (hayOcupada) {
-        return {
-          idHab: i.idHab,
-          inicio: i.inicio,
-          fin: i.fin,
-          colorForzado: "bg-red-600 text-white",
-        }
-      }
-
       return {
         idHab: i.idHab,
         inicio: i.inicio,
