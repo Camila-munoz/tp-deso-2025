@@ -7,9 +7,10 @@ interface Props {
   habitacionNumero: string;
   onAceptar: (titular: any, acompanantes: any[]) => void;
   onCancelar: () => void;
+  onBack?: () => void;
 }
 
-export default function ModalCargaHuespedes({ isOpen, habitacionNumero, onAceptar, onCancelar }: Props) {
+export default function ModalCargaHuespedes({ isOpen, habitacionNumero, onAceptar, onCancelar, onBack  }: Props) {
   // Estados
   const [filtros, setFiltros] = useState({ apellido: "", nombre: "", dni: "", tipoDoc: "DNI" });
   const [resultados, setResultados] = useState<any[]>([]);
