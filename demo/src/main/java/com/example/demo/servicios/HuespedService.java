@@ -78,7 +78,6 @@ public class HuespedService {
     );
 
     if (existenteOpt.isPresent()) {
-        // 2. Si existe → lo modifico en vez de insertar
         Huesped existente = existenteOpt.get();
 
         existente.setNombre(huesped.getNombre());
@@ -95,7 +94,7 @@ public class HuespedService {
             existente.setDireccion(huesped.getDireccion());
         }
 
-        return huespedRepositorio.save(existente);  // UPDATE → válido
+        return huespedRepositorio.save(existente);  
     }
 
     // 3. Si no existía, hago un alta normal

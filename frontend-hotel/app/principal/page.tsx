@@ -18,7 +18,7 @@ export default function PrincipalPage() {
     { label: "Buscar Huésped", path: "/huespedes" },
     { label: "Crear Huésped", path: "/huespedes/nuevo" },
     { label: "Crear Reserva", path: "/reservas" },
-    {label: "Check-In", path: "/ocupar" },
+    {label: "Ocupar Habitación", path: "/ocupar" },
     { label: "Cancelar Reserva", path: "/cancelar-reserva" },
     { label: "Facturar", path: "/facturacion" },
   ];
