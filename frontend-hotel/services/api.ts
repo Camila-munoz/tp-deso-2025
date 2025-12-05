@@ -1,6 +1,10 @@
 // Si existe la variable de entorno la usa, si no, usa localhost:8080 por defecto
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 
+
+console.log("API_URL =", API_URL);
+
+
 // --- AUTENTICACIÓN (CU01) ---
 export interface ConserjeLogin {
   nombre: string;
@@ -55,9 +59,25 @@ export const crearHuespedForzado = async (huesped: any) => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(huesped),
   });
-  if (!res.ok) throw new Error("Error al forzar el alta");
-  return res.json();
+
+  // Intentamos parsear JSON si viene, si no, leemos como text
+  const contentType = res.headers.get("content-type") || "";
+  let body: any = null;
+  if (contentType.includes("application/json")) {
+    body = await res.json().catch(() => null);
+  } else {
+    body = await res.text().catch(() => null);
+  }
+
+  if (!res.ok) {
+    // Homogeneizamos el error para que frontend pueda manejarlo
+    const message = (body && (body.message || body)) || `Error (${res.status}) al forzar el alta`;
+    throw { status: res.status, message };
+  }
+
+  return body;
 };
+
 
 
 // --- FACTURACIÓN (CU07) ---
@@ -128,6 +148,25 @@ export const crearEstadia = async (data: any) => {
     throw new Error(errorData.message || "Error al realizar el check-in");
   }
   return await res.json();
+};
+
+export const crearEstadiasMasivas = async (data: any[]) => {
+  const res = await fetch(`${API_URL}/estadias/masivo`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || "Error al procesar ocupaciones.");
+  }
+  return res.json();
+};
+
+export const obtenerTitularConflicto = async (idHabitacion: number, fecha: string) => {
+  const res = await fetch(`${API_URL}/reservas/titular-conflicto?idHabitacion=${idHabitacion}&fecha=${fecha}`);
+  return res.json();
 };
 
 // --- CU06: CANCELAR ---

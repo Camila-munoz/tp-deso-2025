@@ -3,6 +3,7 @@ package com.example.demo.servicios;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -102,6 +103,22 @@ public class ReservaService {
         for (Integer id : ids) {
             cancelarReserva(id);
         }
+    }
+
+    // --- CU15: INFORMAR CONFLICTO DE RESERVA ---
+    // Obtener datos de quien reserva para el cartel de conflicto
+   public Map<String, String> obtenerDetalleReservaConflicto(Integer idHabitacion, LocalDate fecha) {
+        return reservaRepositorio.findReservaEnFecha(idHabitacion, fecha)
+            .map(r -> {
+                String apellido = r.getApellidoHuesped() != null ? r.getApellidoHuesped() : "Sin Apellido";
+                String nombre = r.getNombreHuesped() != null ? r.getNombreHuesped() : "Sin Nombre";
+                return Map.of(
+                    "titular", apellido + ", " + nombre,
+                    "desde", r.getFechaEntrada().toString(),
+                    "hasta", r.getFechaSalida().toString()
+                );
+            })
+            .orElse(Map.of("titular", "No encontrada", "desde", "--", "hasta", "--"));
     }
 
     // Listar todas las reservas

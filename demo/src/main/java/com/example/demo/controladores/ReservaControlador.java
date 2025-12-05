@@ -1,5 +1,6 @@
 package com.example.demo.controladores;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -106,5 +107,16 @@ public class ReservaControlador {
         public void setFechaEntrada(String f) { this.fechaEntrada = f; }
         public String getFechaSalida() { return fechaSalida; }
         public void setFechaSalida(String f) { this.fechaSalida = f; }
+    }
+
+    // --- CU15: INFORMAR CONFLICTO DE RESERVA ---
+    @GetMapping("/titular-conflicto")
+    public ResponseEntity<?> obtenerTitular(@RequestParam Integer idHabitacion, @RequestParam String fecha) {
+        try {
+            Map<String, String> datos = reservaService.obtenerDetalleReservaConflicto(idHabitacion, LocalDate.parse(fecha));
+            return ResponseEntity.ok(datos);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("titular", "Error: " + e.getMessage()));
+        }
     }
 }

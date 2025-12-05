@@ -24,14 +24,19 @@ export default function Grilla({ habitaciones, estados, dias, onCellClick, selec
     const key = `${idHab}_${fechaIso}`;
     const estadoBD = estados[key] || "LIBRE";
 
-    // 1. PRIORIDAD: Si está en el CARRITO (Confirmado visualmente)
-    // Verificamos si esta celda cae dentro de algún rango del carrito
+    // 1. Carrito (Selección confirmada)
+    // Buscamos si esta celda es parte de un rango seleccionado
     const enCarrito = carrito.find(item => 
         item.idHab === idHab && fechaIso >= item.inicio && fechaIso <= item.fin
     );
-    if (enCarrito) return "bg-blue-600 text-white"; // Azul Fuerte
 
-    // 2. PRIORIDAD: Selección en curso (Arrastre)
+    if (enCarrito) {
+        // ¡AQUÍ ESTÁ LA MAGIA!
+        // Si el item tiene un color forzado (ej: Rojo para Ocupar), lo usa.
+        // Si no (ej: Reservar), usa el Azul por defecto.
+        return enCarrito.colorForzado || "bg-blue-600 text-white";
+    }
+    // 2. Selección en curso (Arrastre visual)
     if (seleccionInicio && seleccionInicio.idHab === idHab) {
         const fInicio = new Date(seleccionInicio.fechaIso).getTime();
         const fActual = new Date(fechaIso).getTime();
@@ -40,15 +45,18 @@ export default function Grilla({ habitaciones, estados, dias, onCellClick, selec
         const max = Math.max(fInicio, fHover);
 
         if (fActual >= min && fActual <= max) {
-            if (estadoBD !== "LIBRE") return "bg-red-500 opacity-50 cursor-not-allowed";
-            return "bg-blue-300"; // Azul Claro
+            // Si estoy arrastrando sobre una ocupada, aviso visual
+            if (estadoBD !== "LIBRE" && estadoBD !== "RESERVADA") return "bg-red-500 opacity-50 cursor-not-allowed";
+            return "bg-blue-300"; 
         }
     }
 
-    // 3. ESTADOS BASE
+    // 3. Estados BD
     if (estadoBD === "OCUPADA") return "bg-[#f87171] hover:bg-red-500";
     if (estadoBD === "RESERVADA") return "bg-[#fef08a] hover:bg-yellow-300";
     if (estadoBD === "LIBRE") return "bg-[#d9f99d] hover:bg-lime-400";
+    if (estadoBD === "FUERA_DE_SERVICIO") return "bg-gray-400 cursor-not-allowed";
+    
     return "bg-gray-100";
   };
 
