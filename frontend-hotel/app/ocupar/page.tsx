@@ -149,8 +149,6 @@ export default function OcuparPage() {
         return;
     }
 
-    // FIX: Si ya están todos los datos cargados (pendientes == 0), abrimos el modal de opciones directamente
-    // para permitir FINALIZAR/GUARDAR.
     if (itemsPendientes.length === datosFinales.length) {
         setModal("OPCIONES");
         return;
@@ -186,7 +184,7 @@ export default function OcuparPage() {
     const nuevoDato = {
       idHabitacion: itemActual.idHab,
       idHuespedTitular: titular.id,
-      idsAcompañantes: acompanantes.map((a) => a.id),
+      idHuespedesAcompanantes: acompanantes.map((a) => a.id),
       cantidadDias: itemActual.dias,
       cantidadHuespedes: 1 + acompanantes.length,
       idReserva: null, 
@@ -296,7 +294,7 @@ export default function OcuparPage() {
         <Link href="/principal" className="text-gray-500 font-bold hover:text-gray-700">⬅ Volver</Link>
       </div>
       <h1 className="text-4xl text-center text-[#d32f2f] font-bold mb-8 font-serif drop-shadow-sm tracking-widest border-b-2 border-red-200 pb-4 px-10 mt-2">
-        OCUPAR HABITACIÓN (CU15)
+        OCUPAR HABITACIÓN
       </h1>
 
       <div className="bg-white px-10 py-6 rounded-xl shadow border flex items-end gap-8 mb-8">
@@ -324,7 +322,7 @@ export default function OcuparPage() {
               <button onClick={iniciarProceso} className="bg-green-600 text-white px-8 py-4 rounded-full font-bold shadow-2xl text-lg border-4 border-green-400 hover:bg-green-700 hover:scale-105 transition transform">
                 {datosFinales.length > 0 && pendientesCount > 0 
                     ? `CONTINUAR SIGUIENTE (${pendientesCount}) ➡` 
-                    : pendientesCount === 0 ? "FINALIZAR TODO 💾" : `INICIAR CHECK-IN (${itemsPendientes.length}) ➡`}
+                    : pendientesCount === 0 ? "FINALIZAR TODO" : `INICIAR CHECK-IN (${itemsPendientes.length}) ➡`}
               </button>
             </div>
           )}

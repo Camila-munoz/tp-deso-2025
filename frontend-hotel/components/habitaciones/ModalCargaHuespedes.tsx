@@ -75,7 +75,7 @@ export default function ModalCargaHuespedes({
     const lista = Array.from(seleccionados.values());
     const titular = lista.find(x => x.rol === 'TITULAR')?.data;
     const acomp = lista.filter(x => x.rol === 'ACOMPAÑANTE').map(x => x.data);
-    if (!titular) return alert("Debe seleccionar un TITULAR (Botón Verde) obligatorio.");
+    if (!titular) return alert("Debe seleccionar un TITULAR obligatorio.");
     onAceptar(titular, acomp);
   };
 
@@ -113,7 +113,7 @@ export default function ModalCargaHuespedes({
                     }`}
                 title={esTitularEnOtra ? "No puede ser acompañante si ya es Titular en otra habitación" : ""}
             >
-                ACOMP.
+                ACOMPAÑANTE
             </button>
         </div>
     );

@@ -120,7 +120,6 @@ public class EstadiaService {
             boolean coincidencia = false;
 
             // Validar si el Titular coincide con la Reserva (Apellido)
-            // Nota: Normalizamos a mayúsculas y trim para evitar errores tontos
             if (titular.getApellido().trim().equalsIgnoreCase(reserva.getApellidoHuesped().trim())) {
                 coincidencia = true;
             }
@@ -155,7 +154,7 @@ public class EstadiaService {
         estadia.setCantidadDias(request.getCantidadDias());
         estadia.setCantidadHuespedes(1 + listaAcomp.size());
         estadia.setCantidadHabitaciones(1);
-        if(request.getIdReserva()!=null) estadia.setIdReserva(request.getIdReserva());
+        estadia.setIdReserva(idReservaVinculada);
 
         // Cambiar estado
         habitacion.setEstado(EstadoHabitacion.OCUPADA);
