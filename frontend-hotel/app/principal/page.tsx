@@ -21,6 +21,7 @@ export default function PrincipalPage() {
     {label: "Ocupar Habitación", path: "/ocupar" },
     { label: "Cancelar Reserva", path: "/cancelar-reserva" },
     { label: "Facturar", path: "/facturacion" },
+    { label: "Dar de baja Huésped", path: "/huespedes/baja" },
   ];
 
   return (
