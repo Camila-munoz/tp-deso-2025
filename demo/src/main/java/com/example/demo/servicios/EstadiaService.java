@@ -1,5 +1,6 @@
 package com.example.demo.servicios;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -106,6 +107,44 @@ public class EstadiaService {
         List<Huesped> listaAcomp = new ArrayList<>();
         if (request.getIdHuespedesAcompanantes() != null) {
             for(Integer id : request.getIdHuespedesAcompanantes()) listaAcomp.add(huespedRepositorio.findById(id).get());
+        }
+
+        Optional<Reserva> reservaOpt = reservaRepositorio.findReservaActivaParaCheckIn(
+        habitacion.getId(), LocalDate.now()
+        );
+
+        Integer idReservaVinculada = null;
+
+        if (reservaOpt.isPresent()) {
+            Reserva reserva = reservaOpt.get();
+            boolean coincidencia = false;
+
+            // Validar si el Titular coincide con la Reserva (Apellido)
+            // Nota: Normalizamos a mayúsculas y trim para evitar errores tontos
+            if (titular.getApellido().trim().equalsIgnoreCase(reserva.getApellidoHuesped().trim())) {
+                coincidencia = true;
+            }
+
+            // Si no coincidió el titular, buscamos en los acompañantes
+            if (!coincidencia) {
+                for (Huesped acomp : listaAcomp) {
+                    if (acomp.getApellido().trim().equalsIgnoreCase(reserva.getApellidoHuesped().trim())) {
+                        coincidencia = true;
+                        break;
+                    }
+                }
+            }
+
+            if (coincidencia) {
+                idReservaVinculada = reserva.getId();
+                // Actualizamos el estado de la reserva para que no quede "colgando"
+                reserva.setEstado(EstadoReserva.CONFIRMADA); // Asegurate de tener este ENUM o usar otro lógico
+                reservaRepositorio.save(reserva);
+            } else {
+                // EL PUNTO 5 IMPLICA BLOQUEO SI NO ES LA PERSONA
+                throw new ValidacionException("La habitación está reservada por " + 
+                    reserva.getApellidoHuesped() + " y no coincide con los huéspedes ingresados.");
+            }
         }
 
         Estadia estadia = new Estadia();
