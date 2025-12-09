@@ -104,6 +104,87 @@ export default function AltaHuespedPage() {
     if (!form.provincia.trim()) faltantes.push("Provincia")
     if (!form.pais.trim()) faltantes.push("País")
 
+    // VALIDACIÓN DE EMAIL (Regex estándar)
+    // Verifica que tenga texto + @ + texto + . + texto
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (form.email && !emailRegex.test(form.email)) {
+      faltantes.push("El formato del Email no es válido (ejemplo: usuario@dominio.com)")
+    }
+
+    // VALIDACIÓN DE FECHA DE NACIMIENTO (No futura)
+    if (form.fechaNacimiento) {
+      const fechaNac = new Date(form.fechaNacimiento)
+      const hoy = new Date()
+      // Reseteamos horas para comparar solo fechas
+      hoy.setHours(0, 0, 0, 0)
+      if (fechaNac > hoy) {
+        faltantes.push("La fecha de nacimiento no puede ser futura")
+      }
+    }
+    if (form.tipoDocumento === "PASAPORTE" && form.numeroDocumento) {
+        // Regex: ^ (inicio) [a-zA-Z]{3} (3 letras) \d{6} (6 números) $ (fin)
+        if (!/^[a-zA-Z]{3}\d{6}$/.test(form.numeroDocumento)) {
+            faltantes.push("El Pasaporte debe tener 3 letras seguidas de 6 números (ej: AAA123456)")
+        }
+    }
+    // VALIDACIÓN DE TELÉFONO (Solo números, espacios, guiones y +)
+    if (form.telefono && !/^[\d\s\-\+]+$/.test(form.telefono)) {
+        faltantes.push("El Teléfono contiene caracteres inválidos")
+    }
+
+    // VALIDACIÓN DE DNI (Solo números si el tipo es DNI)
+    if (form.tipoDocumento === "DNI" && form.numeroDocumento) {
+        if (!/^\d+$/.test(form.numeroDocumento)) {
+            faltantes.push("El DNI debe contener solo números")
+        }
+        if(form.numeroDocumento.length>8 || form.numeroDocumento.length<7){
+          faltantes.push("El DNI debe contener como mínimo 7 dígitos y como máximo 8")
+        }
+    }
+
+    // VALIDACIÓN DE CUIT (Solo números y guiones)
+    if (form.cuit && !/^[\d\-]+$/.test(form.cuit)) {
+        faltantes.push("El CUIT contiene caracteres inválidos")
+    }
+
+    // VALIDACIÓN DE CAMPOS NUMÉRICOS DE DIRECCIÓN
+    // isNaN comprueba si NO es un número
+    if (form.numero && isNaN(Number(form.numero))) {
+        faltantes.push("El Número de la dirección debe ser un valor numérico")
+    }
+    if (form.piso && form.piso.trim() !== "" && isNaN(Number(form.piso))) {
+        faltantes.push("El Piso debe ser un valor numérico")
+    }
+
+    // VALIDACIÓN OCUPACIÓN: Debe contener al menos una letra
+    // Esto evita inputs como "!", "?", "...", "123"
+    if (form.ocupacion && !/[a-zA-ZñÑáéíóúÁÉÍÓÚ]/.test(form.ocupacion)) {
+        faltantes.push("La ocupación ingresada no es válida (debe contener letras)")
+    }
+
+    // SOLO LETRAS EN NOMBRE Y APELLIDO
+    // Permite letras, espacios y acentos (\u00C0-\u00FF)
+    const nombreRegex = /^[a-zA-Z\s\u00C0-\u00FF']+$/
+    if (form.nombre && !nombreRegex.test(form.nombre)) {
+        faltantes.push("El Nombre contiene caracteres inválidos (no use números ni símbolos)")
+    }
+    if (form.apellido && !nombreRegex.test(form.apellido)) {
+        faltantes.push("El Apellido contiene caracteres inválidos")
+    }
+
+    // VALIDAR LONGITUD DE CUIT (11 dígitos numéricos)
+    if (form.cuit) {
+        // Quitamos guiones para contar solo números
+        const cuitSoloNumeros = form.cuit.replace(/-/g, "")
+        if (cuitSoloNumeros.length !== 11) {
+             faltantes.push("El CUIT debe tener 11 dígitos")
+        }
+    }
+
+    // VALIDAR LARGO CÓDIGO POSTAL (Entre 4 y 8 caracteres)
+    if (form.codigoPostal && (form.codigoPostal.length < 4 || form.codigoPostal.length > 8)) {
+        faltantes.push("El Código Postal parece incorrecto (verifique la longitud)")
+    }
     return faltantes
   }
 
@@ -114,6 +195,7 @@ export default function AltaHuespedPage() {
 
     if (faltantes.length > 0) {
       setErrores(faltantes)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
       return
     }
 
@@ -328,6 +410,8 @@ export default function AltaHuespedPage() {
               <option value="DNI">DNI</option>
               <option value="PASAPORTE">PASAPORTE</option>
               <option value="LE">LE</option>
+              <option value="LC">LC</option>
+              <option value="OTRO">OTRO</option>
             </select>
           </div>
           <div>

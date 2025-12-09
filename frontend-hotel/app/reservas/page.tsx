@@ -77,7 +77,7 @@ export default function ReservasPage() {
       setModalErrorOpen(true)
       return
     }
-
+    
     setCargando(true)
     try {
       const res = await getEstadoHabitaciones(fechaDesde, fechaHasta)
@@ -110,6 +110,7 @@ export default function ReservasPage() {
     } finally {
       setCargando(false)
     }
+    
   }
 
   const verificarDisponibilidad = (mapaEstados: Record<string, string>): boolean => {
@@ -144,6 +145,17 @@ export default function ReservasPage() {
 
   // --- CLICK EN CELDA ---
   const handleCellClick = (hab: any, diaIndex: number, fechaIso: string) => {
+    // --- NUEVA VALIDACIÓN: BLOQUEAR CLICK EN EL PASADO ---
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    const fechaCelda = new Date(fechaIso + "T00:00:00");
+
+    if (fechaCelda < hoy) {
+      setMensajeError("No se pueden realizar reservas en fechas pasadas.");
+      setModalErrorOpen(true);
+      return;
+    }
+    
     const key = `${hab.id}_${fechaIso}`
     const estado = estados[key] || "LIBRE"
 
@@ -203,48 +215,92 @@ export default function ReservasPage() {
   }
 
   const handleSubmit = async () => {
-  const errors = {
-    apellido: !form.apellido.trim(),
-    nombre: !form.nombre.trim(),
-    telefono: !form.telefono.trim(),
-  }
+    // --- 1. Validar Campos Vacíos (Lógica actual) ---
+    const errors = {
+      apellido: !form.apellido.trim(),
+      nombre: !form.nombre.trim(),
+      telefono: !form.telefono.trim(),
+    }
 
-  setFieldErrors(errors)
+    setFieldErrors(errors)
 
-  if (errors.apellido) {
-    apellidoRef.current?.focus()
-    return
-  }
-  if (errors.nombre) {
-    nombreRef.current?.focus()
-    return
-  }
-  if (errors.telefono) {
-    telefonoRef.current?.focus()
-    return
-  }
+    // Foco en el primer error encontrado
+    if (errors.apellido) {
+      apellidoRef.current?.focus()
+      return
+    }
+    if (errors.nombre) {
+      nombreRef.current?.focus()
+      return
+    }
+    if (errors.telefono) {
+      telefonoRef.current?.focus()
+      return
+    }
 
-  try {
-    const detalles = carrito.map((item) => ({
-      idHabitacion: item.idHab,
-      fechaEntrada: item.inicio,
-      fechaSalida: item.fin, // <- corregido: no sumar 1 día
-    }))
+    // --- 2. Validaciones de Formato (NUEVO) ---
+    const soloTextoRegex = /^[a-zA-Z\s\u00C0-\u00FF']+$/; // Letras, espacios y acentos
+    const telefonoRegex = /^[\d\s\-]+$/; // Números, espacios y guiones
 
-    await crearReserva({
-      detalles: detalles,
-      nombre: form.nombre,
-      apellido: form.apellido,
-      telefono: form.telefono,
-    })
+    if (!soloTextoRegex.test(form.apellido)) {
+        setMensajeError("El Apellido debe contener solo letras.");
+        setModalErrorOpen(true);
+        return;
+    }
 
-    setPaso("EXITO")
-    handleBuscar()
-  } catch (e: any) {
-    setMensajeError(e.message)
-    setModalErrorOpen(true)
-  }
-}
+    if (!soloTextoRegex.test(form.nombre)) {
+        setMensajeError("El Nombre debe contener solo letras.");
+        setModalErrorOpen(true);
+        return;
+    }
+
+    if (!telefonoRegex.test(form.telefono)) {
+        setMensajeError("El Teléfono debe contener solo números y guiones.");
+        setModalErrorOpen(true);
+        return;
+    }
+
+    if (form.nombre.length < 2 || form.nombre.length > 50) {
+        setMensajeError("El Nombre debe tener entre 2 y 50 caracteres.");
+        setModalErrorOpen(true);
+        return;
+    }
+    if (form.apellido.length < 2 || form.apellido.length > 50) {
+        setMensajeError("El Apellido debe tener entre 2 y 50 caracteres.");
+        setModalErrorOpen(true);
+        return;
+    }
+
+    // NUEVA: Longitud de Teléfono (ej: entre 7 y 15 dígitos)
+    if (form.telefono.length < 7 || form.telefono.length > 15) {
+        setMensajeError("El Teléfono debe tener entre 7 y 15 dígitos.");
+        setModalErrorOpen(true);
+        return;
+    }
+
+    // --- 3. Envío al Backend ---
+    try {
+      const detalles = carrito.map((item) => ({
+        idHabitacion: item.idHab,
+        fechaEntrada: item.inicio,
+        fechaSalida: item.fin, 
+      }))
+
+      await crearReserva({
+        detalles: detalles,
+        nombre: form.nombre,
+        apellido: form.apellido,
+        telefono: form.telefono,
+      })
+
+      setPaso("EXITO")
+      // Opcional: Si quieres refrescar la grilla tras el éxito
+      // handleBuscar() 
+    } catch (e: any) {
+      setMensajeError(e.message)
+      setModalErrorOpen(true)
+    }
+  }
 
 
   const getDias = () => {
