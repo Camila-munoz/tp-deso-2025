@@ -3,7 +3,6 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation"; 
 import { obtenerHuespedPorDocumento, modificarHuesped, modificarHuespedForzado, darBajaHuesped, verificarHuespedAlojado } from "@/services/api";
 
-
 const InputField = ({ label, name, value, onChange, error, type = "text", disabled = false, required = false, inputRef }: any) => (
   <div>
     <label className={`block font-bold mb-1 ${error ? "text-red-600" : "text-gray-900"}`}>
@@ -17,7 +16,7 @@ const InputField = ({ label, name, value, onChange, error, type = "text", disabl
       onChange={onChange} 
       disabled={disabled}
       className={`w-full border p-1.5 rounded outline-none transition-colors 
-        ${type === 'text' ? 'uppercase' : ''} 
+        ${type === 'text' && name !== 'email' ? 'uppercase' : ''} 
         ${error ? 'border-red-500 border-2 bg-white text-gray-900' : 'border-gray-500 focus:border-blue-500'}
         ${disabled ? 'bg-gray-300 cursor-not-allowed' : 'bg-white'}
       `} 
@@ -119,21 +118,17 @@ export default function ModificarHuespedPage() {
 
   // --- DETECTOR DE "CUALQUIER TECLA" PARA CONTINUAR ---
   useEffect(() => {
-    // Si no están los modales finales de borrado, no hacemos nada
     if (!modalExitoBorrar && !modalErrorBorrar) return;
 
     const handleAnyKey = () => {
       if (modalExitoBorrar) {
-        // Caso Éxito: Volver al menú
         router.push('/huespedes');
       } else if (modalErrorBorrar) {
-        // Caso Error: Cerrar modal para ver los datos
         setModalErrorBorrar(false);
       }
     };
 
     window.addEventListener('keydown', handleAnyKey);
-    
     return () => window.removeEventListener('keydown', handleAnyKey);
   }, [modalExitoBorrar, modalErrorBorrar, router]);
 
@@ -141,67 +136,138 @@ export default function ModificarHuespedPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     let { name, value, type } = e.target as HTMLInputElement;
 
+    // Convertir a mayúsculas todo excepto email
     if (type === 'text' && name !== 'email') {
       value = value.toUpperCase();
     }
 
     setForm({ ...form, [name]: value });
     
+    // Limpiar error del campo al escribir
     if (errors[name]) {
       setErrors({ ...errors, [name]: null });
     }
   };
 
-  // --- LÓGICA MODIFICAR ---
+  // --- LÓGICA MODIFICAR (VALIDACIONES ACTUALIZADAS) ---
   const handleModificar = async (forzar: boolean = false) => {
     const newErrors: any = {};
     let hayErrores = false;
 
-    const regexSoloTexto = /^[A-ZÁÉÍÓÚÜÑ\s.]+$/;
-    const regexSoloNumeros = /^[0-9]+$/;
-    const regexTelefono = /^[0-9-]+$/;
+    // 1. CAMPOS OBLIGATORIOS
+    const obligatorios = [
+      "apellido", "nombre", "fechaNacimiento", "tipoDocumento", 
+      "numeroDocumento", "posicionIVA", "telefono", "nacionalidad", 
+      "ocupacion", "calle", "numero", "codigoPostal", "localidad", 
+      "provincia", "pais"
+    ];
 
-    const camposSoloTexto = ["nombre", "apellido", "nacionalidad", "ocupacion", "calle", "localidad", "provincia", "pais"];
-    const camposSoloNumeros = ["numero", "piso", "codigoPostal", "numeroDocumento", "cuit"];
-    
-    const validarCampo = (campo: string, tipo: 'texto' | 'numero' | 'telefono' | 'cualquiera') => {
-      const valor = form[campo] ? String(form[campo]).trim() : "";
-      const esObligatorio = ["apellido", "nombre", "fechaNacimiento", "tipoDocumento", "numeroDocumento", "posicionIVA", "telefono", "nacionalidad", "ocupacion", "calle", "numero", "codigoPostal", "localidad", "provincia", "pais"].includes(campo);
-
-      if (esObligatorio && !valor) {
+    obligatorios.forEach((campo) => {
+      if (!form[campo] || String(form[campo]).trim() === "") {
         newErrors[campo] = "Campo Obligatorio";
         hayErrores = true;
-        return;
       }
+    });
 
-      if (valor) {
-        if (tipo === 'texto' && !regexSoloTexto.test(valor)) {
-          newErrors[campo] = "Formato inválido";
-          hayErrores = true;
-        } else if (tipo === 'numero' && !regexSoloNumeros.test(valor)) {
-          newErrors[campo] = "Formato inválido";
-          hayErrores = true;
-        } else if (tipo === 'telefono' && !regexTelefono.test(valor)) {
-          newErrors[campo] = "Formato inválido";
-          hayErrores = true;
-        }
-      }
-    };
+    // 2. VALIDACIONES DE FORMATO
 
-    camposSoloTexto.forEach(c => validarCampo(c, 'texto'));
-    camposSoloNumeros.forEach(c => validarCampo(c, 'numero'));
-    validarCampo('telefono', 'telefono');
-    validarCampo('tipoDocumento', 'cualquiera');
-    validarCampo('posicionIVA', 'cualquiera');
-    
+    // -- Nombres y Apellidos (Solo letras y caracteres válidos)
+    const nombreRegex = /^[a-zA-Z\s\u00C0-\u00FF']+$/;
+    if (form.nombre && !nombreRegex.test(form.nombre)) {
+      newErrors.nombre = "Contiene caracteres inválidos";
+      hayErrores = true;
+    }
+    if (form.apellido && !nombreRegex.test(form.apellido)) {
+      newErrors.apellido = "Contiene caracteres inválidos";
+      hayErrores = true;
+    }
+    if (form.nacionalidad && !nombreRegex.test(form.nacionalidad)) {
+      newErrors.nacionalidad = "Contiene caracteres inválidos";
+      hayErrores = true;
+    }
+    if (form.ocupacion && !nombreRegex.test(form.ocupacion)) {
+        newErrors.ocupacion = "Contiene caracteres inválidos";
+        hayErrores = true;
+    }
+    // -- Email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (form.email && !emailRegex.test(form.email)) {
+      newErrors.email = "Formato inválido (ej: usuario@dominio.com)";
+      hayErrores = true;
+    }
+
+    // -- Fecha de Nacimiento 
     if (form.fechaNacimiento) {
-        const fecha = new Date(form.fechaNacimiento);
-        if (isNaN(fecha.getTime())) {
-            newErrors.fechaNacimiento = "Fecha inválida";
-            hayErrores = true;
+        const fechaNac = new Date(form.fechaNacimiento);
+        const hoy = new Date();
+        const fechaLimite = new Date();
+        fechaLimite.setFullYear(hoy.getFullYear() - 18);
+        
+        // Reset de horas para comparar solo fechas
+        hoy.setHours(0,0,0,0);
+
+        if (isNaN(fechaNac.getTime())) {
+             newErrors.fechaNacimiento = "Fecha inválida";
+             hayErrores = true;
+        } else if (fechaNac > hoy) {
+             newErrors.fechaNacimiento = "La fecha no puede ser futura";
+             hayErrores = true;
+        } 
+    }
+
+    // -- Validaciones según Tipo de Documento
+    if (form.numeroDocumento) {
+        if (form.tipoDocumento === "PASAPORTE") {
+            // 3 letras + 6 números
+            if (!/^[a-zA-Z]{3}\d{6}$/.test(form.numeroDocumento)) {
+                newErrors.numeroDocumento = "Debe tener 3 letras y 6 números (ej: AAA123456)";
+                hayErrores = true;
+            }
+        } else if (form.tipoDocumento === "DNI") {
+            // Solo números
+            if (!/^\d+$/.test(form.numeroDocumento)) {
+                newErrors.numeroDocumento = "Debe contener solo números";
+                hayErrores = true;
+            }
+            if(form.numeroDocumento.length>8 || form.numeroDocumento.length<7){
+              newErrors.numeroDocumento= "Debe tener entre 7 y 8 dígitos"
+              hayErrores= true;
+            }
         }
-    } else {
-        newErrors.fechaNacimiento = "Campo Obligatorio";
+    }
+
+    // -- Teléfono
+    if (form.telefono && !/^[\d\s\-\+]+$/.test(form.telefono)) {
+        newErrors.telefono = "Caracteres inválidos (use números, espacios o guiones)";
+        hayErrores = true;
+    }
+
+    if (form.cuit) {
+        // Validar caracteres válidos (números y guiones)
+        if (!/^[\d\-]+$/.test(form.cuit)) {
+            newErrors.cuit = "Caracteres inválidos";
+            hayErrores = true;
+        } else {
+            // Validar longitud (11 dígitos)
+            const cuitLimpio = form.cuit.replace(/[^0-9]/g, "");
+            if (cuitLimpio.length !== 11) {
+                newErrors.cuit = "Debe contener 11 dígitos numéricos";
+                hayErrores = true;
+            }
+        }
+    }
+
+    // -- Campos Numéricos de Dirección
+    if (form.numero && isNaN(Number(form.numero))) {
+        newErrors.numero = "Debe ser numérico";
+        hayErrores = true;
+    }
+    if (form.piso && String(form.piso).trim() !== "" && isNaN(Number(form.piso))) {
+        newErrors.piso = "Debe ser numérico";
+        hayErrores = true;
+    }
+    if (form.codigoPostal && (form.codigoPostal.length < 4 || form.codigoPostal.length > 8)) {
+        newErrors.codigoPostal = "Longitud inválida";
         hayErrores = true;
     }
 
@@ -286,19 +352,15 @@ export default function ModificarHuespedPage() {
     if (!modalErrorBorrar) return;
 
     const handleKeyUp = (e: KeyboardEvent) => {
-       
        e.preventDefault();
        e.stopPropagation();
-
-       
        setModalErrorBorrar(false);
     };
-
     
     window.addEventListener('keyup', handleKeyUp);
-    
     return () => window.removeEventListener('keyup', handleKeyUp);
   }, [modalErrorBorrar]);
+
   if (cargando) return <div className="p-10 text-center text-xl font-bold">Cargando datos...</div>;
 
   return (
@@ -330,9 +392,15 @@ export default function ModificarHuespedPage() {
             <InputField label="Fecha de nacimiento" name="fechaNacimiento" type="date" value={form.fechaNacimiento} onChange={handleChange} error={errors.fechaNacimiento} required />
 
             <SelectField label="Tipo de Documento" name="tipoDocumento" value={form.tipoDocumento} onChange={handleChange} error={errors.tipoDocumento} required 
-              options={[{value:"DNI", label:"DNI"}, {value:"PASAPORTE", label:"PASAPORTE"}]} />
+              options={[
+                {value:"DNI", label:"DNI"}, 
+                {value:"LE", label:"LE"},
+                {value:"LC", label:"LC"},
+                {value:"PASAPORTE", label:"PASAPORTE"},
+                {value:"OTRO", label:"OTRO"}
+              ]} 
+            />
             
-            {/* INPUT CON REFERENCIA */}
             <InputField label="Documento" name="numeroDocumento" value={form.numeroDocumento} onChange={handleChange} error={errors.numeroDocumento} required 
               inputRef={documentoRef} 
             />
@@ -347,7 +415,7 @@ export default function ModificarHuespedPage() {
               ]} />
             
             <InputField label="Teléfono" name="telefono" value={form.telefono} onChange={handleChange} error={errors.telefono} required />
-            <InputField label="Email" name="email" type="email" value={form.email} onChange={handleChange} />
+            <InputField label="Email" name="email" type="email" value={form.email} onChange={handleChange} error={errors.email} />
 
             <InputField label="Nacionalidad" name="nacionalidad" value={form.nacionalidad} onChange={handleChange} error={errors.nacionalidad} required />
             <InputField label="Ocupación" name="ocupacion" value={form.ocupacion} onChange={handleChange} error={errors.ocupacion} required />
@@ -381,7 +449,7 @@ export default function ModificarHuespedPage() {
         </div>
       </div>
 
-      {/* --- MODALES --- */}
+      {/* --- MODALES (Sin cambios funcionales, solo se mantienen) --- */}
       {modalCuidadoDuplicado && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
           <div className="bg-gradient-to-b from-sky-200 to-gray-300 p-1 border-2 border-black rounded-lg shadow-2xl w-[500px] relative">
@@ -454,7 +522,6 @@ export default function ModificarHuespedPage() {
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
           <div className="bg-gradient-to-b from-white to-gray-300 p-10 shadow-2xl border border-gray-500 w-[600px] text-center relative">
             <h3 className="font-serif font-bold text-xl mb-6">El huésped no puede ser eliminado pues se ha<br/>alojado en el Hotel en alguna oportunidad</h3>
-            {/* AQUÍ ESTÁ EL CLICK NORMAL, PERO EL USEEFFECT ABAJO MANEJA EL TECLADO */}
             <button onClick={() => setModalErrorBorrar(false)} className="text-sky-600 font-bold hover:underline">Presione cualquier tecla para continuar</button>
           </div>
         </div>
