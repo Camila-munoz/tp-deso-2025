@@ -1,5 +1,7 @@
 package com.example.demo.servicios;
 
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.List;
 import java.util.Optional;
 
@@ -216,5 +218,19 @@ public class HuespedService {
 
     public List<Huesped> listarTodos() {
         return huespedRepositorio.findAll();
+    }
+
+    @Autowired
+    private HuespedRepositorio huespedRepository;
+    
+    public boolean esMayorDeEdad(Huesped huesped) {
+        if (huesped == null || huesped.getFechaNacimiento() == null) {
+            return false;
+        }
+        return Period.between(huesped.getFechaNacimiento(), LocalDate.now()).getYears() >= 18;
+    }
+    
+    public Huesped buscarPorId(Integer id) {
+        return huespedRepository.findById(id).orElse(null);
     }
 }

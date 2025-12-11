@@ -1,7 +1,11 @@
 package com.example.demo.repositorios;
 
+import com.example.demo.modelo.EstadoFactura;
 import com.example.demo.modelo.Factura;
+
+import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -15,4 +19,14 @@ public interface FacturaRepositorio extends JpaRepository<Factura, Integer> {
 
     // Buscar facturas por ID y estado
     Optional<Factura> findByIdAndEstado(Integer id, String estado);
+
+    // Método corregido: Agregar este método
+    @Query("SELECT f FROM Factura f WHERE f.estadia.id = :estadiaId AND f.estado = :estado")
+    List<Factura> findByEstadiaIdAndEstado(@Param("estadiaId") Integer estadiaId, 
+                                           @Param("estado") EstadoFactura estado);
+    
+    // Otra alternativa si prefieres usar nombres de métodos derivados:
+    // List<Factura> findByEstadiaIdAndEstado(Integer estadiaId, EstadoFactura estado);
+    
+    List<Factura> findByEstado(EstadoFactura estado);
 }

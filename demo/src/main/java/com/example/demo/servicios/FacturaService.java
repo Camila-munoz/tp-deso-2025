@@ -1,135 +1,311 @@
+// FacturacionService.java (sin DTOs)
 package com.example.demo.servicios;
 
 import com.example.demo.excepciones.EntidadNoEncontradaException;
 import com.example.demo.excepciones.ValidacionException;
-import com.example.demo.modelo.Consumo;
-import com.example.demo.modelo.EstadoFactura;
-import com.example.demo.modelo.Factura;
-import com.example.demo.modelo.Huesped;
-import com.example.demo.repositorios.FacturaRepositorio;
-import com.example.demo.repositorios.HuespedRepositorio;
-
+import com.example.demo.modelo.*;
+import com.example.demo.repositorios.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.Optional;
+import java.math.RoundingMode;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 
 @Service
-@Transactional
 public class FacturaService {
 
     @Autowired
-    private FacturaRepositorio facturaRepositorio;
+    private EstadiaRepositorio estadiaRepository;
+    
     @Autowired
-    private com.example.demo.repositorios.ConsumoRepositorio consumoRepositorio;
+    private HuespedRepositorio huespedRepository;
+    
     @Autowired
-    private com.example.demo.repositorios.EstadiaRepositorio estadiaRepositorio;
+    private ConsumoRepositorio consumoRepository;
+    
     @Autowired
-    private com.example.demo.repositorios.HuespedRepositorio huespedRepositorio;
-
-    /**
-     * CU: Crea una nueva factura.
-     * La entidad Factura debe contener los objetos Estadia y ResponsableDePago con sus IDs cargados.
-     */
-    public Factura crearFactura(Factura factura) throws ValidacionException, EntidadNoEncontradaException {
-        
-        // 1. Validaciones básicas de los datos de Factura
-        if (factura.getMonto() == null || factura.getMonto().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new ValidacionException("El monto de la factura debe ser positivo.");
-        }
-        if (factura.getTipo() == null || (!factura.getTipo().equalsIgnoreCase("A") && !factura.getTipo().equalsIgnoreCase("B"))) {
-            throw new ValidacionException("El tipo de factura debe ser 'A' o 'B'.");
-        }
-        
-        // 2. Validar que los IDs de las relaciones estén presentes en el DTO/Entidad de entrada
-        if (factura.getEstadia() == null || factura.getEstadia().getId() == null) {
-            throw new ValidacionException("Debe proporcionar el ID de la Estadia dentro del objeto 'estadia'.");
-        }
-        if (factura.getResponsable() == null || factura.getResponsable().getId() == null) {
-            throw new ValidacionException("Debe proporcionar el ID del Responsable de Pago dentro del objeto 'responsable'.");
-        }
-
-        // 3. Establecer el estado inicial y el ID de Factura a nulo (para forzar un INSERT)
-        factura.setId(null); // Asegura que JPA cree una nueva entidad
-        factura.setEstado(EstadoFactura.PENDIENTE); // Siempre inicia como PENDIENTE
-
-        // 4. Guardar. Si los IDs de Estadia o Responsable no existen, 
-        // la base de datos lanzará una ConstraintViolationException que el Controller capturará como 500.
-        return facturaRepositorio.save(factura);
-    }
-
-    /**
-     * CU: Marca una factura como PAGADA.
-     */
-    public Factura marcarComoPagada(Integer idFactura) throws EntidadNoEncontradaException, ValidacionException {
-        Factura factura = facturaRepositorio.findById(idFactura)
-                .orElseThrow(() -> new EntidadNoEncontradaException("Factura no encontrada con ID: " + idFactura));
-
-        if (factura.getEstado() == EstadoFactura.PAGADA) {
-            throw new ValidacionException("La factura ya se encuentra PAGADA.");
-        }
-        
-        // Lógica de negocio adicional (ej. verificar que el total de Pagos cubra el Monto) iría aquí.
-        
-        factura.setEstado(EstadoFactura.PAGADA);
-        
-        return facturaRepositorio.save(factura);
+    private FacturaRepositorio facturaRepository;
+    
+    @Autowired
+    private ResponsableDePagoRepository responsableRepository;
+    
+    @Autowired
+    private HabitacionRepositorio habitacionRepository;
+    
+    // ==================== MÉTODOS AUXILIARES ====================
+    
+    public Estadia obtenerEstadia(Integer id) throws EntidadNoEncontradaException {
+        return estadiaRepository.findById(id)
+                .orElseThrow(() -> new EntidadNoEncontradaException("Estadía no encontrada con ID: " + id));
     }
     
-    // Si fuera necesario, puedes agregar métodos para obtener y eliminar facturas.
-// ... tus @Autowired existentes (FacturaRepositorio) ...
+    public ResponsableDePago obtenerResponsable(Integer id) throws EntidadNoEncontradaException {
+        return responsableRepository.findById(id)
+                .orElseThrow(() -> new EntidadNoEncontradaException("Responsable no encontrado con ID: " + id));
+    }
     
-    // --- NUEVO MÉTODO PARA CU07 (PRE-FACTURA) ---
-    public java.util.Map<String, Object> generarPrevisualizacion(Integer idEstadia) throws EntidadNoEncontradaException {
-        // 1. Buscar la estadía
-        com.example.demo.modelo.Estadia estadia = estadiaRepositorio.findById(idEstadia)
-                .orElseThrow(() -> new EntidadNoEncontradaException("Estadía no encontrada"));
-
-        // Buscar el huésped asociado a la estadía
-        Huesped huesped = huespedRepositorio.findByEstadiaId(idEstadia)
-                .orElseThrow(() -> new EntidadNoEncontradaException("No se encontró un huésped asociado a esta estadía."));
-
-        
-        BigDecimal total = BigDecimal.ZERO;
-        java.util.List<java.util.Map<String, Object>> items = new java.util.ArrayList<>();
-
-        // 2. Calcular costo de la habitación (Precio x Días)
-        // Nota: Asumo que en Habitacion el precio es Double, lo convertimos a BigDecimal
-        BigDecimal precioNoche = estadia.getHabitacion().getCosto();
-        BigDecimal costoEstadia = precioNoche.multiply(new BigDecimal(estadia.getCantidadDias()));
-        
-        items.add(java.util.Map.of(
-            "concepto", "Alojamiento (" + estadia.getCantidadDias() + " noches en Hab. " + estadia.getHabitacion().getNumero() + ")",
-            "monto", costoEstadia
-        ));
-        total = total.add(costoEstadia);
-
-        // 3. Sumar consumos
-        java.util.List<Consumo> consumos = consumoRepositorio.findByEstadia_Id(idEstadia);
-        for (Consumo c : consumos) {
-            items.add(java.util.Map.of(
-                "concepto", "Consumo: " + c.getDescripcion(),
-                "monto", c.getPrecio()
-            ));
-            total = total.add(c.getPrecio());
+    private boolean esMayorDeEdad(Huesped huesped) {
+        if (huesped.getFechaNacimiento() == null) {
+            return huesped.getEdad() != null && huesped.getEdad() >= 18;
         }
-
-        // 4. Determinar si es Factura A o B (Regla de negocio simple)
-        String tipoFactura = "B";
-        // Verificamos si la posición IVA es Responsable Inscripto
-       if (huesped.getPosicionIVA() != null && huesped.getPosicionIVA().contains("RESPONSABLE_INSCRIPTO")) {
-            tipoFactura = "A";
-        }
-
-        // 5. Retornar estructura lista para el JSON
-        return java.util.Map.of(
-            "huesped", huesped.getNombre() + " " + huesped.getApellido(),
-            "subtotal", total,
-            "total", total, // Aquí podrías sumar IVA si fuera necesario separar
-            "tipoFactura", tipoFactura,
-            "items", items
+        
+        LocalDateTime ahora = LocalDateTime.now();
+        long edad = ChronoUnit.YEARS.between(
+            huesped.getFechaNacimiento().atStartOfDay(), 
+            ahora
         );
+        return edad >= 18;
+    }
+    
+    private Optional<PersonaJuridica> buscarPersonaJuridicaPorCuit(String cuit) {
+        // Implementación real dependería de tu repositorio
+        return Optional.empty();
+    }
+    
+    private PersonaFisica convertirHuespedAPersonaFisica(Huesped huesped) {
+        PersonaFisica pf = new PersonaFisica();
+        pf.setIdHuesped(huesped.getId());
+        pf.setCuit(huesped.getCuit());
+        pf.setPosicionIVA(huesped.getPosicionIVA());
+        pf.setFechaNacimiento(huesped.getFechaNacimiento());
+        return pf;
+    }
+    
+    // ==================== CU07 - PASO 1-3 ====================
+    
+    @Transactional(readOnly = true)
+    public Map<String, Object> validarDatosFacturacion(Integer numeroHabitacion, LocalDateTime horaSalida) 
+            throws ValidacionException {
+        
+        Map<String, Object> resultado = new HashMap<>();
+        List<String> errores = new ArrayList<>();
+        
+        // FA 3.A: Validaciones
+        if (numeroHabitacion == null) {
+            errores.add("Número de habitación faltante");
+        }
+        
+        if (horaSalida == null) {
+            errores.add("Hora de salida faltante");
+        } else if (horaSalida.isAfter(LocalDateTime.now().plusDays(1))) {
+            errores.add("Hora de salida no puede ser más de 24 horas en el futuro");
+        }
+        
+        if (!errores.isEmpty()) {
+            throw new ValidacionException("Errores de validación: " + String.join(", ", errores));
+        }
+        
+        // Buscar habitación
+        Habitacion habitacion = habitacionRepository.findById(numeroHabitacion)
+                .orElseThrow(() -> new ValidacionException("Habitación no encontrada"));
+        
+        // Buscar estadía activa
+        Estadia estadia = estadiaRepository.findEstadiaActivaByHabitacion(numeroHabitacion)
+                .orElseThrow(() -> new ValidacionException("Habitación no ocupada"));
+        
+        if (horaSalida.isBefore(estadia.getCheckIn())) {
+            throw new ValidacionException("Hora de salida no puede ser anterior al check-in");
+        }
+        
+        // Obtener huésped (en tu modelo, una estadía tiene un huésped)
+        List<Huesped> huespedes = new ArrayList<>();
+        huespedes.add(estadia.getHuesped());
+        
+        resultado.put("estadia", estadia);
+        resultado.put("huespedes", huespedes);
+        resultado.put("habitacion", habitacion);
+        
+        return resultado;
+    }
+    
+    // ==================== CU07 - PASO 4-5 ====================
+    
+    @Transactional(readOnly = true)
+    public Map<String, Object> validarResponsable(Integer idHuesped, String cuitTercero) 
+            throws ValidacionException, EntidadNoEncontradaException {
+        
+        Map<String, Object> resultado = new HashMap<>();
+        
+        // FA 5.B: Factura a tercero
+        if (cuitTercero != null && !cuitTercero.trim().isEmpty()) {
+            Optional<PersonaJuridica> pjOpt = buscarPersonaJuridicaPorCuit(cuitTercero);
+            
+            if (pjOpt.isEmpty()) {
+                resultado.put("needsCU03", true);
+                resultado.put("cuit", cuitTercero);
+                return resultado;
+            }
+            
+            PersonaJuridica pj = pjOpt.get();
+            resultado.put("tipo", "JURIDICA");
+            resultado.put("responsable", pj);
+            resultado.put("razonSocial", pj.getRazon_Social());
+            resultado.put("cuit", pj.getCuit());
+            resultado.put("posicionIVA", "Responsable Inscripto");
+            
+            return resultado;
+        }
+        
+        // Responsable persona física
+        if (idHuesped == null) {
+            throw new ValidacionException("Debe seleccionar un huésped o ingresar CUIT de tercero");
+        }
+        
+        Huesped huesped = huespedRepository.findById(idHuesped)
+                .orElseThrow(() -> new EntidadNoEncontradaException("Huésped no encontrado"));
+        
+        // FA 5.A: Validar mayoría de edad
+        if (!esMayorDeEdad(huesped)) {
+            throw new ValidacionException("La persona seleccionada es menor de edad. Por favor elija otra");
+        }
+        
+        PersonaFisica personaFisica = convertirHuespedAPersonaFisica(huesped);
+        
+        resultado.put("tipo", "FISICA");
+        resultado.put("responsable", personaFisica);
+        resultado.put("huesped", huesped);
+        resultado.put("nombreCompleto", huesped.getApellido() + ", " + huesped.getNombre());
+        resultado.put("posicionIVA", huesped.getPosicionIVA());
+        resultado.put("cuit", huesped.getCuit());
+        
+        return resultado;
+    }
+    
+    // ==================== CU07 - PASO 6 ====================
+    
+    @Transactional(readOnly = true)
+    // En FacturacionService.java - método calcularItemsFacturables
+public List<Map<String, Object>> calcularItemsFacturables(Estadia estadia, LocalDateTime horaSalida) {
+    List<Map<String, Object>> items = new ArrayList<>();
+    
+    // 1. Costo de estadía
+    BigDecimal costoEstadia = calcularCostoEstadiaConReglas(estadia, horaSalida);
+    
+    Map<String, Object> itemEstadia = new HashMap<>();
+    itemEstadia.put("tipo", "ESTADIA");
+    itemEstadia.put("descripcion", "Estadía en habitación " + estadia.getHabitacion().getNumero() + 
+                     " (" + estadia.getCantidadDias() + " días)");
+    itemEstadia.put("monto", costoEstadia);
+    itemEstadia.put("seleccionado", true);
+    items.add(itemEstadia);
+    
+    // 2. Consumos (todos los consumos de la estadía)
+    // Cambiar de: consumoRepository.findByEstadiaId(estadia.getId());
+    // A: estadiaRepository.findConsumosByEstadiaId(estadia.getId());
+    List<Consumo> consumos = estadiaRepository.findConsumosByEstadiaId(estadia.getId());
+    for (Consumo consumo : consumos) {
+        Map<String, Object> itemConsumo = new HashMap<>();
+        itemConsumo.put("tipo", "CONSUMO");
+        itemConsumo.put("descripcion", consumo.getDescripcion());
+        itemConsumo.put("monto", consumo.getPrecio());
+        itemConsumo.put("seleccionado", true);
+        items.add(itemConsumo);
+    }
+    
+    return items;
+}
+    
+    private BigDecimal calcularCostoEstadiaConReglas(Estadia estadia, LocalDateTime horaSalida) {
+        BigDecimal costoPorNoche = estadia.getHabitacion().getCosto();
+        LocalDateTime checkIn = estadia.getCheckIn();
+        
+        // Regla 6: Check-in a las 12:00 pm
+        LocalDateTime checkInAjustado = checkIn.withHour(12).withMinute(0).withSecond(0);
+        if (checkIn.isAfter(checkInAjustado)) {
+            checkInAjustado = checkIn;
+        }
+        
+        // Regla 7: Check-out a las 10:00 am
+        LocalDateTime checkOutBase = horaSalida.toLocalDate().atTime(10, 0);
+        
+        // Calcular días completos
+        long diasCompletos = ChronoUnit.DAYS.between(
+            checkInAjustado.toLocalDate(), 
+            checkOutBase.toLocalDate()
+        );
+        
+        BigDecimal costoDiasCompletos = costoPorNoche.multiply(BigDecimal.valueOf(Math.max(0, diasCompletos)));
+        
+        // Regla 8: Entre 11:01 y 18:00 -> 50%
+        LocalDateTime onceUna = horaSalida.toLocalDate().atTime(11, 1);
+        LocalDateTime seisPm = horaSalida.toLocalDate().atTime(18, 0);
+        
+        if (horaSalida.isAfter(onceUna) && horaSalida.isBefore(seisPm)) {
+            BigDecimal medioDia = costoPorNoche.divide(BigDecimal.valueOf(2), 2, RoundingMode.HALF_UP);
+            return costoDiasCompletos.add(medioDia);
+        }
+        
+        // Regla 9: Después de 18:00 -> día completo
+        if (horaSalida.isAfter(seisPm)) {
+            return costoDiasCompletos.add(costoPorNoche);
+        }
+        
+        return costoDiasCompletos;
+    }
+    
+    // ==================== CU07 - PASO 7-8 ====================
+    
+    @Transactional
+    public Factura generarFactura(Estadia estadia, ResponsableDePago responsable, 
+                                  List<Map<String, Object>> itemsSeleccionados) 
+            throws ValidacionException {
+        
+        // FA 9.A: Validar items seleccionados
+        if (itemsSeleccionados == null || itemsSeleccionados.isEmpty()) {
+            throw new ValidacionException("Debe seleccionar al menos un ítem para facturar");
+        }
+        
+        // Filtrar y calcular total
+        BigDecimal total = BigDecimal.ZERO;
+        for (Map<String, Object> item : itemsSeleccionados) {
+            Boolean seleccionado = (Boolean) item.get("seleccionado");
+            if (seleccionado != null && seleccionado) {
+                BigDecimal monto = (BigDecimal) item.get("monto");
+                if (monto != null) {
+                    total = total.add(monto);
+                }
+            }
+        }
+        
+        if (total.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ValidacionException("Debe seleccionar al menos un ítem para facturar");
+        }
+        
+        // Determinar tipo de factura
+        String tipoFactura = determinarTipoFactura(responsable);
+        
+        // Crear factura
+        Factura factura = new Factura();
+        factura.setMonto(total);
+        factura.setTipo(tipoFactura);
+        factura.setEstado(EstadoFactura.PENDIENTE);
+        factura.setEstadia(estadia);
+        factura.setResponsable(responsable);
+        
+        // Actualizar check-out
+        estadia.setCheckOut(LocalDateTime.now());
+        
+        estadiaRepository.save(estadia);
+        return facturaRepository.save(factura);
+    }
+    
+    private String determinarTipoFactura(ResponsableDePago responsable) {
+        if (responsable instanceof PersonaJuridica) {
+            PersonaJuridica pj = (PersonaJuridica) responsable;
+            if (pj.getCuit() != null && !pj.getCuit().trim().isEmpty()) {
+                return "A";
+            }
+        } else if (responsable instanceof PersonaFisica) {
+            PersonaFisica pf = (PersonaFisica) responsable;
+            if (pf.getCuit() != null && !pf.getCuit().trim().isEmpty() &&
+                "Responsable Inscripto".equalsIgnoreCase(pf.getPosicionIVA())) {
+                return "A";
+            }
+        }
+        return "B";
     }
 }

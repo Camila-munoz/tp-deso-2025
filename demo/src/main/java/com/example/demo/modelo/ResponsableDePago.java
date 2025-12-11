@@ -4,7 +4,10 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "Responsable_de_pago")
-public class ResponsableDePago {
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "tipo_responsable", 
+                    discriminatorType = DiscriminatorType.STRING)
+public abstract class ResponsableDePago {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
