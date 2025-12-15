@@ -178,10 +178,12 @@ public class FacturaControlador {
             if (request.get("estadiaId") == null) throw new ValidacionException("Falta ID de estadía");
             if (request.get("responsableId") == null) throw new ValidacionException("Falta ID del responsable de pago");
             if (request.get("itemsSeleccionados") == null) throw new ValidacionException("Faltan items seleccionados");
+            if (request.get("horaSalida") == null) throw new ValidacionException("Falta hora de salida confirmada");
 
             Integer estadiaId = Integer.parseInt(request.get("estadiaId").toString());
             Integer responsableId = Integer.parseInt(request.get("responsableId").toString());
-            
+            LocalDateTime horaSalida = LocalDateTime.parse(request.get("horaSalida").toString(), formatter);
+
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> itemsSeleccionados = (List<Map<String, Object>>) request.get("itemsSeleccionados");
             
@@ -190,7 +192,7 @@ public class FacturaControlador {
             Estadia estadia = facturacionService.obtenerEstadia(estadiaId);
             ResponsableDePago responsable = facturacionService.obtenerResponsable(responsableId);
             
-            Factura factura = facturacionService.generarFactura(estadia, responsable, itemsSeleccionados);
+            Factura factura = facturacionService.generarFactura(estadia, responsable, itemsSeleccionados, horaSalida);
             
             Map<String, Object> facturaData = new HashMap<>();
             facturaData.put("id", factura.getId());
@@ -226,7 +228,11 @@ public class FacturaControlador {
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Factura generada exitosamente");
-            response.put("factura", facturaData);
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("factura", facturaData);
+
+            response.put("data", data);
             
             return ResponseEntity.ok(response);
             

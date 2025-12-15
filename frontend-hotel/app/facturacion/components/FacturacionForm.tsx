@@ -158,7 +158,8 @@ const FacturacionComponent = () => {
       const requestData = {
         estadiaId: datos.estadia.id,
         responsableId: datos.responsable.responsable.id,
-        itemsSeleccionados: itemsParaFacturar
+        itemsSeleccionados: itemsParaFacturar,
+        horaSalida: datos.horaSalida
       };
       
       const response = await fetch('http://localhost:8080/api/facturacion/generar', {
@@ -170,7 +171,7 @@ const FacturacionComponent = () => {
       const result: ApiResponse<{factura: FacturaGenerada}> = await response.json();
       
       if (result.success && result.data) {
-        alert(`✅ Factura ${result.data.factura.numero} generada exitosamente`);
+        alert(`Factura ${result.data.factura.numero} generada exitosamente`);
         mostrarFactura(result.data.factura);
         // Reiniciar el proceso
         setPaso(1);

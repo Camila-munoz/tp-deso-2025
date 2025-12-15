@@ -1,13 +1,6 @@
 package com.example.demo.modelo;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.DiscriminatorValue;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrimaryKeyJoinColumn;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "Persona_Juridica")
@@ -23,10 +16,8 @@ public class PersonaJuridica extends ResponsableDePago {
     @Column(name = "razon_social") 
     private String razonSocial;
 
-    // CONSTRUCTOR VACÍO
     public PersonaJuridica() { }
 
-    // GETTERS Y SETTERS
     public Integer getIdDireccion() { return idDireccion; }  
     public void setIdDireccion(Integer idDireccion) { this.idDireccion = idDireccion; }
 

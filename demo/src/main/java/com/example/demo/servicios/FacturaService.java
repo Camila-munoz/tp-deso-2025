@@ -222,20 +222,29 @@ public class FacturaService {
     
     @Transactional
     public Factura generarFactura(Estadia estadia, ResponsableDePago responsable, 
-                                  List<Map<String, Object>> itemsSeleccionados) 
+                                  List<Map<String, Object>> itemsSeleccionados,
+                                  LocalDateTime horaSalida) 
             throws ValidacionException {
         
         if (itemsSeleccionados == null || itemsSeleccionados.isEmpty()) 
             throw new ValidacionException("Seleccione ítems");
         
         BigDecimal total = BigDecimal.ZERO;
+        boolean incluyeEstadia = false;
+
         for (Map<String, Object> item : itemsSeleccionados) {
-            Boolean seleccionado = (Boolean) item.get("seleccionado");
-            if (seleccionado != null && seleccionado) {
-                BigDecimal monto = convertirABigDecimal(item.get("monto"));
-                if (monto != null) total = total.add(monto);
+        Boolean seleccionado = (Boolean) item.get("seleccionado");
+        if (seleccionado != null && seleccionado) {
+            BigDecimal monto = convertirABigDecimal(item.get("monto"));
+            if (monto != null) total = total.add(monto);
+            
+            // Verificamos si se está facturando la estadía
+            String tipo = (String) item.get("tipo");
+            if ("ESTADIA".equals(tipo)) {
+                incluyeEstadia = true;
             }
         }
+    }
         
         if (total.compareTo(BigDecimal.ZERO) <= 0) 
             throw new ValidacionException("Monto total inválido");
@@ -243,14 +252,15 @@ public class FacturaService {
         String tipoFactura = determinarTipoFactura(responsable);
         
         Factura factura = new Factura();
-        factura.setMonto(total);
+        factura.setMonto(total); 
         factura.setTipo(tipoFactura);
         factura.setEstado(EstadoFactura.PENDIENTE);
         factura.setEstadia(estadia);
         factura.setResponsable(responsable);
         
-        if (estadia.getCheckOut() == null) {
-            estadia.setCheckOut(LocalDateTime.now());
+        
+        if (incluyeEstadia || estadia.getCheckOut() == null) {
+            estadia.setCheckOut(horaSalida);
             estadiaRepository.save(estadia);
         }
         

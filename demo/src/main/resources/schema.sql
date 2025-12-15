@@ -1,5 +1,6 @@
 -- Active: 1764638966350@@localhost@3306@hotel_premier
-CREATE DATABASE IF NOT EXISTS hotel_premier;
+DROP DATABASE IF EXISTS hotel_premier; 
+CREATE DATABASE hotel_premier;         
 USE hotel_premier;
 
 -- 1. DIRECCIONES
@@ -98,10 +99,6 @@ CREATE TABLE IF NOT EXISTS Estadia (
     FOREIGN KEY (ID_Habitacion) REFERENCES Habitacion(ID_Habitacion),
     FOREIGN KEY (ID_Huesped) REFERENCES Huesped(ID_Huesped)
 );
-
-ALTER TABLE Huesped
-ADD CONSTRAINT FK_Huesped_Estadia
-FOREIGN KEY (ID_Estadia) REFERENCES Estadia(ID_Estadia) ON DELETE SET NULL ON UPDATE CASCADE;
 
 CREATE TABLE IF NOT EXISTS Consumo (
     ID_Consumo INT AUTO_INCREMENT PRIMARY KEY,
