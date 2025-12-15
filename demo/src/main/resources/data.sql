@@ -26,10 +26,10 @@ INSERT INTO TipoHabitacion (ID_TipoHabitacion, descripcion, cantidad_camas_kingS
 
 -- 1.3 Conserjes (Usuarios del sistema)
 INSERT INTO Conserje (nombre, contrasena) VALUES 
-('admin', 'admin123'),
-('juan', 'seguro123'),
-('ana', 'conserje456'),
-('maria', 'hotel789');
+('admin', 'admin13'),
+('juan', 'seguro13'),
+('ana', 'conserje46'),
+('maria', 'hotel79');
 
 -- ==================================================================
 -- 2. HABITACIONES
@@ -116,3 +116,50 @@ INSERT INTO Huesped (ID_Huesped, nombre, apellido, nro_documento, tipo_documento
 (12,'EMILY', 'DAVIS', '77889900', 'PASAPORTE', NULL, 'CONSUMIDOR_FINAL', 29, '99001122', 'emily@davis.com', 'USA', 5),
 (13,'DIEGO', 'MARADONA', '70707070', 'DNI', NULL, 'CONSUMIDOR_FINAL', 60, '10111213', 'diego@maradona.com', 'ARGENTINA', 1),
 (14,'CARLOTA', 'PEREZ', '80808080', 'DNI', '27808080808', 'MONOTRIBUTO', 35, '12131415', 'carlota@perez.com', 'ARGENTINA', 2);
+
+-- ==================================================================
+-- 4. DATOS PARA PRUEBA DE FACTURACIÓN (CU7)
+-- ==================================================================
+
+-- 4.1 Responsables de Pago (Estructura JOINED según tu schema.sql)
+-- Insertamos primero en la tabla padre (ID autogenerado simulación)
+INSERT INTO Responsable_De_Pago (ID_Responsable) VALUES (1), (2), (3);
+
+-- Vincular ID 1 a Messi (Huesped 1) - Persona Fisica
+INSERT INTO Persona_Fisica (ID_Responsable, ID_Huesped) VALUES (1, 1);
+
+-- Vincular ID 2 a Maria Becerra (Huesped 2) - Persona Fisica
+INSERT INTO Persona_Fisica (ID_Responsable, ID_Huesped) VALUES (2, 2);
+
+-- Crear una Empresa (Persona Jurídica) para probar facturación a tercero
+INSERT INTO Persona_Juridica (ID_Responsable, CUIT_Responsable, razon_social, ID_Direccion) 
+VALUES (3, '30-11223344-5', 'TECH SOLUTIONS S.A.', 1);
+
+-- 4.2 Reservas Confirmadas
+INSERT INTO Reserva (estado_reserva, fecha_entrada, fecha_salida, nombreHuesped, apellidoHuesped, telefonoHuesped, ID_Habitacion) VALUES 
+('CONFIRMADA', CURDATE() - INTERVAL 3 DAY, CURDATE(), 'LIONEL', 'MESSI', '341111222', 1), -- Hab 1
+('CONFIRMADA', CURDATE() - INTERVAL 5 DAY, CURDATE() + INTERVAL 2 DAY, 'MARIA', 'BECERRA', '11223344', 11); -- Hab 11
+
+-- 4.3 Estadías Activas (Sin Check-out aún, simulando que están en el hotel)
+-- Estadía 1: Messi en Hab 1. (Listo para check-out)
+INSERT INTO Estadia (check_in, check_out, cantidad_dias, cantidad_huespedes, cantidad_habitaciones, ID_Reserva, ID_Habitacion, ID_Huesped) 
+VALUES (NOW() - INTERVAL 3 DAY, NULL, 3, 1, 1, 1, 1, 1);
+
+-- Estadía 2: Maria en Hab 11.
+INSERT INTO Estadia (check_in, check_out, cantidad_dias, cantidad_huespedes, cantidad_habitaciones, ID_Reserva, ID_Habitacion, ID_Huesped) 
+VALUES (NOW() - INTERVAL 5 DAY, NULL, 5, 2, 1, 2, 11, 2);
+
+-- 4.4 Actualizar estado de habitaciones a OCUPADA (para consistencia)
+UPDATE Habitacion SET estado = 'OCUPADA' WHERE ID_Habitacion IN (1, 11);
+
+-- 4.5 Consumos (Items a facturar)
+-- Consumos de Messi
+INSERT INTO Consumo (tipo, monto, ID_Estadia) VALUES 
+('Frigobar - Coca Cola', 2500.00, 1),
+('Restaurante - Cena', 15000.50, 1),
+('Lavandería - Camisa', 4500.00, 1);
+
+-- Consumos de Maria
+INSERT INTO Consumo (tipo, monto, ID_Estadia) VALUES 
+('Spa - Masaje Completo', 25000.00, 2),
+('Bar - Tragos', 12000.00, 2);

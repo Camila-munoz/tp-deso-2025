@@ -117,19 +117,17 @@ CREATE TABLE IF NOT EXISTS Responsable_De_Pago (
 );
 
 CREATE TABLE IF NOT EXISTS Persona_Fisica (
-    ID_Persona_Fisica INT AUTO_INCREMENT PRIMARY KEY,
-    ID_Responsable INT NOT NULL,
+    ID_Responsable INT PRIMARY KEY,
     ID_Huesped INT,
     FOREIGN KEY (ID_Huesped) REFERENCES Huesped(ID_Huesped),
     FOREIGN KEY (ID_Responsable) REFERENCES Responsable_de_pago(ID_Responsable) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS Persona_Juridica (
-    ID_Persona_Juridica INT AUTO_INCREMENT PRIMARY KEY,
-    CUIT_Responsable VARCHAR(20) NOT NULL UNIQUE,
+    ID_Responsable INT PRIMARY KEY,
+    CUIT_Responsable VARCHAR(20) UNIQUE,
     razon_social VARCHAR(255) NOT NULL,
     ID_Direccion INT NOT NULL,
-    ID_Responsable INT NOT NULL,
     FOREIGN KEY (ID_Direccion) REFERENCES Direccion(ID_Direccion),
     FOREIGN KEY (ID_Responsable) REFERENCES Responsable_De_Pago(ID_Responsable) ON DELETE CASCADE ON UPDATE CASCADE
 );

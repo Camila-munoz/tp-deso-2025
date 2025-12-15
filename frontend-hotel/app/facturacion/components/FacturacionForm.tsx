@@ -78,7 +78,7 @@ const FacturacionComponent = () => {
       
       if (result.success) {
         const responsableData = result.data as ResponsableData;
-        setDatos({...datos, responsable: responsableData});
+        setDatos(prev => ({...prev, responsable: responsableData}));
         
         // Obtener items facturables
         if (datos.estadia && datos.horaSalida) {
@@ -126,7 +126,7 @@ const FacturacionComponent = () => {
       
       if (result.success && result.data) {
         setItemsSeleccionados(result.data.items);
-        setDatos({...datos, ...result.data});
+        setDatos(prev => ({...prev, ...result.data}));
       } else {
         setError(result.error || 'Error al obtener items facturables');
       }

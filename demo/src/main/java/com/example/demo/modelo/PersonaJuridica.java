@@ -6,37 +6,33 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.persistence.Table;
 
 @Entity
-@DiscriminatorValue("JURIDICA")
+@Table(name = "Persona_Juridica")
+@PrimaryKeyJoinColumn(name = "ID_Responsable")
 public class PersonaJuridica extends ResponsableDePago {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ID_Persona_Juridica")
-    private Integer id;
 
-    @Column(name = "idDireccion") 
+    @Column(name = "ID_Direccion") 
     private Integer idDireccion;
 
-    @Column(name = "cuit") 
+    @Column(name = "CUIT_Responsable") 
     private String cuit;
-    @Column(name = "Razon_Social") 
-    private String Razon_Social;
+    
+    @Column(name = "razon_social") 
+    private String razonSocial;
 
     // CONSTRUCTOR VACÍO
     public PersonaJuridica() { }
 
     // GETTERS Y SETTERS
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
-
     public int getHuesped() { return idDireccion; }  
     public void setHuesped(int idHuesped) { this.idDireccion = idDireccion; }
 
     public String getCuit() { return cuit; }
     public void setCuit(String cuit) { this.cuit = cuit; }
 
-    public String getRazon_Social() { return Razon_Social; }
-    public void setRazon_Social(String razon_Social) { Razon_Social = razon_Social; }
+    public String getRazonSocial() { return razonSocial; }
+    public void setRazonSocial(String razonSocial) { this.razonSocial = razonSocial; }
 }
