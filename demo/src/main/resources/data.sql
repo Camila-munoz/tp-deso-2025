@@ -137,17 +137,17 @@ VALUES (3, '30-11223344-5', 'TECH SOLUTIONS S.A.', 1);
 
 -- 4.2 Reservas Confirmadas
 INSERT INTO Reserva (estado_reserva, fecha_entrada, fecha_salida, nombreHuesped, apellidoHuesped, telefonoHuesped, ID_Habitacion) VALUES 
-('CONFIRMADA', CURDATE() - INTERVAL 3 DAY, CURDATE(), 'LIONEL', 'MESSI', '341111222', 1), -- Hab 1
-('CONFIRMADA', CURDATE() - INTERVAL 5 DAY, CURDATE() + INTERVAL 2 DAY, 'MARIA', 'BECERRA', '11223344', 11); -- Hab 11
+('CONFIRMADA', DATE_SUB(CURDATE(), INTERVAL 3 DAY), CURDATE(), 'LIONEL', 'MESSI', '341111222', 1),
+('CONFIRMADA', DATE_SUB(CURDATE(), INTERVAL 5 DAY), DATE_ADD(CURDATE(), INTERVAL 2 DAY), 'MARIA', 'BECERRA', '11223344', 11);
 
 -- 4.3 Estadías Activas (Sin Check-out aún, simulando que están en el hotel)
 -- Estadía 1: Messi en Hab 1. (Listo para check-out)
 INSERT INTO Estadia (check_in, check_out, cantidad_dias, cantidad_huespedes, cantidad_habitaciones, ID_Reserva, ID_Habitacion, ID_Huesped) 
-VALUES (NOW() - INTERVAL 3 DAY, NULL, 3, 1, 1, 1, 1, 1);
+VALUES (DATE_SUB(NOW(), INTERVAL 3 DAY), NULL, 3, 1, 1, 1, 1, 1);
 
 -- Estadía 2: Maria en Hab 11.
 INSERT INTO Estadia (check_in, check_out, cantidad_dias, cantidad_huespedes, cantidad_habitaciones, ID_Reserva, ID_Habitacion, ID_Huesped) 
-VALUES (NOW() - INTERVAL 5 DAY, NULL, 5, 2, 1, 2, 11, 2);
+VALUES (DATE_SUB(NOW(), INTERVAL 5 DAY), NULL, 5, 2, 1, 2, 11, 2);
 
 -- 4.4 Actualizar estado de habitaciones a OCUPADA (para consistencia)
 UPDATE Habitacion SET estado = 'OCUPADA' WHERE ID_Habitacion IN (1, 11);

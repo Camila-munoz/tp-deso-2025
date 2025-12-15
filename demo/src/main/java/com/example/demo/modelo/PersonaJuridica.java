@@ -27,8 +27,8 @@ public class PersonaJuridica extends ResponsableDePago {
     public PersonaJuridica() { }
 
     // GETTERS Y SETTERS
-    public int getHuesped() { return idDireccion; }  
-    public void setHuesped(int idHuesped) { this.idDireccion = idDireccion; }
+    public Integer getIdDireccion() { return idDireccion; }  
+    public void setIdDireccion(Integer idDireccion) { this.idDireccion = idDireccion; }
 
     public String getCuit() { return cuit; }
     public void setCuit(String cuit) { this.cuit = cuit; }
