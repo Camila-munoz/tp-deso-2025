@@ -16,7 +16,9 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-
+//Spring asegura que solo exista una instancia de FacturaService (Singleton)
+// Patron Factory
+// La anotación @Autowired le indica a la Fábrica (Spring) que "inyecte" (provea) una instancia creada de la clase solicitada, centralizando el proceso de instanciación
 @Service
 public class FacturaService {
 

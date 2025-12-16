@@ -19,38 +19,34 @@ public class MedioDePago {
     @Column(name = "fecha_de_pago")
     private LocalDateTime fechaDePago;
 
-    // Relación ManyToOne con Pago (FK: ID_Pago)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ID_Pago", nullable = false)
     private Pago pago;
 
-    // --- Relaciones Opcionales OneToOne (Subtipos) ---
-    // Usamos @OneToOne para mapear el subtipo. Todas son nullable = true (NULL)
-    // ya que solo puede ser un tipo de pago.
-
+    //Patron Strategy para los diferentes tipos de medio de pago
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ID_efectivo", unique = true)
     private Efectivo efectivo;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "Numero_tarjeta_Credito", unique = true)
-    private TarjetaDeCredito tarjetaCredito; // Asumiendo clase TarjetaDeCredito
+    private TarjetaDeCredito tarjetaCredito;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "Numero_tarjeta_Debito", unique = true)
-    private TarjetaDeDebito tarjetaDebito; // Asumiendo clase TarjetaDeDebito
+    private TarjetaDeDebito tarjetaDebito; 
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ID_Moneda_Extranjera", unique = true)
-    private MonedaExtranjera monedaExtranjera; // Asumiendo clase MonedaExtranjera
+    private MonedaExtranjera monedaExtranjera;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "Numero_cheque_tercero", unique = true)
-    private ChequeTercero chequeTercero; // Asumiendo clase ChequeTercero
+    private ChequeTercero chequeTercero; 
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "Numero_cheque_propio", unique = true)
-    private ChequePropio chequePropio; // Asumiendo clase ChequePropio
+    private ChequePropio chequePropio; 
 
     // Constructores, Getters y Setters
     public MedioDePago() {}
