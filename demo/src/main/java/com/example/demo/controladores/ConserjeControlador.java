@@ -22,25 +22,25 @@ public class ConserjeControlador {
     @PostMapping
     public ResponseEntity<?> registrar(@RequestBody Conserje conserje) {
         try {
-            System.out.println("📝 Registrando conserje: " + conserje.getNombre());
+            System.out.println(" Registrando conserje: " + conserje.getNombre());
             
             boolean registrado = conserjeService.registrarConserje(conserje);
             
             return ResponseEntity.ok(Map.of(
                 "success", true,
-                "message", "✅ Conserje registrado correctamente",
+                "message", " Conserje registrado correctamente",
                 "id", conserje.getIdConserje()
             ));
             
         } catch (ValidacionException e) {
             return ResponseEntity.badRequest().body(Map.of(
                 "success", false,
-                "message", "❌ " + e.getMessage()
+                "message", " " + e.getMessage()
             ));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(Map.of(
                 "success", false,
-                "message", "❌ Error interno del servidor"
+                "message", " Error interno del servidor"
             ));
         }
     }
@@ -49,7 +49,7 @@ public class ConserjeControlador {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Conserje conserje) {
         try {
-            System.out.println("🔐 Intento de login para: " + conserje.getNombre());
+            System.out.println(" Intento de login para: " + conserje.getNombre());
             
             boolean autenticado = conserjeService.autenticar(
                 conserje.getNombre(), 
@@ -65,7 +65,7 @@ public class ConserjeControlador {
             } else {
                 return ResponseEntity.status(401).body(Map.of(
                     "success", false,
-                    "message", "❌ Credenciales inválidas"
+                    "message", "❌ El usuario o la contraseña no son válidos"
                 ));
             }
         } catch (Exception e) {

@@ -1,4 +1,4 @@
--- Active: 1764638966350@@localhost@3306@hotel_premier
+-- Active: 1763931386304@@localhost@3306@hotel_premier
 
 USE hotel_premier;
 
@@ -26,10 +26,10 @@ INSERT INTO TipoHabitacion (ID_TipoHabitacion, descripcion, cantidad_camas_kingS
 
 -- 1.3 Conserjes (Usuarios del sistema)
 INSERT INTO Conserje (nombre, contrasena) VALUES 
-('admin', 'admin13'),
-('juan', 'seguro13'),
-('ana', 'conserje46'),
-('maria', 'hotel79');
+('admin', 'admin138'),
+('juan', 'seguro135'),
+('ana', 'conserje461'),
+('maria', 'hotel791');
 
 -- ==================================================================
 -- 2. HABITACIONES

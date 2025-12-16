@@ -16,8 +16,8 @@ export default function PrincipalPage() {
 
   const opciones = [
     { label: "Buscar Huésped", path: "/huespedes" },
-    { label: "Crear Huésped", path: "/huespedes/nuevo" },
-    { label: "Crear Reserva", path: "/reservas" },
+    { label: "Dar de alta Huésped", path: "/huespedes/nuevo" },
+    { label: "Reservar Habitación", path: "/reservas" },
     {label: "Ocupar Habitación", path: "/ocupar" },
     { label: "Cancelar Reserva", path: "/cancelar-reserva" },
     { label: "Facturar", path: "/facturacion" },
@@ -49,7 +49,7 @@ export default function PrincipalPage() {
         <button
           onClick={() => {
             sessionStorage.removeItem("usuario");
-            router.push("/");
+            router.push("/login");
           }}
           className="mt-8 w-full py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition"
         >

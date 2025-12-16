@@ -15,7 +15,7 @@ import java.util.Optional;
 public class ConserjeService {
 
     @Autowired
-    private ConserjeRepositorio conserjeRepositorio; // ✅ Nombre consistente
+    private ConserjeRepositorio conserjeRepositorio; 
 
     public boolean registrarConserje(Conserje conserje) throws ValidacionException {
         // Validaciones
@@ -39,10 +39,10 @@ public class ConserjeService {
 
         try {
             Conserje conserjeGuardado = conserjeRepositorio.save(conserje);
-            System.out.println("✅ Conserje registrado con ID: " + conserjeGuardado.getIdConserje());
+            System.out.println(" Conserje registrado con ID: " + conserjeGuardado.getIdConserje());
             return true;
         } catch (Exception e) {
-            System.out.println("❌ Error al guardar conserje: " + e.getMessage());
+            System.out.println(" Error al guardar conserje: " + e.getMessage());
             throw new ValidacionException("Error al registrar conserje en la base de datos");
         }
     }
@@ -53,11 +53,11 @@ public class ConserjeService {
         if (conserjeOpt.isPresent()) {
             Conserje conserje = conserjeOpt.get();
             boolean coincide = conserje.getContrasena().equals(contrasena);
-            System.out.println("🔐 Autenticación " + (coincide ? "exitosa" : "fallida") + " para: " + nombre);
+            System.out.println(" Autenticación " + (coincide ? "exitosa" : "fallida") + " para: " + nombre);
             return coincide;
         }
         
-        System.out.println("❌ Usuario no encontrado: " + nombre);
+        System.out.println(" Usuario no encontrado: " + nombre);
         return false;
     }
 
@@ -72,7 +72,7 @@ public class ConserjeService {
     public void eliminarConserje(Integer id) {
         if (conserjeRepositorio.existsById(id)) {
             conserjeRepositorio.deleteById(id);
-            System.out.println("✅ Conserje eliminado con ID: " + id);
+            System.out.println(" Conserje eliminado con ID: " + id);
         } else {
             throw new RuntimeException("Conserje no encontrado con ID: " + id);
         }

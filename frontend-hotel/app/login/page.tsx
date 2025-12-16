@@ -35,7 +35,7 @@ export default function LoginPage() {
       const data = await resp.json().catch(() => ({}));
 
       if (!resp.ok) {
-        setError(data?.message || "Usuario o contraseña incorrectos");
+        setError(data?.message || "El usuario o la contraseña no son válidos");
         setNombre("");
         setContrasena("");
         return;
