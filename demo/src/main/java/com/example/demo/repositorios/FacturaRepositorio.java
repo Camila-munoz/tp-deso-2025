@@ -25,8 +25,5 @@ public interface FacturaRepositorio extends JpaRepository<Factura, Integer> {
     List<Factura> findByEstadiaIdAndEstado(@Param("estadiaId") Integer estadiaId, 
                                            @Param("estado") EstadoFactura estado);
     
-    // Otra alternativa si prefieres usar nombres de métodos derivados:
-    // List<Factura> findByEstadiaIdAndEstado(Integer estadiaId, EstadoFactura estado);
-    
     List<Factura> findByEstado(EstadoFactura estado);
 }

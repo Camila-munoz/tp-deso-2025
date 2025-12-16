@@ -23,7 +23,7 @@ public class HabitacionControlador {
     private HabitacionRepositorio habitacionRepositorio;
     
     @Autowired
-    private HabitacionService habitacionService; // <--- ¡Esto faltaba!
+    private HabitacionService habitacionService; 
 
     // LISTAR
     @GetMapping

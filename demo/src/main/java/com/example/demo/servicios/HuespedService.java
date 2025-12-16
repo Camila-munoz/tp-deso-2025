@@ -268,7 +268,6 @@ public class HuespedService {
 
         // **CU9/CRÍTICO: Email (!@gmail.com)**
         // Regex para validar formato estándar: [user]@[domain].[tld]
-        // Un ejemplo básico (puede ser más complejo según los requisitos):
         String emailRegex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$";
         if (huesped.getEmail() != null && !huesped.getEmail().trim().isEmpty()) {
              if (!Pattern.matches(emailRegex, huesped.getEmail())) {
@@ -343,7 +342,6 @@ public class HuespedService {
                  throw new ValidacionException("El País es obligatorio.");
             }
 
-            // El Departamento es opcional, por lo que se puede dejar sin verificar.
         }
     }
 }

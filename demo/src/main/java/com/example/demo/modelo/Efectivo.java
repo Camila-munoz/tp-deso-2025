@@ -11,7 +11,6 @@ public class Efectivo {
     @Column(name = "ID_Efectivo")
     private Integer id;
 
-    // Aquí podrías agregar campos como 'montoRecibido', 'cambioDevuelto', si fueran necesarios.
 
     public Efectivo() {}
 

@@ -116,21 +116,6 @@ public class EstadiaControlador {
                 "documento", estadia.getHuesped().getNumeroDocumento()
             ));
 
-            // B. Si tu modelo tiene Acompañantes, agrégalos aquí. 
-            // Si no tienes la lista mapeada aún, con el titular basta para probar.
-            /* if (estadia.getAcompanantes() != null) {
-                for (Persona a : estadia.getAcompanantes()) {
-                    listaPersonas.add(Map.of(
-                        "id", a.getId(),
-                        "apellido", a.getApellido(),
-                        "nombre", a.getNombre(),
-                        "tipoDoc", a.getTipoDocumento(),
-                        "documento", a.getNumeroDocumento()
-                    ));
-                }
-            }
-            */
-
             return ResponseEntity.ok(listaPersonas);
 
         } catch (Exception e) {

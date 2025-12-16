@@ -22,10 +22,6 @@ public class Consumo {
     @JoinColumn(name = "ID_Estadia", nullable = false)
     private Estadia estadia;
     
-    // Campo opcional para saber si ya fue facturado (si quisieras facturación parcial)
-    // @ManyToOne
-    // @JoinColumn(name = "ID_Factura")
-    // private Factura factura; 
 
     public Consumo() {}
 

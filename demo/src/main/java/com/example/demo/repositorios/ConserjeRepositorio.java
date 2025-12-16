@@ -10,13 +10,13 @@ import java.util.Optional;
 @Repository
 public interface ConserjeRepositorio extends JpaRepository<Conserje, Integer> {
     
-    // ✅ Spring Data JPA genera automáticamente la consulta
+    // Spring Data JPA genera automáticamente la consulta
     Optional<Conserje> findByNombre(String nombre);
     
-    // ✅ Consulta personalizada CORRECTA (opcional)
+    // Consulta personalizada CORRECTA (opcional)
     @Query("SELECT c FROM Conserje c WHERE c.nombre = :nombre")
     Optional<Conserje> buscarPorNombre(@Param("nombre") String nombre);
     
-    // ✅ Verificar si existe un conserje con ese nombre
+    // Verificar si existe un conserje con ese nombre
     boolean existsByNombre(String nombre);
 }

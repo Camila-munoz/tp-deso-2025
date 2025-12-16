@@ -28,7 +28,7 @@ public class ReservaService {
 
     // --- CU04: RESERVAR HABITACIÓN ---
     public List<Reserva> crearReserva(
-            List<DetalleReserva> detalles, // Lista con fechas distintas
+            List<DetalleReserva> detalles, 
             String nombre,
             String apellido,
             String telefono  
