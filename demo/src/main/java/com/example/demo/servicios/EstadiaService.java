@@ -25,7 +25,8 @@ import com.example.demo.repositorios.EstadiaRepositorio;
 import com.example.demo.repositorios.HabitacionRepositorio;
 import com.example.demo.repositorios.HuespedRepositorio;
 import com.example.demo.repositorios.ReservaRepositorio;
-
+// El método crearEstadiasMasivas es la Fachada. 
+// Unifica en un solo punto de acceso toda la lógica transaccional, las validaciones y el cambio de estado de entidades
 @Service
 @Transactional
 public class EstadiaService {
@@ -150,7 +151,7 @@ public class EstadiaService {
         estadia.setHabitacion(habitacion);
         estadia.setHuesped(titular);
         estadia.setCheckIn(LocalDateTime.now());
-        estadia.setCheckOut(LocalDateTime.now().plusDays(request.getCantidadDias()).with(LocalTime.of(10, 0)));
+        estadia.setCheckOut(null);
         estadia.setCantidadDias(request.getCantidadDias());
         estadia.setCantidadHuespedes(1 + listaAcomp.size());
         estadia.setCantidadHabitaciones(1);
