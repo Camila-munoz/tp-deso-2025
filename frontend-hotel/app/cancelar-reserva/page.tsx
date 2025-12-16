@@ -105,7 +105,7 @@ export default function CancelarReservaPage() {
     <div className="min-h-screen bg-gray-100 p-6 font-sans relative flex flex-col items-center">
       
       <div className="absolute top-6 left-6">
-        <Link href="/" className="text-gray-500 hover:text-red-800 font-bold flex items-center gap-1"><span>⬅</span> MENÚ</Link>
+        <Link href="/principal" className="text-gray-500 hover:text-red-800 font-bold flex items-center gap-1"><span>⬅</span> MENÚ</Link>
       </div>
 
       {/* TÍTULO */}
