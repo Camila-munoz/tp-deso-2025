@@ -180,7 +180,7 @@ public class FacturaService {
         
         Map<String, Object> itemEstadia = new HashMap<>();
         itemEstadia.put("tipo", "ESTADIA");
-        itemEstadia.put("descripcion", "Estadía hab. " + estadia.getHabitacion().getNumero());
+        itemEstadia.put("descripcion", "Estadía Habitación Nº " + estadia.getHabitacion().getNumero());
         itemEstadia.put("monto", costoEstadia);
         itemEstadia.put("seleccionado", true);
         items.add(itemEstadia);

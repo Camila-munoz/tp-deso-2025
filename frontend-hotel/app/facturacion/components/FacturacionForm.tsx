@@ -1,4 +1,3 @@
-// app/facturacion/components/FacturacionComponent.tsx
 "use client";
 
 import { useState } from 'react';
@@ -10,6 +9,8 @@ import {
   ResponsableData,
   ApiResponse
 } from '../types/facturacion';
+// IMPORTAMOS EL COMPONENTE DE MODAL
+import ModalMensaje from '../../../components/habitaciones/ModalMensaje';
 
 const FacturacionComponent = () => {
   const [paso, setPaso] = useState<number>(1);
@@ -17,7 +18,12 @@ const FacturacionComponent = () => {
   const [itemsSeleccionados, setItemsSeleccionados] = useState<ItemFacturable[]>([]);
   const [cargando, setCargando] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
-  
+
+  // ESTADO PARA EL MODAL DE ÉXITO
+  const [modalExito, setModalExito] = useState<{show: boolean, factura?: FacturaGenerada}>({
+    show: false
+  });
+
   // Paso 1: Validar habitación y hora
   const validarDatosIniciales = async () => {
     setCargando(true);
@@ -147,7 +153,6 @@ const FacturacionComponent = () => {
         return;
       }
       
-      // Filtrar solo items seleccionados
       const itemsParaFacturar = itemsSeleccionados.filter(item => item.seleccionado);
       
       if (itemsParaFacturar.length === 0) {
@@ -159,7 +164,7 @@ const FacturacionComponent = () => {
         estadiaId: datos.estadia.id,
         responsableId: datos.responsable.responsable.id,
         itemsSeleccionados: itemsParaFacturar,
-        horaSalida: datos.horaSalida
+        horaSalida: datos.horaSalida // Importante: enviamos la hora confirmada
       };
       
       const response = await fetch('http://localhost:8080/api/facturacion/generar', {
@@ -169,14 +174,16 @@ const FacturacionComponent = () => {
       });
       
       const result: ApiResponse<{factura: FacturaGenerada}> = await response.json();
-      
-      if (result.success && result.data) {
-        alert(`Factura ${result.data.factura.numero} generada exitosamente`);
-        mostrarFactura(result.data.factura);
-        // Reiniciar el proceso
-        setPaso(1);
-        setDatos({});
-        setItemsSeleccionados([]);
+      const facturaGenerada = result.data?.factura || (result.data as unknown as FacturaGenerada);
+
+      if (result.success && facturaGenerada) {
+        // CAMBIO AQUÍ: En lugar de alert, activamos el modal
+        setModalExito({
+          show: true,
+          factura: facturaGenerada
+        });
+        // Nota: El reinicio de datos se hace al cerrar el modal (handleCerrarModal)
+        // para que no se pierda la info antes de imprimir.
       } else {
         setError(result.error || 'Error al generar la factura');
       }
@@ -187,86 +194,283 @@ const FacturacionComponent = () => {
       setCargando(false);
     }
   };
-  
-  // Función para mostrar factura
-  // En FacturacionComponent.tsx - función mostrarFactura
-const mostrarFactura = (factura: FacturaGenerada) => {
-  const facturaWindow = window.open('', '_blank');
-  if (facturaWindow) {
-    facturaWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Factura ${factura.numero} - Hotel Premier</title>
-        <style>
-          body { font-family: Arial, sans-serif; margin: 40px; }
-          .factura { border: 1px solid #ccc; padding: 20px; max-width: 800px; margin: 0 auto; }
-          .header { text-align: center; margin-bottom: 30px; }
-          .details { margin-bottom: 20px; }
-          table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-          th { background-color: #f4f4f4; }
-          .total { font-weight: bold; text-align: right; margin-top: 20px; }
-          .footer { margin-top: 30px; text-align: center; color: #666; }
-          @media print {
-            button { display: none; }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="factura">
-          <div class="header">
-            <h1>Hotel Premier - Santa Fe</h1>
-            <h2>FACTURA ${factura.tipo} N° ${factura.numero}</h2>
-            <p>Fecha: ${new Date(factura.fecha).toLocaleDateString()}</p>
-          </div>
-          
-          <div class="details">
-            <p><strong>Habitación:</strong> ${factura.habitacion}</p>
-            <p><strong>Cliente:</strong> ${
-              factura.clienteTipo === 'PERSONA_JURIDICA' 
-                ? factura.razonSocial || 'Persona Jurídica' 
-                : 'Persona Física'
-            }</p>
-            ${factura.cuit ? `<p><strong>CUIT:</strong> ${factura.cuit}</p>` : ''}
-          </div>
-          
-          <table>
-            <thead>
-              <tr>
-                <th>Descripción</th>
-                <th>Monto</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${factura.items?.map(item => `
+
+  // MANEJADOR PARA CERRAR EL MODAL DE ÉXITO
+  const handleCerrarModalExito = () => {
+    if (modalExito.factura) {
+      // 1. Mostrar la factura para imprimir
+      mostrarFactura(modalExito.factura, datos.responsable);
+    }
+    
+    // 2. Cerrar modal y reiniciar formulario
+    setModalExito({ show: false });
+    setPaso(1);
+    setDatos({});
+    setItemsSeleccionados([]);
+  };
+
+  // Función para mostrar factura con DISEÑO CORREGIDO Y NIVELADO
+  const mostrarFactura = (factura: FacturaGenerada, infoResponsable: ResponsableData | undefined) => {
+    // 1. Extraer datos reales del cliente
+    let nombreCliente = "CONSUMIDOR FINAL";
+    let documentoCliente = "Sin identificar";
+    let domicilioCliente = "Santa Fe, Argentina";
+    let condicionIVA = infoResponsable?.posicionIVA || "Consumidor Final";
+
+    if (infoResponsable) {
+      if (infoResponsable.tipo === 'FISICA') {
+        nombreCliente = infoResponsable.nombreCompleto || 'Huésped';
+        if (infoResponsable.cuit) {
+          documentoCliente = `CUIT: ${infoResponsable.cuit}`;
+        } else if (infoResponsable.huesped) {
+          documentoCliente = `${infoResponsable.huesped.tipoDocumento}: ${infoResponsable.huesped.numeroDocumento}`;
+        }
+        if (infoResponsable.huesped?.direccion) {
+            const dir = infoResponsable.huesped.direccion;
+            domicilioCliente = `${dir.calle || ''} ${dir.numero || ''}, ${dir.localidad || ''}`.trim();
+        }
+      } else if (infoResponsable.tipo === 'JURIDICA') {
+        nombreCliente = infoResponsable.razonSocial || 'Empresa';
+        documentoCliente = `CUIT: ${infoResponsable.cuit}`;
+        // @ts-ignore
+        const dir = infoResponsable.responsable?.direccion; 
+        if (dir) {
+            domicilioCliente = `${dir.calle || ''} ${dir.numero || ''}, ${dir.localidad || ''}`.trim();
+        }
+      }
+    }
+
+    const esFacturaA = factura.tipo === 'A';
+    const total = factura.monto;
+    const subtotal = esFacturaA ? total / 1.21 : total;
+    const iva = esFacturaA ? total - subtotal : 0;
+
+    const facturaWindow = window.open('', '_blank');
+    if (facturaWindow) {
+      facturaWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Factura ${factura.tipo} - ${factura.numero}</title>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+            
+            body { 
+              font-family: 'Roboto', Arial, sans-serif; 
+              margin: 0; 
+              padding: 20px; 
+              background-color: #f5f5f5; 
+              color: #333; 
+            }
+            
+            .factura-container { 
+              background: white; 
+              max-width: 800px; 
+              margin: 0 auto; 
+              border: 1px solid #ccc; 
+              box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+              position: relative; 
+            }
+
+            /* --- HEADER NIVELADO --- */
+            .header-top { 
+              display: flex; 
+              justify-content: space-between;
+              align-items: flex-start; 
+              border-bottom: 2px solid #000; 
+              position: relative; 
+              padding: 30px 40px 20px; 
+              height: auto; 
+              min-height: 140px;
+            }
+            
+            .col-left { 
+              width: 45%; 
+              padding-right: 20px;
+              box-sizing: border-box;
+            }
+            
+            .col-right { 
+              width: 45%; 
+              padding-left: 20px;
+              text-align: right; 
+              box-sizing: border-box;
+            }
+            
+            .letter-box { 
+              position: absolute; 
+              top: 0; 
+              left: 50%; 
+              transform: translateX(-50%); 
+              background: white; 
+              border: 2px solid black; 
+              border-top: none; 
+              width: 60px; 
+              height: 50px; 
+              display: flex; 
+              flex-direction: column; 
+              align-items: center; 
+              justify-content: center; 
+              font-weight: bold; 
+              z-index: 10; 
+            }
+            .letter { font-size: 32px; line-height: 32px; }
+            .code { font-size: 10px; }
+            
+            .company-name { 
+              font-size: 24px; 
+              font-weight: bold; 
+              margin: 0 0 10px 0; 
+            }
+            .company-details p { margin: 3px 0; font-size: 12px; color: #444; }
+            
+            .invoice-title { 
+              font-size: 28px; 
+              font-weight: bold; 
+              margin-bottom: 15px; 
+              color: #000;
+              margin-top: 0; 
+            }
+            
+            .invoice-details p { 
+              margin: 4px 0; 
+              font-size: 13px; 
+              display: flex; 
+              justify-content: flex-end; 
+              gap: 10px;
+            }
+            
+            .invoice-details strong {
+                font-size: 14px;
+            }
+            
+            .client-section { padding: 15px 40px; border-bottom: 1px solid #ccc; background-color: #f9f9f9; }
+            .client-row { display: flex; margin-bottom: 5px; font-size: 13px; }
+            .client-label { font-weight: bold; width: 120px; }
+            .client-value { flex: 1; text-transform: uppercase; }
+            
+            table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px; }
+            th { background-color: #e0e0e0; border: 1px solid #ccc; padding: 10px; text-align: left; }
+            td { border: 1px solid #ccc; padding: 8px 10px; }
+            .col-monto { text-align: right; width: 120px; }
+            
+            .totals-section { display: flex; justify-content: flex-end; padding: 10px 40px 30px; }
+            .totals-table { width: 300px; }
+            .total-row { display: flex; justify-content: space-between; padding: 5px 0; }
+            .total-final { font-weight: bold; font-size: 16px; border-top: 2px solid #333; margin-top: 5px; padding-top: 5px; }
+            
+            .footer { text-align: center; font-size: 11px; color: #777; padding: 20px; border-top: 1px solid #eee; }
+            .no-print { text-align: center; margin-top: 20px; }
+            .btn-print { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 14px; }
+            
+            @media print { 
+              .no-print { display: none; } 
+              .factura-container { box-shadow: none; border: none; } 
+              body { background: white; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="factura-container">
+            <div class="header-top">
+              <div class="letter-box">
+                <span class="letter">${factura.tipo}</span>
+                <span class="code">COD. 0${factura.tipo === 'A' ? '1' : '6'}</span>
+              </div>
+              
+              <div class="col-left">
+                <h1 class="company-name">HOTEL PREMIER</h1>
+                <div class="company-details">
+                  <p><strong>Razón Social:</strong> Hotel Premier S.A.</p>
+                  <p><strong>Domicilio:</strong> Bv. Gálvez 1234, Santa Fe</p>
+                  <p><strong>Condición IVA:</strong> Responsable Inscripto</p>
+                </div>
+              </div>
+              
+              <div class="col-right">
+                <div class="invoice-title">FACTURA</div>
+                <div class="invoice-details">
+                  <p><span>N° Comp.:</span> <strong>0001-${factura.numero.toString().padStart(8, '0')}</strong></p>
+                  <p><span>Fecha Emisión:</span> ${new Date(factura.fecha).toLocaleDateString()}</p>
+                  <p><span>CUIT:</span> 30-77777777-1</p>
+                  <p><span>Ingresos Brutos:</span> 30-77777777-1</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="client-section">
+              <div class="client-row">
+                <span class="client-label">Cliente:</span>
+                <span class="client-value"><strong>${nombreCliente}</strong></span>
+              </div>
+              <div class="client-row">
+                <span class="client-label">Documento:</span>
+                <span class="client-value">${documentoCliente}</span>
+              </div>
+              <div class="client-row">
+                <span class="client-label">Condición IVA:</span>
+                <span class="client-value">${condicionIVA}</span>
+              </div>
+              <div class="client-row">
+                <span class="client-label">Domicilio:</span>
+                <span class="client-value">${domicilioCliente || '-'}</span>
+              </div>
+              <div class="client-row">
+                <span class="client-label">Habitación:</span>
+                <span class="client-value">${factura.habitacion}</span>
+              </div>
+            </div>
+            
+            <table>
+              <thead>
                 <tr>
-                  <td>${item.descripcion}</td>
-                  <td>$${item.monto.toFixed(2)}</td>
+                  <th>Descripción</th>
+                  <th class="col-monto">Importe</th>
                 </tr>
-              `).join('') || ''}
-            </tbody>
-          </table>
-          
-          <div class="total">
-            <p><strong>TOTAL: $${factura.monto.toFixed(2)}</strong></p>
+              </thead>
+              <tbody>
+                ${factura.items?.map(item => `
+                  <tr>
+                    <td>${item.descripcion}</td>
+                    <td class="col-monto">$${item.monto.toFixed(2)}</td>
+                  </tr>
+                `).join('') || ''}
+              </tbody>
+            </table>
+            
+            <div class="totals-section">
+              <div class="totals-table">
+                ${esFacturaA ? `
+                  <div class="total-row">
+                    <span>Importe Neto Gravado:</span>
+                    <span>$${subtotal.toFixed(2)}</span>
+                  </div>
+                  <div class="total-row">
+                    <span>IVA 21%:</span>
+                    <span>$${iva.toFixed(2)}</span>
+                  </div>
+                ` : ''}
+                <div class="total-row total-final">
+                  <span>Importe Total:</span>
+                  <span>$${total.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="footer">
+              <p>Gracias por elegir Hotel Premier</p>
+            </div>
           </div>
           
-          <div class="footer">
-            <p>Gracias por elegir Hotel Premier</p>
-            <p>Santa Fe, Argentina</p>
+          <div class="no-print">
+            <button onclick="window.print()" class="btn-print">🖨️ Imprimir Comprobante</button>
           </div>
-          
-          <button onclick="window.print()" style="padding: 10px 20px; margin-top: 20px;">
-            Imprimir Factura
-          </button>
-        </div>
-      </body>
-      </html>
-    `);
-    facturaWindow.document.close();
-  }
-};
+        </body>
+        </html>
+      `);
+      facturaWindow.document.close();
+    }
+  };
   
   // Toggle selección de item
   const toggleItem = (index: number) => {
@@ -506,6 +710,15 @@ const mostrarFactura = (factura: FacturaGenerada) => {
   
   return (
     <div className="facturacion-container">
+      {/* COMPONENTE MODAL - Renderizado condicionalmente */}
+      <ModalMensaje
+        isOpen={modalExito.show}
+        titulo="¡Factura Generada!"
+        mensaje={`La factura ha sido generada correctamente y está pendiente de pago.`}
+        tipo="EXITO"
+        onClose={handleCerrarModalExito}
+      />
+
       <div className="mb-6">
         <div className="flex items-center space-x-2">
           <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
