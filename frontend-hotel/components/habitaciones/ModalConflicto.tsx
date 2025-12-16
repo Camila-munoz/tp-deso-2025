@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { obtenerTitularConflicto } from "@/services/api";
+// Iconos modernos
+import { AlertTriangle, Calendar, User, ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
 
 interface Props {
   isOpen: boolean;
@@ -37,41 +39,61 @@ export default function ModalConflicto({ isOpen, onClose, onOcuparIgual, habitac
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-white p-8 w-[600px] shadow-2xl border-t-8 border-red-600 relative text-center rounded-lg">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm animate-in fade-in">
+      <div className="bg-white p-8 w-[500px] shadow-2xl border-t-8 border-amber-400 relative text-center rounded-3xl">
         
-        <h3 className="text-2xl font-serif font-bold text-red-800 mb-6">CONFLICTO DE RESERVA</h3>
+        {/* ICONO ALERTA */}
+        <div className="w-20 h-20 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+            <AlertTriangle size={40} />
+        </div>
         
-        <div className="bg-yellow-50 p-6 rounded border border-yellow-200 mb-6 text-left shadow-inner">
-          <p className="text-gray-600 mb-2 text-sm font-bold uppercase tracking-wide">Detalles del conflicto:</p>
-          
-          <div className="mb-4">
-              <p className="text-xs text-gray-500">Habitación {habitacionNumero}</p>
-              <p className="text-xl font-bold text-gray-900 uppercase border-b border-yellow-300 pb-1 inline-block">
-                {info.titular}
-              </p>
+        <h3 className="text-2xl font-bold text-gray-900 mb-2">Conflicto de Reserva</h3>
+        <p className="text-gray-500 mb-8 text-sm">Esta habitación ya tiene una reserva activa para la fecha seleccionada.</p>
+        
+        {/* TARJETA DETALLE */}
+        <div className="bg-amber-50 p-6 rounded-2xl border border-amber-100 mb-8 text-left shadow-sm">
+          <div className="flex justify-between items-start mb-4 pb-4 border-b border-amber-200/50">
+              <div>
+                  <p className="text-xs text-amber-600/80 font-bold uppercase tracking-wider mb-1">Reservado por</p>
+                  <div className="flex items-center gap-2">
+                      <User size={18} className="text-amber-600"/>
+                      <p className="text-lg font-bold text-gray-900 uppercase">{info.titular}</p>
+                  </div>
+              </div>
+              <div className="bg-white px-3 py-1 rounded-lg border border-amber-200 text-xs font-bold text-amber-700 shadow-sm">
+                  HAB. {habitacionNumero}
+              </div>
           </div>
           
-          <div className="flex gap-8 text-sm text-gray-700 bg-white p-3 rounded border border-yellow-100">
-             <div>
-                <span className="block text-xs text-gray-400 font-bold">DESDE</span>
-                <span className="font-mono font-bold">{info.desde}</span>
-             </div>
-             <div>
-                <span className="block text-xs text-gray-400 font-bold">HASTA</span>
-                <span className="font-mono font-bold">{info.hasta}</span>
-             </div>
+          <div className="flex items-center justify-between text-sm text-gray-700">
+              <div className="bg-white px-4 py-2 rounded-xl border border-amber-100 shadow-sm flex items-center gap-2">
+                 <Calendar size={14} className="text-gray-400"/>
+                 <span className="font-mono font-bold text-gray-800">{info.desde}</span>
+              </div>
+              <ArrowRight size={16} className="text-amber-400"/>
+              <div className="bg-white px-4 py-2 rounded-xl border border-amber-100 shadow-sm flex items-center gap-2">
+                 <Calendar size={14} className="text-gray-400"/>
+                 <span className="font-mono font-bold text-gray-800">{info.hasta}</span>
+              </div>
           </div>
         </div>
 
-        <p className="text-sm text-gray-500 mb-6 font-medium">¿Desea ignorar esta reserva y registrar la ocupación?</p>
+        <p className="text-sm text-gray-500 mb-6 font-medium">¿Desea ignorar esta reserva y registrar la ocupación igualmente?</p>
 
+        {/* BOTONES */}
         <div className="flex gap-4 justify-center">
-          <button onClick={() => onOcuparIgual(diasReserva)} className="bg-[#d4e157] border-2 border-yellow-600 px-6 py-3 font-bold shadow hover:bg-yellow-300 rounded text-yellow-900 w-40">
-            OCUPAR IGUAL
+          <button 
+            onClick={onClose} 
+            className="flex-1 py-3 border border-gray-200 rounded-xl font-bold text-gray-600 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+          >
+            <ArrowLeft size={18}/> Volver
           </button>
-          <button onClick={onClose} className="bg-[#ff5252] border-2 border-red-800 text-white px-6 py-3 font-bold shadow hover:bg-red-600 rounded w-40">
-            VOLVER
+          
+          <button 
+            onClick={() => onOcuparIgual(diasReserva)} 
+            className="flex-1 py-3 bg-amber-400 text-amber-900 rounded-xl font-bold hover:bg-amber-500 shadow-lg shadow-amber-100 transition-all flex items-center justify-center gap-2 transform active:scale-95"
+          >
+            <CheckCircle size={18}/> Ocupar Igual
           </button>
         </div>
       </div>

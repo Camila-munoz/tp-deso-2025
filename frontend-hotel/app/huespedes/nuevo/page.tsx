@@ -1,15 +1,58 @@
-"use client"
-import { useState } from "react"
-import type React from "react"
+"use client";
+import { useState } from "react";
+import type React from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { crearHuesped, crearHuespedForzado } from "@/services/api";
+// Iconos modernos
+import { ArrowLeft, Save, AlertTriangle, CheckCircle, Info, X } from "lucide-react";
 
-import { useRouter } from "next/navigation"
-import { crearHuesped, crearHuespedForzado } from "@/services/api"
+// Componentes UI internos modernizados
+const InputField = ({ label, name, value, onChange, onKeyDown, placeholder, type = "text", error }: any) => (
+  <div className="w-full">
+    <label className={`block text-xs font-bold uppercase tracking-wide mb-1.5 ${error ? "text-rose-500" : "text-gray-500"}`}>
+      {label}
+    </label>
+    <input 
+      type={type}
+      name={name}
+      value={value} 
+      onChange={onChange} 
+      onKeyDown={onKeyDown}
+      placeholder={placeholder}
+      className={`w-full px-4 py-2.5 rounded-xl border outline-none transition-all font-medium text-gray-900 
+        ${error ? 'border-rose-300 bg-rose-50 focus:ring-2 focus:ring-rose-200' : 'border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100'}
+        bg-white placeholder-gray-400
+      `} 
+    />
+  </div>
+);
+
+const SelectField = ({ label, name, value, onChange, options, error }: any) => (
+  <div className="w-full">
+    <label className={`block text-xs font-bold uppercase tracking-wide mb-1.5 ${error ? "text-rose-500" : "text-gray-500"}`}>
+      {label}
+    </label>
+    <select 
+      name={name}
+      value={value} 
+      onChange={onChange} 
+      className={`w-full px-4 py-2.5 rounded-xl border outline-none transition-all font-medium text-gray-900 appearance-none bg-white
+        ${error ? 'border-rose-300 bg-rose-50 focus:ring-2 focus:ring-rose-200' : 'border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100'}
+      `}
+    >
+      <option value="">Seleccionar</option>
+      {options.map((opt: any) => (
+        <option key={opt.value} value={opt.value}>{opt.label}</option>
+      ))}
+    </select>
+  </div>
+);
 
 export default function AltaHuespedPage() {
-  const router = useRouter()
+  const router = useRouter();
 
   // --- FORMULARIO ---
- 
   const initialState = {
     apellido: "",
     nombre: "",
@@ -31,245 +74,185 @@ export default function AltaHuespedPage() {
     localidad: "",
     provincia: "",
     pais: "",
-  }
+  };
 
-  const [form, setForm] = useState(initialState)
-  const [errores, setErrores] = useState<string[]>([])
+  const [form, setForm] = useState(initialState);
+  const [errores, setErrores] = useState<string[]>([]);
 
   // --- ESTADOS DE UI ---
-  const [modalExito, setModalExito] = useState(false)
-  const [modalDuplicado, setModalDuplicado] = useState<string | null>(null) // Mensaje de error si hay duplicado
-  const [cargando, setCargando] = useState(false)
+  const [modalExito, setModalExito] = useState(false);
+  const [modalDuplicado, setModalDuplicado] = useState<string | null>(null); // Mensaje de error si hay duplicado
+  const [cargando, setCargando] = useState(false);
+  const [modalCancelar, setModalCancelar] = useState(false);
 
   const camposMayusculas = [
-    "apellido",
-    "nombre",
-    "tipoDocumento",
-    "numeroDocumento",
-    "cuit",
-    "posicionIVA",
-    "telefono",
-    "nacionalidad",
-    "ocupacion",
-    "calle",
-    "numero",
-    "departamento",
-    "piso",
-    "codigoPostal",
-    "localidad",
-    "provincia",
-    "pais",
-  ]
+    "apellido", "nombre", "tipoDocumento", "numeroDocumento", "cuit", "posicionIVA",
+    "telefono", "nacionalidad", "ocupacion", "calle", "numero", "departamento",
+    "piso", "codigoPostal", "localidad", "provincia", "pais",
+  ];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    const newValue = camposMayusculas.includes(name) ? value.toUpperCase() : value
-    setForm({ ...form, [name]: newValue })
-  }
+    const { name, value } = e.target;
+    const newValue = camposMayusculas.includes(name) ? value.toUpperCase() : value;
+    setForm({ ...form, [name]: newValue });
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, callback?: () => void) => {
     if (e.key === "Enter" && callback) {
-      e.preventDefault()
-      callback()
+      e.preventDefault();
+      callback();
     }
-  }
+  };
 
   const handleButtonKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, onClick: () => void) => {
     if (e.key === "Enter") {
-      e.preventDefault()
-      onClick()
+      e.preventDefault();
+      onClick();
     }
-  }
-
-  const [modalCancelar, setModalCancelar] = useState(false)
+  };
 
   const validarCamposObligatorios = () => {
-    const faltantes: string[] = []
+    const faltantes: string[] = [];
 
-    if (!form.apellido.trim()) faltantes.push("Apellido")
-    if (!form.nombre.trim()) faltantes.push("Nombre")
-    if (!form.fechaNacimiento.trim()) faltantes.push("Fecha de nacimiento")
-    if (!form.tipoDocumento.trim()) faltantes.push("Tipo de documento")
-    if (!form.numeroDocumento.trim()) faltantes.push("Número de documento")
-    if (!form.posicionIVA.trim()) faltantes.push("Posición frente al IVA")
-    if (!form.telefono.trim()) faltantes.push("Teléfono")
-    if (!form.nacionalidad.trim()) faltantes.push("Nacionalidad")
-    if (!form.ocupacion.trim()) faltantes.push("Ocupación")
+    if (!form.apellido.trim()) faltantes.push("Apellido");
+    if (!form.nombre.trim()) faltantes.push("Nombre");
+    if (!form.fechaNacimiento.trim()) faltantes.push("Fecha de nacimiento");
+    if (!form.tipoDocumento.trim()) faltantes.push("Tipo de documento");
+    if (!form.numeroDocumento.trim()) faltantes.push("Número de documento");
+    if (!form.posicionIVA.trim()) faltantes.push("Posición frente al IVA");
+    if (!form.telefono.trim()) faltantes.push("Teléfono");
+    if (!form.nacionalidad.trim()) faltantes.push("Nacionalidad");
+    if (!form.ocupacion.trim()) faltantes.push("Ocupación");
 
     // Dirección
-    if (!form.calle.trim()) faltantes.push("Calle")
-    if (!form.numero.trim()) faltantes.push("Número")
-    if (!form.codigoPostal.trim()) faltantes.push("Código Postal")
-    if (!form.localidad.trim()) faltantes.push("Localidad")
-    if (!form.provincia.trim()) faltantes.push("Provincia")
-    if (!form.pais.trim()) faltantes.push("País")
+    if (!form.calle.trim()) faltantes.push("Calle");
+    if (!form.numero.trim()) faltantes.push("Número");
+    if (!form.codigoPostal.trim()) faltantes.push("Código Postal");
+    if (!form.localidad.trim()) faltantes.push("Localidad");
+    if (!form.provincia.trim()) faltantes.push("Provincia");
+    if (!form.pais.trim()) faltantes.push("País");
 
-    // VALIDACIÓN DE EMAIL (Regex estándar)
-    // Verifica que tenga texto + @ + texto + . + texto
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/ // <-- Regex del backend adaptada
-    if (form.email && !emailRegex.test(form.email)) {
-      faltantes.push("El formato del Email no es válido (ejemplo: usuario@dominio.com).") // <-- Mensaje más específico
-    }
+    // VALIDACIÓN DE EMAIL
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+    if (form.email && !emailRegex.test(form.email)) {
+      faltantes.push("El formato del Email no es válido (ejemplo: usuario@dominio.com).");
+    }
 
-    // VALIDACIÓN DE FECHA DE NACIMIENTO (No futura)
+    // VALIDACIÓN DE FECHA DE NACIMIENTO
     if (form.fechaNacimiento) {
-      const fechaNac = new Date(form.fechaNacimiento)
-      const hoy = new Date()
-      
-      // 1. No futura (Ya estaba, pero la simplifico)
-      const fechaHoySoloFecha = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate())
-      if (fechaNac > fechaHoySoloFecha) {
-        faltantes.push("La fecha de nacimiento no puede ser futura")
-      }
+      const fechaNac = new Date(form.fechaNacimiento);
+      const hoy = new Date();
+      const fechaHoySoloFecha = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+      if (fechaNac > fechaHoySoloFecha) {
+        faltantes.push("La fecha de nacimiento no puede ser futura");
+      }
+      const fechaMayorEdad = new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate());
+      const fechaMaxima = new Date(hoy.getFullYear() - 120, hoy.getMonth(), hoy.getDate());
+      
+      if (fechaNac > fechaMayorEdad) {
+        faltantes.push("El huésped debe ser mayor de 18 años.");
+      }
+      if (fechaNac < fechaMaxima) {
+        faltantes.push("La fecha de nacimiento es inválida o demasiado antigua.");
+      }
+    }
 
-      // 2. Validación de Edad (Mayor de 18 y No muy vieja - 120 años)
-      const fechaMayorEdad = new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate())
-      const fechaMaxima = new Date(hoy.getFullYear() - 120, hoy.getMonth(), hoy.getDate()) // <-- NUEVA VALIDACIÓN (Máximo 120 años)
-      
-      if (fechaNac > fechaMayorEdad) {
-        faltantes.push("El huésped debe ser mayor de 18 años.")
-      }
-      if (fechaNac < fechaMaxima) {
-        faltantes.push("La fecha de nacimiento es inválida o demasiado antigua.")
-      }
-    }
     if (form.tipoDocumento === "PASAPORTE" && form.numeroDocumento) {
-        // Regex: ^ (inicio) [a-zA-Z]{3} (3 letras) \d{6} (6 números) $ (fin)
         if (!/^[a-zA-Z]{3}\d{6}$/.test(form.numeroDocumento)) {
-            faltantes.push("El Pasaporte debe tener 3 letras seguidas de 6 números (ej: AAA123456)")
+            faltantes.push("El Pasaporte debe tener 3 letras seguidas de 6 números (ej: AAA123456)");
         }
     }
-    // VALIDACIÓN DE TELÉFONO (Solo números, espacios, guiones y +)
-    const telefonoRegex = /^\+?[0-9]{5,20}$/ 
-    if (form.telefono && !telefonoRegex.test(form.telefono)) {
-      faltantes.push("El formato del Teléfono es inválido. Debe contener números y opcionalmente el signo '+' al inicio.") // <-- NUEVA VALIDACIÓN
-    }
 
-    // VALIDACIÓN DE DNI (Solo números si el tipo es DNI)
+    // VALIDACIÓN DE TELÉFONO
+    const telefonoRegex = /^\+?[0-9]{5,20}$/; 
+    if (form.telefono && !telefonoRegex.test(form.telefono)) {
+      faltantes.push("El formato del Teléfono es inválido. Debe contener números y opcionalmente el signo '+' al inicio.");
+    }
+
+    // VALIDACIÓN DE DNI
     if (form.tipoDocumento === "DNI" && form.numeroDocumento) {
         if (!/^\d+$/.test(form.numeroDocumento)) {
-            faltantes.push("El DNI debe contener solo números")
+            faltantes.push("El DNI debe contener solo números");
         }
-        if(form.numeroDocumento.length>8 || form.numeroDocumento.length<7){
-          faltantes.push("El DNI debe contener como mínimo 7 dígitos y como máximo 8")
+        if(form.numeroDocumento.length > 8 || form.numeroDocumento.length < 7){
+          faltantes.push("El DNI debe contener como mínimo 7 dígitos y como máximo 8");
         }
     }
 
-    // VALIDACIÓN DE CUIT (Solo números y guiones)
+    // VALIDACIÓN DE CUIT
     if (form.cuit) {
-        // CUIT: Solo números y guiones, y no puede ser negativo
-        if (form.cuit.startsWith("-")) { // <-- NUEVA VALIDACIÓN
-            faltantes.push("El CUIT no puede ser negativo.")
-        }
-        if (!/^[\d\-]+$/.test(form.cuit)) {
-            faltantes.push("El CUIT contiene caracteres inválidos (solo números y guiones)") // <-- Mensaje ajustado
-        }
-        // VALIDAR LONGITUD DE CUIT (11 dígitos numéricos) - (Mantenida, pero después de la validación de formato)
-        const cuitSoloNumeros = form.cuit.replace(/-/g, "")
-        if (cuitSoloNumeros.length !== 11) {
-            faltantes.push("El CUIT debe tener 11 dígitos")
-        }
-    }
-const numDir = Number(form.numero)
-    if (!isNaN(numDir) && numDir <= 0) { // <-- Nueva validación para número positivo
-        faltantes.push("El Número de calle debe ser un valor numérico positivo.")
-    }
-    
-    if (form.piso && form.piso.trim() !== "") {
-        const pisoDir = Number(form.piso)
-        if (isNaN(pisoDir)) {
-            faltantes.push("El Piso debe ser un valor numérico.")
-        } else if (pisoDir < 0) { // <-- Nueva validación para piso no negativo
-            faltantes.push("El Piso no puede ser negativo.")
-        }
-    }
-    
-    // **CRÍTICO: Código Postal verifica solo longitud**
-    if (form.codigoPostal) {
-      // 1. Validación de formato: solo números y longitud exacta (3 o 4)
-      if (!/^\d{3,4}$/.test(form.codigoPostal)) { // <-- CORRECCIÓN: Sólo 3 o 4 dígitos
-        faltantes.push("El Código Postal debe ser numérico y tener entre 3 y 4 dígitos."); // <-- Mensaje ajustado
-      }
-}
-    // VALIDACIÓN DE CAMPOS NUMÉRICOS DE DIRECCIÓN
-    // isNaN comprueba si NO es un número
+        if (form.cuit.startsWith("-")) {
+            faltantes.push("El CUIT no puede ser negativo.");
+        }
+        if (!/^[\d\-]+$/.test(form.cuit)) {
+            faltantes.push("El CUIT contiene caracteres inválidos (solo números y guiones)");
+        }
+        const cuitSoloNumeros = form.cuit.replace(/-/g, "");
+        if (cuitSoloNumeros.length !== 11) {
+            faltantes.push("El CUIT debe tener 11 dígitos");
+        }
+    }
+
+    const numDir = Number(form.numero);
+    if (!isNaN(numDir) && numDir <= 0) {
+        faltantes.push("El Número de calle debe ser un valor numérico positivo.");
+    }
+    
+    if (form.piso && form.piso.trim() !== "") {
+        const pisoDir = Number(form.piso);
+        if (isNaN(pisoDir)) {
+            faltantes.push("El Piso debe ser un valor numérico.");
+        } else if (pisoDir < 0) {
+            faltantes.push("El Piso no puede ser negativo.");
+        }
+    }
+    
+    if (form.codigoPostal) {
+      if (!/^\d{3,4}$/.test(form.codigoPostal)) {
+        faltantes.push("El Código Postal debe ser numérico y tener entre 3 y 4 dígitos.");
+      }
+    }
+
     if (form.numero && isNaN(Number(form.numero))) {
-        faltantes.push("El Número de la dirección debe ser un valor numérico")
+        faltantes.push("El Número de la dirección debe ser un valor numérico");
     }
     if (form.piso && form.piso.trim() !== "" && isNaN(Number(form.piso))) {
-        faltantes.push("El Piso debe ser un valor numérico")
+        faltantes.push("El Piso debe ser un valor numérico");
     }
 
-    // VALIDACIÓN OCUPACIÓN: Debe contener al menos una letra
-    // Esto evita inputs como "!", "?", "...", "123"
-    // **CRÍTICO: Ocupacion solo alfabetica**
-    if (form.ocupacion && !/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/.test(form.ocupacion)) { // <-- NUEVA VALIDACIÓN
-      faltantes.push("La Ocupación debe contener sólo letras y espacios.")
-    }
+    if (form.ocupacion && !/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/.test(form.ocupacion)) {
+      faltantes.push("La Ocupación debe contener sólo letras y espacios.");
+    }
 
-    // **CRÍTICO: Nacionalidad, Calle, Localidad, Provincia, País (Validación alfabética)**
-    // Usamos una validación simple para evitar números/símbolos raros en estos campos.
-    const alfanumericoRegex = /^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s,.'-]*$/
-    // La calle puede tener números y separadores. El resto sólo alfabéticos o básicos.
-    const soloAlfabeticoRegex = /^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s,.'-]*$/
+    const alfanumericoRegex = /^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s,.'-]*$/;
+    const soloAlfabeticoRegex = /^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s,.'-]*$/;
     
-    if (form.nacionalidad && !soloAlfabeticoRegex.test(form.nacionalidad)) {
-      faltantes.push("La Nacionalidad contiene caracteres inválidos.")
-    }
-    if (form.localidad && !soloAlfabeticoRegex.test(form.localidad)) {
-      faltantes.push("La Localidad contiene caracteres inválidos.")
-    }
-    if (form.provincia && !soloAlfabeticoRegex.test(form.provincia)) {
-      faltantes.push("La Provincia contiene caracteres inválidos.")
-    }
-    if (form.pais && !soloAlfabeticoRegex.test(form.pais)) {
-      faltantes.push("El País contiene caracteres inválidos.")
-    }
-    if (form.calle && !alfanumericoRegex.test(form.calle)) {
-      faltantes.push("La Calle contiene caracteres inválidos.")
-    }
+    if (form.nacionalidad && !soloAlfabeticoRegex.test(form.nacionalidad)) faltantes.push("La Nacionalidad contiene caracteres inválidos.");
+    if (form.localidad && !soloAlfabeticoRegex.test(form.localidad)) faltantes.push("La Localidad contiene caracteres inválidos.");
+    if (form.provincia && !soloAlfabeticoRegex.test(form.provincia)) faltantes.push("La Provincia contiene caracteres inválidos.");
+    if (form.pais && !soloAlfabeticoRegex.test(form.pais)) faltantes.push("El País contiene caracteres inválidos.");
+    if (form.calle && !alfanumericoRegex.test(form.calle)) faltantes.push("La Calle contiene caracteres inválidos.");
 
-    // SOLO LETRAS EN NOMBRE Y APELLIDO
-    // Permite letras, espacios y acentos (\u00C0-\u00FF)
-    const nombreRegex = /^[a-zA-Z\s\u00C0-\u00FF']+$/
-    if (form.nombre && !nombreRegex.test(form.nombre)) {
-        faltantes.push("El Nombre contiene caracteres inválidos (no use números ni símbolos)")
-    }
-    if (form.apellido && !nombreRegex.test(form.apellido)) {
-        faltantes.push("El Apellido contiene caracteres inválidos")
-    }
+    const nombreRegex = /^[a-zA-Z\s\u00C0-\u00FF']+$/;
+    if (form.nombre && !nombreRegex.test(form.nombre)) faltantes.push("El Nombre contiene caracteres inválidos (no use números ni símbolos)");
+    if (form.apellido && !nombreRegex.test(form.apellido)) faltantes.push("El Apellido contiene caracteres inválidos");
 
-    // VALIDAR LONGITUD DE CUIT (11 dígitos numéricos)
-    if (form.cuit) {
-        // Quitamos guiones para contar solo números
-        const cuitSoloNumeros = form.cuit.replace(/-/g, "")
-        if (cuitSoloNumeros.length !== 11) {
-             faltantes.push("El CUIT debe tener 11 dígitos")
-        }
-    }
-
-    // VALIDAR LARGO CÓDIGO POSTAL (Entre 4 y 8 caracteres)
-    if (form.codigoPostal && (form.codigoPostal.length < 4 || form.codigoPostal.length > 8)) {
-        faltantes.push("El Código Postal parece incorrecto (verifique la longitud)")
-    }
-    return faltantes
-  }
+    return faltantes;
+  };
 
   // --- LÓGICA DE ENVÍO ---
   const handleSubmit = async (forzar = false) => {
-    // --- 1. Validar campos obligatorios ---
-    const faltantes = validarCamposObligatorios()
+    const faltantes = validarCamposObligatorios();
 
     if (faltantes.length > 0) {
-      setErrores(faltantes)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-      return
+      setErrores(faltantes);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
     }
 
-    setErrores([])
-    setCargando(true)
+    setErrores([]);
+    setCargando(true);
 
-    // --- 2. Armar estructura ---
     const payload = {
       nombre: form.nombre,
       apellido: form.apellido,
@@ -292,524 +275,231 @@ const numDir = Number(form.numero)
         provincia: form.provincia,
         pais: form.pais,
       },
-    }
+    };
 
     try {
-      // --- 3. Crear ---
       if (forzar) {
-        await crearHuespedForzado(payload)
-        setModalDuplicado(null)
+        await crearHuespedForzado(payload);
+        setModalDuplicado(null);
       } else {
-        await crearHuesped(payload)
+        await crearHuesped(payload);
       }
-
-      // --- 4. Mostrar modal de éxito ---
-      setModalExito(true)
+      setModalExito(true);
     } catch (err: any) {
-      // --- 5. Manejo caso duplicado ---
       if (err.status === 400 && !forzar) {
-        setModalDuplicado(err.message || "El huésped ya existe.")
+        setModalDuplicado(err.message || "El huésped ya existe.");
       } else {
-        alert("Error al guardar: " + err.message)
+        alert("Error al guardar: " + err.message);
       }
     } finally {
-      setCargando(false)
+      setCargando(false);
     }
-  }
+  };
 
   // --- LÓGICA ÉXITO ---
   const handleCargarOtro = (respuesta: boolean) => {
-    setModalExito(false)
+    setModalExito(false);
     if (respuesta) {
-      // SI: Limpiar formulario y quedarse
-      setForm(initialState)
+      setForm(initialState);
     } else {
-      // NO: Volver a la búsqueda
-      router.push("http://localhost:3000/principal")
+      router.push("/principal");
     }
-  }
-
-  const handleAceptarIgualmente = async () => {
-    const payload = {
-      nombre: form.nombre,
-      apellido: form.apellido,
-      tipoDocumento: form.tipoDocumento,
-      numeroDocumento: form.numeroDocumento,
-      cuit: form.cuit,
-      posicionIVA: form.posicionIVA,
-      telefono: form.telefono,
-      email: form.email,
-      fechaNacimiento: form.fechaNacimiento,
-      nacionalidad: form.nacionalidad,
-      ocupacion: form.ocupacion,
-      direccion: {
-        calle: form.calle,
-        numero: form.numero ? Number(form.numero) : null,
-        departamento: form.departamento,
-        piso: form.piso ? Number(form.piso) : null,
-        codPostal: form.codigoPostal,
-        localidad: form.localidad,
-        provincia: form.provincia,
-        pais: form.pais,
-      },
-    }
-
-    try {
-      setCargando(true)
-
-  
-      const resultado = await crearHuespedForzado(payload)
-
-      
-      setModalDuplicado(null) 
-      setModalExito(true) 
-    } catch (err: any) {
-      
-      if (err && err.status) {
-        setModalDuplicado(err.message || "Error al forzar el alta.")
-      } else {
-        alert("Error inesperado al forzar el alta: " + (err?.message || err))
-      }
-    } finally {
-      setCargando(false)
-    }
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-200 p-4 font-sans text-gray-900 relative">
-      {/* HEADER */}
-      <div className="flex justify-between items-start mb-4">
-        {/* Icono Usuario */}
-        <div className="ml-4 mt-2">
-          <div className="w-14 h-14 bg-gray-700 rounded-full flex items-center justify-center text-white border-2 border-gray-600">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="w-10 h-10" viewBox="0 0 16 16">
-              <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4 1 1 1 1H3zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
-            </svg>
-          </div>
+    <div className="min-h-screen bg-gray-50 p-6 md:p-12 font-sans text-gray-900 relative">
+      
+      <div className="max-w-5xl mx-auto">
+        {/* HEADER / BACK BUTTON */}
+        <div className="w-full mb-8 flex items-center justify-between">
+             <Link href="/principal" className="flex items-center gap-2 text-gray-500 hover:text-indigo-600 transition-colors font-medium">
+                <div className="w-10 h-10 bg-white rounded-xl border border-gray-200 flex items-center justify-center shadow-sm">
+                    <ArrowLeft size={20} />
+                </div>
+                <span>Volver al Menú</span>
+             </Link>
+             
+             <button onClick={() => setModalCancelar(true)} className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:text-rose-500 hover:bg-rose-50 transition-colors">
+                <X size={20}/>
+             </button>
         </div>
 
-        {/* Título */}
-        <h1
-          className="text-4xl font-bold text-red-700 drop-shadow-sm mt-4 tracking-wider"
-          style={{ fontFamily: "serif" }}
-        >
-          DAR DE ALTA AL HUÉSPED
-        </h1>
+        {/* TÍTULO */}
+        <div className="mb-10 text-center md:text-left">
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Alta de Huésped</h1>
+            <p className="text-gray-500 text-sm mt-1">Complete los datos para registrar un nuevo cliente.</p>
+        </div>
 
-        {/* Botón Cerrar */}
-        <button
-          onClick={() => router.back()}
-          className="mr-4 mt-2 w-12 h-12 bg-red-600 rounded-full flex items-center justify-center text-white font-bold border-2 border-black hover:bg-red-700 shadow-md text-xl"
-        >
-          X
-        </button>
-      </div>
-
-      {/* --- FORMULARIO --- */}
-      <div className="max-w-6xl mx-auto bg-gray-200 px-10 pb-10">
-        {/* SECCIÓN DATOS PERSONALES */}
+        {/* MENSAJE DE ERRORES */}
         {errores.length > 0 && (
-          <div className="bg-red-200 border border-red-600 text-red-800 p-4 mb-6">
-            <h3 className="font-bold text-lg mb-2">Debe completar los siguientes campos obligatorios:</h3>
-            <ul className="list-disc ml-6">
-              {errores.map((err, idx) => (
-                <li key={idx}>{err}</li>
-              ))}
-            </ul>
+          <div className="mb-8 p-4 bg-rose-50 border border-rose-100 rounded-xl flex items-start gap-3 animate-in fade-in">
+            <AlertTriangle className="text-rose-500 shrink-0 mt-0.5" size={20} />
+            <div>
+              <h4 className="text-sm font-bold text-rose-700">Campos requeridos faltantes o inválidos:</h4>
+              <ul className="text-sm text-rose-600 mt-1 list-disc pl-4 space-y-1">
+                {errores.map((err, idx) => <li key={idx}>{err}</li>)}
+              </ul>
+            </div>
           </div>
         )}
 
-        <h2 className="text-2xl font-bold text-sky-400 mb-4" style={{ textShadow: "1px 1px 0 #fff" }}>
-          Datos Personales
-        </h2>
-
-        <div className="grid grid-cols-3 gap-6 mb-8">
-          <div>
-            <label className="block font-bold mb-1">
-              Apellido <span className="text-red-600">(*)</span>
-            </label>
-            <input
-              name="apellido"
-              value={form.apellido}
-              onChange={handleChange}
-              onKeyDown={(e) => handleKeyDown(e, () => handleSubmit(false))}
-              className="w-full border border-gray-500 p-1.5 rounded"
-              placeholder="Ingrese el Apellido"
-            />
-          </div>
-          <div>
-            <label className="block font-bold mb-1">
-              Nombre/s <span className="text-red-600">(*)</span>
-            </label>
-            <input
-              name="nombre"
-              value={form.nombre}
-              onChange={handleChange}
-              onKeyDown={(e) => handleKeyDown(e, () => handleSubmit(false))}
-              className="w-full border border-gray-500 p-1.5 rounded"
-              placeholder="Ingrese el Nombre"
-            />
-          </div>
-          <div>
-            <label className="block font-bold mb-1">
-              Fecha de nacimiento <span className="text-red-600">(*)</span>
-            </label>
-            <input
-              type="date"
-              name="fechaNacimiento"
-              value={form.fechaNacimiento}
-              onChange={handleChange}
-              className="w-full border border-gray-500 p-1.5 rounded"
-            />
-          </div>
-
-          <div>
-            <label className="block font-bold mb-1">
-              Tipo de Documento <span className="text-red-600">(*)</span>
-            </label>
-            <select
-              name="tipoDocumento"
-              value={form.tipoDocumento}
-              onChange={handleChange}
-              className="w-full border border-gray-500 p-1.5 rounded bg-white"
-            >
-              <option value="">Seleccionar</option>
-              <option value="DNI">DNI</option>
-              <option value="PASAPORTE">PASAPORTE</option>
-              <option value="LE">LE</option>
-              <option value="LC">LC</option>
-              <option value="OTRO">OTRO</option>
-            </select>
-          </div>
-          <div>
-            <label className="block font-bold mb-1">
-              Documento <span className="text-red-600">(*)</span>
-            </label>
-            <input
-              name="numeroDocumento"
-              value={form.numeroDocumento}
-              onChange={handleChange}
-              onKeyDown={(e) => handleKeyDown(e, () => handleSubmit(false))}
-              className="w-full border border-gray-500 p-1.5 rounded"
-              placeholder="Ingrese el Documento"
-            />
-          </div>
-          <div>
-            <label className="block font-bold mb-1">CUIT</label>
-            <input
-              name="cuit"
-              value={form.cuit}
-              onChange={handleChange}
-              onKeyDown={(e) => handleKeyDown(e, () => handleSubmit(false))}
-              className="w-full border border-gray-500 p-1.5 rounded"
-              placeholder="Ingrese el CUIT"
-            />
-          </div>
-
-          <div>
-            <label className="block font-bold mb-1">
-              Posición frente al IVA <span className="text-red-600">(*)</span>
-            </label>
-            <select
-              name="posicionIVA"
-              value={form.posicionIVA}
-              onChange={handleChange}
-              className="w-full border border-gray-500 p-1.5 rounded bg-white"
-            >
-              <option value="">Seleccionar</option>
-              <option value="CONSUMIDOR_FINAL">Consumidor Final</option>
-              <option value="RESPONSABLE_INSCRIPTO">Responsable Inscripto</option>
-              <option value="MONOTRIBUTO">Monotributo</option>
-            </select>
-          </div>
-          <div>
-            <label className="block font-bold mb-1">
-              Teléfono <span className="text-red-600">(*)</span>
-            </label>
-            <input
-              name="telefono"
-              value={form.telefono}
-              onChange={handleChange}
-              onKeyDown={(e) => handleKeyDown(e, () => handleSubmit(false))}
-              className="w-full border border-gray-500 p-1.5 rounded"
-              placeholder="Ingrese el número"
-            />
-          </div>
-          <div>
-            <label className="block font-bold mb-1">Email</label>
-            <input
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              onKeyDown={(e) => handleKeyDown(e, () => handleSubmit(false))}
-              className="w-full border border-gray-500 p-1.5 rounded"
-              placeholder="Ingrese el Email"
-            />
-          </div>
-
-          <div>
-            <label className="block font-bold mb-1">
-              Nacionalidad <span className="text-red-600">(*)</span>
-            </label>
-            <input
-              name="nacionalidad"
-              value={form.nacionalidad}
-              onChange={handleChange}
-              onKeyDown={(e) => handleKeyDown(e, () => handleSubmit(false))}
-              className="w-full border border-gray-500 p-1.5 rounded"
-              placeholder="Seleccionar"
-            />
-          </div>
-          <div>
-            <label className="block font-bold mb-1">
-              Ocupación <span className="text-red-600">(*)</span>
-            </label>
-            <input
-              name="ocupacion"
-              value={form.ocupacion}
-              onChange={handleChange}
-              onKeyDown={(e) => handleKeyDown(e, () => handleSubmit(false))}
-              className="w-full border border-gray-500 p-1.5 rounded"
-              placeholder="Ingrese la ocupación"
-            />
-          </div>
+        {/* FORMULARIO CARD */}
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 md:p-10 mb-10">
           
-          <div></div>
-        </div>
+          {/* SECCIÓN 1: DATOS PERSONALES */}
+          <div className="mb-10">
+             <div className="flex items-center gap-3 mb-6 pb-2 border-b border-gray-100">
+                <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm">1</div>
+                <h2 className="text-lg font-bold text-gray-900">Datos Personales</h2>
+             </div>
+             
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <InputField label="Apellido *" name="apellido" value={form.apellido} onChange={handleChange} onKeyDown={(e: any) => handleKeyDown(e, () => handleSubmit(false))} placeholder="APELLIDO" />
+                <InputField label="Nombre *" name="nombre" value={form.nombre} onChange={handleChange} onKeyDown={(e: any) => handleKeyDown(e, () => handleSubmit(false))} placeholder="NOMBRE" />
+                <InputField label="Fecha Nacimiento *" name="fechaNacimiento" type="date" value={form.fechaNacimiento} onChange={handleChange} />
 
-        {/* SECCIÓN DIRECCIÓN */}
-        <h2
-          className="text-2xl font-bold text-sky-400 mb-4 border-b-2 border-sky-400 inline-block w-full"
-          style={{ textShadow: "1px 1px 0 #fff" }}
-        >
-          Dirección
-        </h2>
+                <SelectField label="Tipo Documento *" name="tipoDocumento" value={form.tipoDocumento} onChange={handleChange} 
+                  options={[
+                    {value:"DNI", label:"DNI"}, {value:"PASAPORTE", label:"PASAPORTE"},
+                    {value:"LE", label:"LE"}, {value:"LC", label:"LC"}, {value:"OTRO", label:"OTRO"}
+                  ]} 
+                />
+                <InputField label="Documento *" name="numeroDocumento" value={form.numeroDocumento} onChange={handleChange} onKeyDown={(e: any) => handleKeyDown(e, () => handleSubmit(false))} placeholder="NÚMERO" />
+                <InputField label="CUIT" name="cuit" value={form.cuit} onChange={handleChange} onKeyDown={(e: any) => handleKeyDown(e, () => handleSubmit(false))} placeholder="XX-XXXXXXXX-X" />
 
-        <div className="grid grid-cols-2 gap-x-12 gap-y-4">
-          {/* Fila 1 */}
-          <div className="col-span-1">
-            <label className="block font-bold mb-1">
-              Calle <span className="text-red-600">(*)</span>
-            </label>
-            <input
-              name="calle"
-              value={form.calle}
-              onChange={handleChange}
-              onKeyDown={(e) => handleKeyDown(e, () => handleSubmit(false))}
-              className="w-full border border-gray-500 p-1.5 rounded"
-              placeholder="Ingrese la Calle"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block font-bold mb-1">
-                Número <span className="text-red-600">(*)</span>
-              </label>
-              <input
-                name="numero"
-                value={form.numero}
-                onChange={handleChange}
-                onKeyDown={(e) => handleKeyDown(e, () => handleSubmit(false))}
-                className="w-full border border-gray-500 p-1.5 rounded"
-                placeholder="Ingrese el Número"
-              />
-            </div>
-            <div>
-              <label className="block font-bold mb-1">Departamento</label>
-              <input
-                name="departamento"
-                value={form.departamento}
-                onChange={handleChange}
-                onKeyDown={(e) => handleKeyDown(e, () => handleSubmit(false))}
-                className="w-full border border-gray-500 p-1.5 rounded"
-                placeholder="Ingrese el Depto"
-              />
-            </div>
+                <SelectField label="Posición IVA *" name="posicionIVA" value={form.posicionIVA} onChange={handleChange} 
+                  options={[
+                    {value:"CONSUMIDOR_FINAL", label:"Consumidor Final"},
+                    {value:"RESPONSABLE_INSCRIPTO", label:"Responsable Inscripto"},
+                    {value:"MONOTRIBUTO", label:"Monotributo"}
+                  ]} 
+                />
+                <InputField label="Teléfono *" name="telefono" value={form.telefono} onChange={handleChange} onKeyDown={(e: any) => handleKeyDown(e, () => handleSubmit(false))} placeholder="TELÉFONO" />
+                <InputField label="Email" name="email" type="email" value={form.email} onChange={handleChange} onKeyDown={(e: any) => handleKeyDown(e, () => handleSubmit(false))} placeholder="email@ejemplo.com" />
+
+                <InputField label="Nacionalidad *" name="nacionalidad" value={form.nacionalidad} onChange={handleChange} onKeyDown={(e: any) => handleKeyDown(e, () => handleSubmit(false))} placeholder="NACIONALIDAD" />
+                <InputField label="Ocupación *" name="ocupacion" value={form.ocupacion} onChange={handleChange} onKeyDown={(e: any) => handleKeyDown(e, () => handleSubmit(false))} placeholder="OCUPACIÓN" />
+             </div>
           </div>
 
-          {/* Fila 2 */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block font-bold mb-1">Piso</label>
-              <input
-                name="piso"
-                value={form.piso}
-                onChange={handleChange}
-                onKeyDown={(e) => handleKeyDown(e, () => handleSubmit(false))}
-                className="w-full border border-gray-500 p-1.5 rounded"
-                placeholder="Ingrese el Piso"
-              />
-            </div>
-            <div>
-              <label className="block font-bold mb-1">
-                Código postal <span className="text-red-600">(*)</span>
-              </label>
-              <input
-                name="codigoPostal"
-                value={form.codigoPostal}
-                onChange={handleChange}
-                onKeyDown={(e) => handleKeyDown(e, () => handleSubmit(false))}
-                className="w-full border border-gray-500 p-1.5 rounded"
-                placeholder="Ingrese el número"
-              />
-            </div>
-          </div>
+          {/* SECCIÓN 2: DIRECCIÓN */}
           <div>
-            <label className="block font-bold mb-1">
-              Localidad <span className="text-red-600">(*)</span>
-            </label>
-            <input
-              name="localidad"
-              value={form.localidad}
-              onChange={handleChange}
-              onKeyDown={(e) => handleKeyDown(e, () => handleSubmit(false))}
-              className="w-full border border-gray-500 p-1.5 rounded"
-              placeholder="Ingrese la localidad"
-            />
+             <div className="flex items-center gap-3 mb-6 pb-2 border-b border-gray-100">
+                <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm">2</div>
+                <h2 className="text-lg font-bold text-gray-900">Domicilio</h2>
+             </div>
+
+             <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
+                <div className="md:col-span-4"><InputField label="Calle *" name="calle" value={form.calle} onChange={handleChange} onKeyDown={(e: any) => handleKeyDown(e, () => handleSubmit(false))} placeholder="CALLE" /></div>
+                <div className="md:col-span-2"><InputField label="Número *" name="numero" value={form.numero} onChange={handleChange} onKeyDown={(e: any) => handleKeyDown(e, () => handleSubmit(false))} placeholder="NÚMERO" /></div>
+                
+                <div className="md:col-span-2"><InputField label="Depto" name="departamento" value={form.departamento} onChange={handleChange} onKeyDown={(e: any) => handleKeyDown(e, () => handleSubmit(false))} placeholder="DPTO" /></div>
+                <div className="md:col-span-2"><InputField label="Piso" name="piso" value={form.piso} onChange={handleChange} onKeyDown={(e: any) => handleKeyDown(e, () => handleSubmit(false))} placeholder="PISO" /></div>
+                <div className="md:col-span-2"><InputField label="C. Postal *" name="codigoPostal" value={form.codigoPostal} onChange={handleChange} onKeyDown={(e: any) => handleKeyDown(e, () => handleSubmit(false))} placeholder="CP" /></div>
+                
+                <div className="md:col-span-2"><InputField label="Localidad *" name="localidad" value={form.localidad} onChange={handleChange} onKeyDown={(e: any) => handleKeyDown(e, () => handleSubmit(false))} placeholder="LOCALIDAD" /></div>
+                <div className="md:col-span-2"><InputField label="Provincia *" name="provincia" value={form.provincia} onChange={handleChange} onKeyDown={(e: any) => handleKeyDown(e, () => handleSubmit(false))} placeholder="PROVINCIA" /></div>
+                <div className="md:col-span-2"><InputField label="País *" name="pais" value={form.pais} onChange={handleChange} onKeyDown={(e: any) => handleKeyDown(e, () => handleSubmit(false))} placeholder="PAÍS" /></div>
+             </div>
           </div>
 
-          {/* Fila 3 */}
-          <div>
-            <label className="block font-bold mb-1">
-              Provincia <span className="text-red-600">(*)</span>
-            </label>
-            <input
-              name="provincia"
-              value={form.provincia}
-              onChange={handleChange}
-              onKeyDown={(e) => handleKeyDown(e, () => handleSubmit(false))}
-              className="w-full border border-gray-500 p-1.5 rounded"
-              placeholder="Ingrese la provincia"
-            />
-          </div>
-          <div>
-            <label className="block font-bold mb-1">
-              País <span className="text-red-600">(*)</span>
-            </label>
-            <input
-              name="pais"
-              value={form.pais}
-              onChange={handleChange}
-              onKeyDown={(e) => handleKeyDown(e, () => handleSubmit(false))}
-              className="w-full border border-gray-500 p-1.5 rounded"
-              placeholder="Seleccionar el país"
-            />
+          {/* BOTONES ACCIÓN */}
+          <div className="flex justify-end items-center gap-4 mt-12 pt-8 border-t border-gray-100">
+             <button 
+                onClick={() => setModalCancelar(true)} 
+                className="px-6 py-3 border border-gray-200 text-gray-600 rounded-xl font-bold hover:bg-gray-50 transition-colors"
+             >
+               Cancelar
+             </button>
+             <button 
+                onClick={() => handleSubmit(false)} 
+                disabled={cargando} 
+                className="bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 active:scale-95 transition-all flex items-center gap-2"
+             >
+               {cargando ? "Guardando..." : <><Save size={18}/> Guardar Huésped</>}
+             </button>
           </div>
         </div>
 
-        {/* BOTONES INFERIORES */}
-        <div className="flex justify-between mt-12 px-16">
-          <button
-            onClick={() => handleSubmit(false)}
-            onKeyDown={(e) => handleButtonKeyDown(e, () => handleSubmit(false))}
-            className="bg-sky-300 border border-black px-12 py-2 font-bold shadow-md hover:bg-sky-400 active:translate-y-1 w-48"
-          >
-            {cargando ? "Guardando..." : "Siguiente"}
-          </button>
-
-          {/* BOTÓN CANCELAR */}
-          <button
-            onClick={() => setModalCancelar(true)}
-            onKeyDown={(e) => handleButtonKeyDown(e, () => setModalCancelar(true))}
-            className="bg-red-600 text-white border border-black px-12 py-2 font-bold shadow-md hover:bg-red-700 active:translate-y-1 w-48"
-          >
-            Cancelar
-          </button>
-        </div>
+        {/* FOOTER */}
+        <footer className="mt-12 text-center text-gray-400 text-sm">
+          <p>© 2025 Hotel Premier - Sistema de Gestión</p>
+          <p className="text-xs mt-1 opacity-70">Diseño de Sistemas - TP Final</p>
+        </footer>
       </div>
 
-      {/* --- MODAL ÉXITO --- */}
+      {/* --- MODALES --- */}
+
+      {/* ÉXITO */}
       {modalExito && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-gray-200 border-2 border-gray-500 shadow-2xl p-8 w-[600px] text-center">
-            <h2 className="text-2xl font-bold font-serif mb-6 leading-relaxed">
-              El huésped{" "}
-              <span className="italic">
-                {form.nombre} {form.apellido}
-              </span>{" "}
-              ha sido
-              <br />
-              satisfactoriamente cargado al sistema.
-              <br />
-              ¿Desea cargar otro?
-            </h2>
-
-            <div className="flex justify-center gap-16 mt-8">
-              <button
-                onClick={() => handleCargarOtro(true)}
-                onKeyDown={(e) => handleButtonKeyDown(e, () => handleCargarOtro(true))}
-                className="bg-lime-400 border border-black px-10 py-2 font-bold text-lg shadow hover:bg-lime-500 w-32"
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center animate-in zoom-in duration-200">
+          <div className="bg-white p-10 rounded-3xl shadow-2xl w-[450px] text-center border border-gray-100">
+            <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle size={40} />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">¡Huésped Registrado!</h2>
+            <p className="text-gray-500 mb-8 text-sm">
+               <span className="font-bold text-gray-800">{form.apellido}, {form.nombre}</span> ha sido guardado correctamente.
+               <br/>¿Desea cargar otro huésped?
+            </p>
+            <div className="flex gap-4">
+              <button 
+                onClick={() => handleCargarOtro(false)} 
+                className="flex-1 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-50"
               >
-                SI
+                NO, Salir
               </button>
-              <button
-                onClick={() => handleCargarOtro(false)}
-                onKeyDown={(e) => handleButtonKeyDown(e, () => handleCargarOtro(false))}
-                className="bg-red-500 border border-black px-10 py-2 font-bold text-lg text-white shadow hover:bg-red-600 w-32"
+              <button 
+                onClick={() => handleCargarOtro(true)} 
+                className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 shadow-lg"
               >
-                NO
+                SÍ, Cargar otro
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* --- MODAL ERROR --- */}
+      {/* DUPLICADO */}
       {modalDuplicado && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white border-2 border-red-600 shadow-2xl p-8 w-[500px] text-center">
-            <h3 className="text-xl font-bold text-red-600 mb-4">CUIDADO!</h3>
-            <p className="mb-6 font-medium">{modalDuplicado}</p>
-            <p className="mb-4 text-sm">¿Desea guardarlo igualmente?</p>
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={() => handleSubmit(true)}
-                onKeyDown={(e) => handleButtonKeyDown(e, () => handleSubmit(true))}
-                className="bg-red-600 text-white px-4 py-2 rounded font-bold"
-              >
-                ACEPTAR IGUALMENTE
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center animate-in fade-in">
+          <div className="bg-white p-8 rounded-3xl shadow-2xl w-[480px] text-center border-t-8 border-amber-400 relative">
+            <button onClick={() => setModalDuplicado(null)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X size={20}/></button>
+            
+            <div className="w-16 h-16 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <AlertTriangle size={32} />
+            </div>
+            
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Posible Duplicado</h3>
+            <p className="text-gray-500 mb-8 text-sm leading-relaxed">{modalDuplicado}<br/>¿Desea forzar el guardado?</p>
+            
+            <div className="flex gap-3">
+              <button onClick={() => setModalDuplicado(null)} className="flex-1 py-3 border border-gray-200 rounded-xl font-bold text-gray-600 hover:bg-gray-50">
+                Corregir
               </button>
-              <button
-                onClick={() => setModalDuplicado(null)}
-                onKeyDown={(e) => handleButtonKeyDown(e, () => setModalDuplicado(null))}
-                className="bg-gray-300 px-4 py-2 rounded font-bold"
-              >
-                CORREGIR
+              <button onClick={() => handleSubmit(true)} className="flex-1 py-3 bg-amber-400 text-amber-900 rounded-xl font-bold hover:bg-amber-500">
+                Aceptar Igualmente
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* CANCELAR */}
       {modalCancelar && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white border-2 border-gray-600 p-8 w-[500px] text-center shadow-2xl">
-            <h3 className="text-xl font-bold mb-4">¿Desea cancelar el alta del huésped?</h3>
-
-            <div className="flex justify-center gap-6 mt-6">
-              {/* --- SI → Terminar CU y volver al inicio --- */}
-              <button
-                onClick={() => {
-                  setModalCancelar(false)
-                  router.push("http://localhost:3000/principal")
-                }}
-                onKeyDown={(e) =>
-                  handleButtonKeyDown(e, () => {
-                    setModalCancelar(false)
-                    router.push("http://localhost:3000/principal")
-                  })
-                }
-                className="bg-red-600 text-white px-6 py-2 rounded font-bold hover:bg-red-700"
-              >
-                SI
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center animate-in fade-in">
+          <div className="bg-white p-8 rounded-3xl shadow-2xl w-[400px] text-center">
+            <div className="w-16 h-16 bg-gray-100 text-gray-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Info size={32} />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">¿Cancelar Alta?</h3>
+            <p className="text-gray-500 mb-8 text-sm">Se perderán todos los datos ingresados.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setModalCancelar(false)} className="flex-1 py-3 border border-gray-200 rounded-xl font-bold text-gray-600 hover:bg-gray-50">
+                Seguir Editando
               </button>
-
-              {/* --- NO → Cerrar modal y mantener datos --- */}
-              <button
-                onClick={() => setModalCancelar(false)}
-                onKeyDown={(e) => handleButtonKeyDown(e, () => setModalCancelar(false))}
-                className="bg-gray-300 px-6 py-2 rounded font-bold hover:bg-gray-400"
-              >
-                NO
+              <button onClick={() => router.push("/principal")} className="flex-1 py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-black">
+                Salir
               </button>
             </div>
           </div>

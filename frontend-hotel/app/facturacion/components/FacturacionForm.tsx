@@ -9,8 +9,11 @@ import {
   ResponsableData,
   ApiResponse
 } from '../types/facturacion';
-// IMPORTAMOS EL COMPONENTE DE MODAL
 import ModalMensaje from '../../../components/habitaciones/ModalMensaje';
+import { 
+  FileText, UserCheck, List, Check, ArrowRight, ArrowLeft, 
+  CreditCard, User, AlertCircle, Loader2, Printer 
+} from 'lucide-react';
 
 const FacturacionComponent = () => {
   const [paso, setPaso] = useState<number>(1);
@@ -164,7 +167,7 @@ const FacturacionComponent = () => {
         estadiaId: datos.estadia.id,
         responsableId: datos.responsable.responsable.id,
         itemsSeleccionados: itemsParaFacturar,
-        horaSalida: datos.horaSalida // Importante: enviamos la hora confirmada
+        horaSalida: datos.horaSalida
       };
       
       const response = await fetch('http://localhost:8080/api/facturacion/generar', {
@@ -177,13 +180,10 @@ const FacturacionComponent = () => {
       const facturaGenerada = result.data?.factura || (result.data as unknown as FacturaGenerada);
 
       if (result.success && facturaGenerada) {
-        // CAMBIO AQUÍ: En lugar de alert, activamos el modal
         setModalExito({
           show: true,
           factura: facturaGenerada
         });
-        // Nota: El reinicio de datos se hace al cerrar el modal (handleCerrarModal)
-        // para que no se pierda la info antes de imprimir.
       } else {
         setError(result.error || 'Error al generar la factura');
       }
@@ -198,20 +198,17 @@ const FacturacionComponent = () => {
   // MANEJADOR PARA CERRAR EL MODAL DE ÉXITO
   const handleCerrarModalExito = () => {
     if (modalExito.factura) {
-      // 1. Mostrar la factura para imprimir
       mostrarFactura(modalExito.factura, datos.responsable);
     }
     
-    // 2. Cerrar modal y reiniciar formulario
     setModalExito({ show: false });
     setPaso(1);
     setDatos({});
     setItemsSeleccionados([]);
   };
 
-  // Función para mostrar factura con DISEÑO CORREGIDO Y NIVELADO
+  // Función para mostrar factura con DISEÑO DE IMPRESIÓN MEJORADO
   const mostrarFactura = (factura: FacturaGenerada, infoResponsable: ResponsableData | undefined) => {
-    // 1. Extraer datos reales del cliente
     let nombreCliente = "CONSUMIDOR FINAL";
     let documentoCliente = "Sin identificar";
     let domicilioCliente = "Santa Fe, Argentina";
@@ -253,120 +250,44 @@ const FacturacionComponent = () => {
         <head>
           <title>Factura ${factura.tipo} - ${factura.numero}</title>
           <style>
-            @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+            body { font-family: 'Inter', sans-serif; margin: 0; padding: 20px; background-color: #f3f4f6; color: #111827; }
+            .factura-container { background: white; max-width: 800px; margin: 0 auto; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 0; overflow: hidden; }
+            .header-top { display: flex; justify-content: space-between; padding: 40px; border-bottom: 2px solid #f3f4f6; position: relative; }
+            .letter-box { position: absolute; top: 0; left: 50%; transform: translateX(-50%); background: white; border: 2px solid #111827; border-top: none; width: 64px; height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 0 0 8px 8px; }
+            .letter { font-size: 28px; font-weight: 700; line-height: 1; }
+            .code { font-size: 9px; font-weight: 600; color: #6b7280; margin-top: 2px; }
+            .company-name { font-size: 24px; font-weight: 800; color: #4f46e5; margin: 0 0 8px 0; letter-spacing: -0.5px; }
+            .company-details p { margin: 4px 0; font-size: 12px; color: #4b5563; }
+            .invoice-title { font-size: 32px; font-weight: 800; color: #111827; margin-bottom: 12px; text-align: right; letter-spacing: -1px; }
+            .invoice-details p { margin: 4px 0; font-size: 13px; text-align: right; color: #374151; }
+            .invoice-details strong { font-weight: 600; color: #111827; }
             
-            body { 
-              font-family: 'Roboto', Arial, sans-serif; 
-              margin: 0; 
-              padding: 20px; 
-              background-color: #f5f5f5; 
-              color: #333; 
-            }
+            .client-section { padding: 30px 40px; background-color: #f9fafb; border-bottom: 1px solid #e5e7eb; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+            .client-group { margin-bottom: 5px; }
+            .client-label { font-size: 11px; font-weight: 600; text-transform: uppercase; color: #6b7280; display: block; margin-bottom: 2px; }
+            .client-value { font-size: 14px; font-weight: 600; color: #111827; }
             
-            .factura-container { 
-              background: white; 
-              max-width: 800px; 
-              margin: 0 auto; 
-              border: 1px solid #ccc; 
-              box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
-              position: relative; 
-            }
-
-            /* --- HEADER NIVELADO --- */
-            .header-top { 
-              display: flex; 
-              justify-content: space-between;
-              align-items: flex-start; 
-              border-bottom: 2px solid #000; 
-              position: relative; 
-              padding: 30px 40px 20px; 
-              height: auto; 
-              min-height: 140px;
-            }
+            table { width: 100%; border-collapse: collapse; margin: 0; }
+            th { background-color: #f3f4f6; color: #4b5563; font-size: 12px; font-weight: 600; text-transform: uppercase; padding: 12px 40px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+            td { padding: 16px 40px; border-bottom: 1px solid #f3f4f6; font-size: 14px; color: #374151; }
+            .col-monto { text-align: right; font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; font-weight: 600; }
             
-            .col-left { 
-              width: 45%; 
-              padding-right: 20px;
-              box-sizing: border-box;
-            }
+            .totals-section { padding: 30px 40px; display: flex; justify-content: flex-end; background-color: #fff; }
+            .totals-box { width: 300px; }
+            .total-row { display: flex; justify-content: space-between; padding: 8px 0; color: #4b5563; font-size: 14px; }
+            .total-final { font-size: 20px; font-weight: 800; color: #111827; border-top: 2px solid #e5e7eb; margin-top: 10px; padding-top: 15px; }
             
-            .col-right { 
-              width: 45%; 
-              padding-left: 20px;
-              text-align: right; 
-              box-sizing: border-box;
-            }
+            .footer { text-align: center; padding: 30px; background-color: #f9fafb; border-top: 1px solid #e5e7eb; color: #9ca3af; font-size: 12px; }
             
-            .letter-box { 
-              position: absolute; 
-              top: 0; 
-              left: 50%; 
-              transform: translateX(-50%); 
-              background: white; 
-              border: 2px solid black; 
-              border-top: none; 
-              width: 60px; 
-              height: 50px; 
-              display: flex; 
-              flex-direction: column; 
-              align-items: center; 
-              justify-content: center; 
-              font-weight: bold; 
-              z-index: 10; 
-            }
-            .letter { font-size: 32px; line-height: 32px; }
-            .code { font-size: 10px; }
-            
-            .company-name { 
-              font-size: 24px; 
-              font-weight: bold; 
-              margin: 0 0 10px 0; 
-            }
-            .company-details p { margin: 3px 0; font-size: 12px; color: #444; }
-            
-            .invoice-title { 
-              font-size: 28px; 
-              font-weight: bold; 
-              margin-bottom: 15px; 
-              color: #000;
-              margin-top: 0; 
-            }
-            
-            .invoice-details p { 
-              margin: 4px 0; 
-              font-size: 13px; 
-              display: flex; 
-              justify-content: flex-end; 
-              gap: 10px;
-            }
-            
-            .invoice-details strong {
-                font-size: 14px;
-            }
-            
-            .client-section { padding: 15px 40px; border-bottom: 1px solid #ccc; background-color: #f9f9f9; }
-            .client-row { display: flex; margin-bottom: 5px; font-size: 13px; }
-            .client-label { font-weight: bold; width: 120px; }
-            .client-value { flex: 1; text-transform: uppercase; }
-            
-            table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px; }
-            th { background-color: #e0e0e0; border: 1px solid #ccc; padding: 10px; text-align: left; }
-            td { border: 1px solid #ccc; padding: 8px 10px; }
-            .col-monto { text-align: right; width: 120px; }
-            
-            .totals-section { display: flex; justify-content: flex-end; padding: 10px 40px 30px; }
-            .totals-table { width: 300px; }
-            .total-row { display: flex; justify-content: space-between; padding: 5px 0; }
-            .total-final { font-weight: bold; font-size: 16px; border-top: 2px solid #333; margin-top: 5px; padding-top: 5px; }
-            
-            .footer { text-align: center; font-size: 11px; color: #777; padding: 20px; border-top: 1px solid #eee; }
-            .no-print { text-align: center; margin-top: 20px; }
-            .btn-print { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 14px; }
+            .no-print { text-align: center; margin-top: 30px; }
+            .btn-print { background: #4f46e5; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2); transition: all 0.2s; }
+            .btn-print:hover { background: #4338ca; transform: translateY(-1px); }
             
             @media print { 
               .no-print { display: none; } 
               .factura-container { box-shadow: none; border: none; } 
-              body { background: white; }
+              body { background: white; padding: 0; }
             }
           </style>
         </head>
@@ -378,46 +299,45 @@ const FacturacionComponent = () => {
                 <span class="code">COD. 0${factura.tipo === 'A' ? '1' : '6'}</span>
               </div>
               
-              <div class="col-left">
+              <div style="width: 50%">
                 <h1 class="company-name">HOTEL PREMIER</h1>
                 <div class="company-details">
                   <p><strong>Razón Social:</strong> Hotel Premier S.A.</p>
-                  <p><strong>Domicilio:</strong> Bv. Gálvez 1234, Santa Fe</p>
-                  <p><strong>Condición IVA:</strong> Responsable Inscripto</p>
+                  <p>Bv. Gálvez 1234, Santa Fe</p>
+                  <p>Resp. Inscripto</p>
                 </div>
               </div>
               
-              <div class="col-right">
+              <div style="width: 50%">
                 <div class="invoice-title">FACTURA</div>
                 <div class="invoice-details">
-                  <p><span>N° Comp.:</span> <strong>0001-${factura.numero.toString().padStart(8, '0')}</strong></p>
-                  <p><span>Fecha Emisión:</span> ${new Date(factura.fecha).toLocaleDateString()}</p>
-                  <p><span>CUIT:</span> 30-77777777-1</p>
-                  <p><span>Ingresos Brutos:</span> 30-77777777-1</p>
+                  <p>N° Comp.: <strong>0001-${factura.numero.toString().padStart(8, '0')}</strong></p>
+                  <p>Fecha: <strong>${new Date(factura.fecha).toLocaleDateString()}</strong></p>
+                  <p>CUIT: 30-77777777-1</p>
                 </div>
               </div>
             </div>
             
             <div class="client-section">
-              <div class="client-row">
-                <span class="client-label">Cliente:</span>
-                <span class="client-value"><strong>${nombreCliente}</strong></span>
+              <div>
+                <div class="client-group">
+                    <span class="client-label">Cliente</span>
+                    <span class="client-value">${nombreCliente}</span>
+                </div>
+                <div class="client-group" style="margin-top: 15px;">
+                    <span class="client-label">Domicilio</span>
+                    <span class="client-value">${domicilioCliente || '-'}</span>
+                </div>
               </div>
-              <div class="client-row">
-                <span class="client-label">Documento:</span>
-                <span class="client-value">${documentoCliente}</span>
-              </div>
-              <div class="client-row">
-                <span class="client-label">Condición IVA:</span>
-                <span class="client-value">${condicionIVA}</span>
-              </div>
-              <div class="client-row">
-                <span class="client-label">Domicilio:</span>
-                <span class="client-value">${domicilioCliente || '-'}</span>
-              </div>
-              <div class="client-row">
-                <span class="client-label">Habitación:</span>
-                <span class="client-value">${factura.habitacion}</span>
+              <div>
+                <div class="client-group">
+                    <span class="client-label">Documento</span>
+                    <span class="client-value">${documentoCliente}</span>
+                </div>
+                <div class="client-group" style="margin-top: 15px;">
+                    <span class="client-label">Condición IVA</span>
+                    <span class="client-value">${condicionIVA}</span>
+                </div>
               </div>
             </div>
             
@@ -439,19 +359,19 @@ const FacturacionComponent = () => {
             </table>
             
             <div class="totals-section">
-              <div class="totals-table">
+              <div class="totals-box">
                 ${esFacturaA ? `
                   <div class="total-row">
-                    <span>Importe Neto Gravado:</span>
+                    <span>Importe Neto Gravado</span>
                     <span>$${subtotal.toFixed(2)}</span>
                   </div>
                   <div class="total-row">
-                    <span>IVA 21%:</span>
+                    <span>IVA 21%</span>
                     <span>$${iva.toFixed(2)}</span>
                   </div>
                 ` : ''}
                 <div class="total-row total-final">
-                  <span>Importe Total:</span>
+                  <span>TOTAL</span>
                   <span>$${total.toFixed(2)}</span>
                 </div>
               </div>
@@ -459,6 +379,7 @@ const FacturacionComponent = () => {
             
             <div class="footer">
               <p>Gracias por elegir Hotel Premier</p>
+              <p style="margin-top: 5px;">Comprobante generado electrónicamente</p>
             </div>
           </div>
           
@@ -479,28 +400,37 @@ const FacturacionComponent = () => {
     setItemsSeleccionados(nuevosItems);
   };
   
+  // COMPONENTE DE PASOS (Visual)
+  const PasoIndicador = ({ num, label, icon: Icon }: any) => (
+    <div className={`flex items-center gap-2 ${paso >= num ? 'text-indigo-600' : 'text-gray-400'}`}>
+        <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${paso >= num ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200 bg-white'}`}>
+            <Icon size={18} strokeWidth={paso >= num ? 2.5 : 2} />
+        </div>
+        <span className={`text-sm font-medium hidden md:block ${paso >= num ? 'text-gray-900' : 'text-gray-400'}`}>{label}</span>
+        {num < 3 && <div className="w-12 h-[2px] bg-gray-200 mx-2 hidden md:block" />}
+    </div>
+  );
+  
   // Renderizar paso actual
   const renderizarPaso = () => {
     if (cargando) {
       return (
-        <div className="text-center py-8">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="mt-2 text-gray-600">Procesando...</p>
+        <div className="flex flex-col items-center justify-center py-20 text-indigo-600">
+          <Loader2 className="animate-spin mb-4" size={48} />
+          <p className="font-medium text-lg">Procesando información...</p>
         </div>
       );
     }
     
     if (error) {
       return (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-          <p className="font-bold">Error</p>
-          <p>{error}</p>
-          <button
-            onClick={() => setError('')}
-            className="mt-2 text-red-600 hover:text-red-800"
-          >
-            Cerrar
-          </button>
+        <div className="bg-rose-50 border border-rose-200 text-rose-700 px-6 py-4 rounded-xl mb-6 flex items-start gap-3">
+          <AlertCircle className="mt-0.5 shrink-0" size={20} />
+          <div className="flex-1">
+             <p className="font-bold">Ha ocurrido un error</p>
+             <p>{error}</p>
+          </div>
+          <button onClick={() => setError('')} className="text-rose-500 hover:text-rose-800 font-bold">✕</button>
         </div>
       );
     }
@@ -508,16 +438,16 @@ const FacturacionComponent = () => {
     switch (paso) {
       case 1:
         return (
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold">Validar Datos de Facturación</h3>
-            <div className="space-y-4">
+          <div className="max-w-md mx-auto space-y-6 animate-in fade-in slide-in-from-right-4">
+            <h3 className="text-xl font-bold text-gray-900 text-center mb-6">Datos de la Estadía</h3>
+            <div className="space-y-4 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="text-xs font-semibold text-gray-500 uppercase mb-2 block tracking-wide">
                   Número de Habitación
                 </label>
                 <input
                   type="number"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-medium text-gray-800"
                   placeholder="Ej: 101"
                   value={datos.numeroHabitacion || ''}
                   onChange={(e) => setDatos({...datos, numeroHabitacion: e.target.value})}
@@ -525,12 +455,12 @@ const FacturacionComponent = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Hora de Salida
+                <label className="text-xs font-semibold text-gray-500 uppercase mb-2 block tracking-wide">
+                  Fecha y Hora de Salida
                 </label>
                 <input
                   type="datetime-local"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-medium text-gray-800"
                   value={datos.horaSalida || ''}
                   onChange={(e) => setDatos({...datos, horaSalida: e.target.value})}
                 />
@@ -538,10 +468,11 @@ const FacturacionComponent = () => {
               
               <button
                 onClick={validarDatosIniciales}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="w-full bg-indigo-600 text-white py-3 px-4 rounded-xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all flex justify-center gap-2 items-center"
                 disabled={cargando}
               >
-                {cargando ? 'Validando...' : 'Validar Datos'}
+                {cargando ? <Loader2 className="animate-spin"/> : <Check size={18}/>}
+                {cargando ? 'Validando...' : 'Validar y Continuar'}
               </button>
             </div>
           </div>
@@ -549,107 +480,114 @@ const FacturacionComponent = () => {
         
       case 2:
         return (
-          <div className="space-y-6">
-            <h3 className="text-xl font-semibold">Seleccionar Responsable de Pago</h3>
-            
-            {datos.huespedes && datos.huespedes.length > 0 && (
-              <div>
-                <h4 className="text-lg font-medium mb-3">Huéspedes en la habitación:</h4>
-                <div className="space-y-2">
-                  {datos.huespedes.map((huesped: Huesped, index: number) => (
-                    <div key={index} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                      <div>
-                        <p className="font-medium">{huesped.apellido}, {huesped.nombre}</p>
-                        <p className="text-sm text-gray-600">
-                          {huesped.tipoDocumento}: {huesped.numeroDocumento}
-                        </p>
+          <div className="max-w-xl mx-auto space-y-8 animate-in fade-in slide-in-from-right-4">
+            <div>
+                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <UserCheck className="text-indigo-600"/> Seleccionar Responsable
+                </h3>
+                
+                {datos.huespedes && datos.huespedes.length > 0 ? (
+                  <div className="space-y-3">
+                    {datos.huespedes.map((huesped: Huesped, index: number) => (
+                      <div key={index} className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl shadow-sm hover:border-indigo-200 hover:bg-indigo-50/30 transition-all">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500">
+                                <User size={20}/>
+                            </div>
+                            <div>
+                                <p className="font-bold text-gray-800">{huesped.apellido}, {huesped.nombre}</p>
+                                <p className="text-sm text-gray-500 font-medium">
+                                {huesped.tipoDocumento}: {huesped.numeroDocumento}
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                          onClick={() => seleccionarResponsable(huesped.id)}
+                          className="bg-emerald-600 text-white py-2 px-4 rounded-lg hover:bg-emerald-700 text-sm font-medium shadow-md shadow-emerald-100 transition-all"
+                        >
+                          Seleccionar
+                        </button>
                       </div>
-                      <button
-                        onClick={() => seleccionarResponsable(huesped.id)}
-                        className="bg-green-600 text-white py-1 px-3 rounded-md hover:bg-green-700 text-sm"
-                      >
-                        Seleccionar
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                    ))}
+                  </div>
+                ) : <p className="text-gray-500 italic text-center py-4 bg-gray-50 rounded-xl">No se encontraron huéspedes registrados en esta habitación.</p>}
+            </div>
             
-            <div className="pt-4 border-t">
-              <h4 className="text-lg font-medium mb-3">Facturar a Tercero:</h4>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    CUIT del Tercero
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Ej: 30-12345678-9"
-                    value={datos.cuitTercero || ''}
-                    onChange={(e) => setDatos({...datos, cuitTercero: e.target.value})}
-                  />
-                </div>
-                <button
-                  onClick={() => seleccionarResponsable(undefined, datos.cuitTercero)}
-                  className="bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 w-full"
-                >
-                  Facturar a Tercero
-                </button>
+            <div className="pt-6 border-t border-gray-200">
+              <h4 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-4">O facturar a un tercero (Empresa/Otro)</h4>
+              <div className="flex gap-3">
+                  <div className="relative flex-1">
+                    <CreditCard className="absolute left-3 top-3 text-gray-400" size={18}/>
+                    <input
+                        type="text"
+                        className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                        placeholder="CUIT (Ej: 30-12345678-9)"
+                        value={datos.cuitTercero || ''}
+                        onChange={(e) => setDatos({...datos, cuitTercero: e.target.value})}
+                    />
+                  </div>
+                  <button
+                    onClick={() => seleccionarResponsable(undefined, datos.cuitTercero)}
+                    className="bg-gray-900 text-white py-2 px-6 rounded-xl font-medium hover:bg-black transition-all shadow-lg"
+                  >
+                    Validar
+                  </button>
               </div>
             </div>
             
-            <button
-              onClick={() => setPaso(1)}
-              className="text-blue-600 hover:text-blue-800"
-            >
-              ← Volver
+            <button onClick={() => setPaso(1)} className="text-gray-400 hover:text-indigo-600 font-medium flex items-center gap-2 transition-colors">
+              <ArrowLeft size={18}/> Volver atrás
             </button>
           </div>
         );
         
       case 3:
         return (
-          <div className="space-y-6">
-            <h3 className="text-xl font-semibold">Items Facturables</h3>
+          <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
+             <div className="flex justify-between items-end border-b border-gray-100 pb-4">
+                <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                    <List className="text-indigo-600"/> Items a Facturar
+                </h3>
+                <div className="text-right">
+                    <span className="block text-xs text-gray-500 uppercase font-bold tracking-wide">Total Estimado</span>
+                    <span className="text-3xl font-bold text-indigo-600">${datos.total?.toFixed(2) || '0.00'}</span>
+                    <div className="flex items-center justify-end gap-2 mt-1">
+                        <span className="text-xs text-gray-400 font-medium">TIPO:</span>
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded ${datos.tipoFactura === 'A' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}>
+                            {datos.tipoFactura || 'B'}
+                        </span>
+                    </div>
+                </div>
+             </div>
             
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+            <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+              <table className="w-full text-left">
+                <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Tipo
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Descripción
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Monto
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Seleccionar
-                    </th>
+                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Tipo</th>
+                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Descripción</th>
+                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Monto</th>
+                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Incluir</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-100">
                   {itemsSeleccionados.map((item: ItemFacturable, index: number) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          item.tipo === 'ESTADIA' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+                    <tr key={index} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4">
+                        <span className={`px-2.5 py-1 text-xs font-bold rounded-md ${
+                          item.tipo === 'ESTADIA' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'
                         }`}>
                           {item.tipo}
                         </span>
                       </td>
-                      <td className="px-4 py-3">{item.descripcion}</td>
-                      <td className="px-4 py-3 font-medium">${item.monto.toFixed(2)}</td>
-                      <td className="px-4 py-3">
+                      <td className="px-6 py-4 font-medium text-gray-700">{item.descripcion}</td>
+                      <td className="px-6 py-4 text-right font-mono font-medium text-gray-900">${item.monto.toFixed(2)}</td>
+                      <td className="px-6 py-4 text-center">
                         <input
                           type="checkbox"
                           checked={item.seleccionado}
                           onChange={() => toggleItem(index)}
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          className="w-5 h-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded cursor-pointer accent-indigo-600"
                         />
                       </td>
                     </tr>
@@ -658,46 +596,22 @@ const FacturacionComponent = () => {
               </table>
             </div>
             
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="text-lg font-medium mb-3">Resumen:</h4>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span>Total:</span>
-                  <span className="font-bold">${datos.total?.toFixed(2) || '0.00'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Tipo de Factura:</span>
-                  <span className={`font-bold ${datos.tipoFactura === 'A' ? 'text-green-600' : 'text-blue-600'}`}>
-                    {datos.tipoFactura || 'B'}
-                  </span>
-                </div>
-                {datos.tipoFactura === 'A' && (
-                  <>
-                    <div className="flex justify-between">
-                      <span>Neto:</span>
-                      <span>${datos.neto?.toFixed(2) || '0.00'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>IVA (21%):</span>
-                      <span>${datos.iva?.toFixed(2) || '0.00'}</span>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
+            {datos.tipoFactura === 'A' && (
+               <div className="flex justify-end gap-6 text-sm text-gray-500 px-4">
+                   <span>Neto: <strong>${datos.neto?.toFixed(2)}</strong></span>
+                   <span>IVA (21%): <strong>${datos.iva?.toFixed(2)}</strong></span>
+               </div>
+            )}
             
-            <div className="flex space-x-3">
-              <button
-                onClick={() => setPaso(2)}
-                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-              >
+            <div className="flex justify-between items-center pt-6">
+              <button onClick={() => setPaso(2)} className="text-gray-500 hover:text-gray-800 font-medium px-4 py-2 rounded-lg hover:bg-gray-100 transition-all">
                 ← Volver
               </button>
               <button
                 onClick={generarFactura}
-                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="bg-indigo-600 text-white py-3 px-8 rounded-xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all flex items-center gap-2 transform active:scale-95"
               >
-                Generar Factura
+                <Printer size={18}/> Generar Factura
               </button>
             </div>
           </div>
@@ -709,45 +623,21 @@ const FacturacionComponent = () => {
   };
   
   return (
-    <div className="facturacion-container">
+    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 md:p-10 relative">
       {/* COMPONENTE MODAL - Renderizado condicionalmente */}
       <ModalMensaje
         isOpen={modalExito.show}
         titulo="¡Factura Generada!"
-        mensaje={`La factura ha sido generada correctamente y está pendiente de pago.`}
+        mensaje={`La factura ha sido generada correctamente y está lista para imprimir.`}
         tipo="EXITO"
         onClose={handleCerrarModalExito}
       />
 
-      <div className="mb-6">
-        <div className="flex items-center space-x-2">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-            paso >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
-          }`}>
-            1
-          </div>
-          <div className="flex-1 h-1 bg-gray-200">
-            <div className={`h-full ${paso >= 2 ? 'bg-blue-600' : ''}`} style={{ width: '33%' }}></div>
-          </div>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-            paso >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
-          }`}>
-            2
-          </div>
-          <div className="flex-1 h-1 bg-gray-200">
-            <div className={`h-full ${paso >= 3 ? 'bg-blue-600' : ''}`} style={{ width: '33%' }}></div>
-          </div>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-            paso >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
-          }`}>
-            3
-          </div>
-        </div>
-        <div className="flex justify-between mt-2 text-sm">
-          <span className={paso >= 1 ? 'text-blue-600 font-medium' : 'text-gray-500'}>Datos</span>
-          <span className={paso >= 2 ? 'text-blue-600 font-medium' : 'text-gray-500'}>Responsable</span>
-          <span className={paso >= 3 ? 'text-blue-600 font-medium' : 'text-gray-500'}>Items</span>
-        </div>
+      {/* HEADER DE PASOS */}
+      <div className="flex justify-center mb-10">
+        <PasoIndicador num={1} label="Validación" icon={FileText} />
+        <PasoIndicador num={2} label="Responsable" icon={UserCheck} />
+        <PasoIndicador num={3} label="Items" icon={List} />
       </div>
       
       {renderizarPaso()}

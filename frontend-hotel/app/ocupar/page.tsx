@@ -9,11 +9,15 @@ import ModalCargaHuespedes from "@/components/habitaciones/ModalCargaHuespedes";
 import ModalOpciones from "@/components/habitaciones/ModalOpciones";
 import ModalMensaje from "@/components/habitaciones/ModalMensaje";
 import Link from "next/link";
+// Iconos
+import { ArrowLeft, Calendar, Search, Loader2, CheckCircle, Play, AlertTriangle } from "lucide-react";
 
 export default function OcuparPage() {
   const router = useRouter();
   const today = new Date().toISOString().split("T")[0];
   const nextWeek = new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0];
+  
+  // --- ESTADOS ---
   const [fechaDesde, setFechaDesde] = useState(today);
   const [fechaHasta, setFechaHasta] = useState(nextWeek);
   const [habitaciones, setHabitaciones] = useState<any[]>([]);
@@ -142,22 +146,18 @@ export default function OcuparPage() {
     }
   };
 
-  // --- LÓGICA PRINCIPAL CORREGIDA ---
   const iniciarProceso = () => {
     if (itemsPendientes.length === 0) {
         mostrarMensaje("Atención", "Seleccione al menos una habitación.", "INFO");
         return;
     }
-
     if (itemsPendientes.length === datosFinales.length) {
         setModal("OPCIONES");
         return;
     }
-
     setModoBloqueoVisual(true);
     procesarSiguientePendiente();
   };
-  // ----------------------------------
 
   const procesarSiguientePendiente = () => {
     const idsConfigurados = datosFinales.map((d) => d.idHabitacion);
@@ -221,15 +221,16 @@ export default function OcuparPage() {
 
   const handleGuardarYReiniciar = async () => {
     if (await guardarEnBDD(datosFinales)) {
-        mostrarMensaje("Éxito", "Estadía(s) registrada(s).", "EXITO");
+        mostrarMensaje("Éxito", "Estadía(s) registrada(s) correctamente.", "EXITO");
         setDatosFinales([]); setItemsPendientes([]); setClickInicio(null); setItemActual(null);
-        setModal("NONE"); setModoBloqueoVisual(false); handleBuscar();
+        setModal("NONE"); setModoBloqueoVisual(false); 
+        handleBuscar(); // IMPORTANTE: Refresca la grilla para ver el nuevo color Rojo
     }
   };
 
   const handleSalir = async () => {
     if (await guardarEnBDD(datosFinales)) {
-        alert("¡Registro exitoso! Volviendo...");
+        alert("¡Registro exitoso! Volviendo al menú...");
         router.push("/principal"); 
     }
   };
@@ -258,9 +259,10 @@ export default function OcuparPage() {
       const estaListo = datosFinales.some((d) => d.idHabitacion === i.idHab);
       return {
         idHab: i.idHab, inicio: i.inicio, fin: i.fin,
+        // Usamos azul fuerte o el color original solicitado
         colorForzado: modoBloqueoVisual
-          ? estaListo ? "bg-green-600 text-white opacity-90" : "bg-blue-600 text-white animate-pulse"
-          : i.estadoOriginal === "RESERVADA" ? "bg-yellow-500 text-gray-900" : "bg-blue-600 text-white",
+          ? estaListo ? "bg-green-600 text-white opacity-90 shadow-md" : "bg-blue-600 text-white animate-pulse"
+          : i.estadoOriginal === "RESERVADA" ? "bg-[#fef08a] text-black shadow-sm border border-yellow-400" : "bg-blue-600 text-white shadow-md",
       };
     });
   };
@@ -279,7 +281,7 @@ export default function OcuparPage() {
     datosFinales.forEach(d => {
         if(d.idHabitacion === itemActual?.idHab) return;
         titulares.add(d.idHuespedTitular);
-        d.idsAcompañantes.forEach((id: number) => acompanantes.add(id));
+        d.idHuespedesAcompanantes.forEach((id: number) => acompanantes.add(id));
     });
 
     return { titulares, acompanantes };
@@ -290,60 +292,124 @@ export default function OcuparPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6 font-sans relative flex flex-col items-center">
-      <div className="absolute top-6 left-6">
-        <Link href="/principal" className="text-gray-500 font-bold hover:text-gray-700">⬅ Volver</Link>
-      </div>
-      <h1 className="text-4xl text-center text-[#d32f2f] font-bold mb-8 font-serif drop-shadow-sm tracking-widest border-b-2 border-red-200 pb-4 px-10 mt-2">
-        OCUPAR HABITACIÓN
-      </h1>
-
-      <div className="bg-white px-10 py-6 rounded-xl shadow border flex items-end gap-8 mb-8">
-        <div className="flex flex-col">
-          <label className="font-bold text-sm">DESDE</label>
-          <input type="date" value={fechaDesde} onChange={(e) => setFechaDesde(e.target.value)} className="border-2 p-2 rounded outline-none" />
+      
+      <div className="max-w-[95%] mx-auto w-full">
+        
+        {/* HEADER / BACK BUTTON */}
+        <div className="w-full mb-8 flex items-center justify-between">
+             <Link href="/principal" className="flex items-center gap-2 text-gray-500 hover:text-indigo-600 transition-colors font-medium">
+                <div className="w-10 h-10 bg-white rounded-xl border border-gray-200 flex items-center justify-center shadow-sm">
+                    <ArrowLeft size={20} />
+                </div>
+                <span>Volver al Menú</span>
+             </Link>
         </div>
-        <div className="flex flex-col">
-          <label className="font-bold text-sm">HASTA</label>
-          <input type="date" value={fechaHasta} onChange={(e) => setFechaHasta(e.target.value)} className="border-2 p-2 rounded outline-none" />
-        </div>
-        <button onClick={handleBuscar} disabled={cargando} className="bg-red-800 text-white px-8 py-2.5 rounded font-bold shadow hover:bg-red-900 transition disabled:opacity-50">
-          {cargando ? "BUSCANDO..." : "BUSCAR DISPONIBILIDAD"}
-        </button>
-      </div>
 
-      {busquedaRealizada && (
-        <div className="w-full max-w-[95%] bg-white shadow-xl border rounded mb-10 relative">
-          <Grilla
-            habitaciones={habitaciones} estados={estados} dias={getDias()}
-            onCellClick={handleCellClick} seleccionInicio={clickInicio} carrito={getGrillaCarrito()}
-          />
-          {itemsPendientes.length > 0 && modal === "NONE" && (
-            <div className="fixed bottom-10 right-10 animate-in slide-in-from-bottom-10 z-40">
-              <button onClick={iniciarProceso} className="bg-green-600 text-white px-8 py-4 rounded-full font-bold shadow-2xl text-lg border-4 border-green-400 hover:bg-green-700 hover:scale-105 transition transform">
-                {datosFinales.length > 0 && pendientesCount > 0 
-                    ? `CONTINUAR SIGUIENTE (${pendientesCount}) ➡` 
-                    : pendientesCount === 0 ? "FINALIZAR TODO" : `INICIAR CHECK-IN (${itemsPendientes.length}) ➡`}
-              </button>
+        {/* TÍTULO */}
+        <div className="mb-10 text-center md:text-left">
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Ocupar Habitación</h1>
+            <p className="text-gray-500 text-sm mt-1">Gestione el ingreso de huéspedes (Check-In).</p>
+        </div>
+
+        {/* FILTROS */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-wrap gap-6 items-end mb-8">
+            <div className="flex-1 min-w-[200px]">
+              <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Desde</label>
+              <div className="relative">
+                  <Calendar className="absolute left-3 top-2.5 text-gray-400" size={18}/>
+                  <input type="date" value={fechaDesde} onChange={(e) => setFechaDesde(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-medium text-gray-800" />
+              </div>
             </div>
-          )}
+            <div className="flex-1 min-w-[200px]">
+              <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Hasta</label>
+              <div className="relative">
+                  <Calendar className="absolute left-3 top-2.5 text-gray-400" size={18}/>
+                  <input type="date" value={fechaHasta} onChange={(e) => setFechaHasta(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-medium text-gray-800" />
+              </div>
+            </div>
+            <button onClick={handleBuscar} disabled={cargando} className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-2.5 rounded-xl font-bold shadow-lg shadow-indigo-200 transition-all disabled:opacity-70 flex items-center gap-2 h-[46px]">
+              {cargando ? <Loader2 className="animate-spin" size={18}/> : <Search size={18}/>}
+              {cargando ? "BUSCANDO..." : "CONSULTAR"}
+            </button>
         </div>
-      )}
 
-      <ModalConflicto isOpen={modal === "CONFLICTO"} onClose={handleVolver} onOcuparIgual={handleOcuparIgual} habitacionId={itemActual?.idHab} habitacionNumero={itemActual?.numero} fecha={itemActual?.fechaConflicto} />
-      <ModalIntermedio isOpen={modal === "INTERMEDIO"} onContinue={handleContinuarCarga} />
-      
-      <ModalCargaHuespedes
-        isOpen={modal === "CARGA"}
-        habitacionNumero={itemActual?.numero}
-        onAceptar={handleAceptarCarga}
-        onCancelar={handleCancelarCarga}
-        datosPrevios={getDatosPrevios()}
-        idsTitularesOcupados={restricciones.titulares}
-        idsAcompanantesOcupados={restricciones.acompanantes}
-      />
-      
-      <ModalOpciones isOpen={modal === "OPCIONES"} pendientes={pendientesCount} onSeguirCargando={handleSeguirCargando} onSiguienteHabitacion={handleSiguienteHabitacion} onGuardarYReiniciar={handleGuardarYReiniciar} onSalir={handleSalir} />
-      <ModalMensaje isOpen={!!mensajeData} titulo={mensajeData?.titulo || ""} mensaje={mensajeData?.texto || ""} tipo={mensajeData?.tipo || "INFO"} onClose={() => setMensajeData(null)} />
+        {/* GRILLA */}
+        {busquedaRealizada && (
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-1 relative overflow-hidden mb-4">
+                <Grilla
+                    habitaciones={habitaciones} estados={estados} dias={getDias()}
+                    onCellClick={handleCellClick} seleccionInicio={clickInicio} carrito={getGrillaCarrito()}
+                />
+                
+                {itemsPendientes.length > 0 && modal === "NONE" && (
+                    <div className="fixed bottom-10 right-10 z-40 animate-in slide-in-from-bottom-10 fade-in">
+                        <button onClick={iniciarProceso} className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-2xl font-bold shadow-2xl text-lg flex items-center gap-3 transition-transform hover:scale-105">
+                            {datosFinales.length > 0 && pendientesCount > 0 
+                                ? <><AlertTriangle size={24}/> CONTINUAR SIGUIENTE ({pendientesCount})</>
+                                : pendientesCount === 0 
+                                    ? <><CheckCircle size={24}/> FINALIZAR TODO</>
+                                    : <><Play size={24}/> INICIAR CHECK-IN ({itemsPendientes.length})</>
+                            }
+                        </button>
+                    </div>
+                )}
+            </div>
+        )}
+
+        {/* REFERENCIAS (LEYENDA CORREGIDA) */}
+        {busquedaRealizada && (
+          <div className="flex flex-wrap justify-center gap-8 text-sm font-medium text-gray-600 mb-12 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+             <div className="flex items-center gap-2">
+                <div className="w-5 h-5 bg-[#f87171] rounded border border-red-300"></div> 
+                <span>Ocupado</span>
+             </div>
+             <div className="flex items-center gap-2">
+                <div className="w-5 h-5 bg-[#d9f99d] border border-green-300 rounded"></div> 
+                <span>Disponible</span>
+             </div>
+             <div className="flex items-center gap-2">
+                <div className="w-5 h-5 bg-[#fef08a] rounded border border-yellow-300"></div> 
+                <span>Reservado</span>
+             </div>
+             <div className="flex items-center gap-2">
+                <div className="w-5 h-5 bg-blue-600 rounded border border-blue-700"></div> 
+                <span>Tu Selección</span>
+             </div>
+          </div>
+        )}
+
+        {/* FOOTER */}
+        <footer className="mt-12 text-center text-gray-400 text-sm">
+          <p>© 2025 Hotel Premier - Sistema de Gestión</p>
+          <p className="text-xs mt-1 opacity-70">Diseño de Sistemas - TP Final</p>
+        </footer>
+
+        {/* MODALES */}
+        <ModalConflicto isOpen={modal === "CONFLICTO"} onClose={handleVolver} onOcuparIgual={handleOcuparIgual} habitacionId={itemActual?.idHab} habitacionNumero={itemActual?.numero} fecha={itemActual?.fechaConflicto} />
+        <ModalIntermedio isOpen={modal === "INTERMEDIO"} onContinue={handleContinuarCarga} />
+        
+        <ModalCargaHuespedes
+            isOpen={modal === "CARGA"}
+            habitacionNumero={itemActual?.numero}
+            onAceptar={handleAceptarCarga}
+            onCancelar={handleCancelarCarga}
+            datosPrevios={getDatosPrevios()}
+            idsTitularesOcupados={restricciones.titulares}
+            idsAcompanantesOcupados={restricciones.acompanantes}
+        />
+        
+        <ModalOpciones 
+            isOpen={modal === "OPCIONES"} 
+            pendientes={pendientesCount} 
+            onSeguirCargando={handleSeguirCargando} 
+            onSiguienteHabitacion={handleSiguienteHabitacion} 
+            onGuardarYReiniciar={handleGuardarYReiniciar} 
+            onSalir={handleSalir} 
+            onClose={() => setModal("NONE")}
+        />
+        
+        <ModalMensaje isOpen={!!mensajeData} titulo={mensajeData?.titulo || ""} mensaje={mensajeData?.texto || ""} tipo={mensajeData?.tipo || "INFO"} onClose={() => setMensajeData(null)} />
+      </div>
     </div>
   );
 }

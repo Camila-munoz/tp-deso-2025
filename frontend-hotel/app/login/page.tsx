@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { User } from "lucide-react";
+import { User, Lock, ArrowRight, AlertCircle, Loader2 } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 
@@ -51,64 +51,65 @@ export default function LoginPage() {
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 px-4"
-    >
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 font-sans text-gray-900">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="backdrop-blur-xl bg-white/60 shadow-2xl border border-gray-200 rounded-3xl p-10 w-full max-w-md"
+        className="bg-white border border-gray-100 shadow-2xl rounded-3xl p-10 w-full max-w-md relative overflow-hidden"
       >
-        
-        {/* Encabezado */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-semibold text-gray-800">Iniciar sesión</h1>
+        {/* Decoración Fondo */}
+        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
 
-          <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center">
-            <User className="text-indigo-600" size={24} />
+        {/* Encabezado */}
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center mb-4 shadow-sm">
+            <User className="text-indigo-600" size={32} />
           </div>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Bienvenido</h1>
+          <p className="text-gray-500 text-sm mt-1">Inicie sesión para acceder al sistema</p>
         </div>
 
         {/* Error */}
         {error && (
-          <div className="mb-4 bg-red-100 border border-red-300 text-red-700 px-4 py-2 rounded-lg">
-            {error}
-          </div>
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }} 
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 bg-rose-50 border border-rose-100 text-rose-600 px-4 py-3 rounded-xl flex items-start gap-3 text-sm font-medium"
+          >
+            <AlertCircle size={18} className="mt-0.5 shrink-0" />
+            <span>{error}</span>
+          </motion.div>
         )}
 
         {/* Inputs */}
-        <div className="space-y-4">
+        <div className="space-y-5">
           <div>
-            <label className="text-sm font-medium text-gray-700">Nombre</label>
-           <input
-  type="text"
-  value={nombre}
-  onChange={(e) => setNombre(e.target.value)}
-  placeholder="Ingrese su nombre"
-  className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-2
-             focus:ring-2 focus:ring-indigo-400 focus:outline-none 
-             shadow-sm transition
-             placeholder-gray-600 text-gray-800"
-/>
-
-
+            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5 block">Usuario</label>
+            <div className="relative">
+                <User className="absolute left-4 top-3 text-gray-400" size={18}/>
+                <input
+                  type="text"
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                  placeholder="Ingrese su nombre"
+                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-medium text-gray-800 placeholder-gray-400 bg-gray-50 focus:bg-white"
+                />
+            </div>
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">Contraseña</label>
-            <input
-  type="password"
-  value={contrasena}
-  onChange={(e) => setContrasena(e.target.value)}
-  placeholder="Ingrese su contraseña"
-  className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-2
-             focus:ring-2 focus:ring-indigo-400 focus:outline-none 
-             shadow-sm transition
-             placeholder-gray-600 text-gray-800"
-/>
-
-
+            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5 block">Contraseña</label>
+            <div className="relative">
+                <Lock className="absolute left-4 top-3 text-gray-400" size={18}/>
+                <input
+                  type="password"
+                  value={contrasena}
+                  onChange={(e) => setContrasena(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-medium text-gray-800 placeholder-gray-400 bg-gray-50 focus:bg-white"
+                />
+            </div>
           </div>
         </div>
 
@@ -118,16 +119,21 @@ export default function LoginPage() {
           whileTap={{ scale: 0.98 }}
           onClick={autenticar}
           disabled={loading}
-          className="w-full mt-6 py-3 rounded-xl bg-indigo-600 text-white font-medium shadow-md hover:bg-indigo-700 disabled:opacity-60 transition"
+          className="w-full mt-8 py-3.5 rounded-xl bg-indigo-600 text-white font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 disabled:opacity-70 disabled:shadow-none transition-all flex items-center justify-center gap-2"
         >
-          {loading ? "Ingresando..." : "Ingresar"}
+          {loading ? <Loader2 className="animate-spin" size={20}/> : "Ingresar"}
+          {!loading && <ArrowRight size={20} />}
         </motion.button>
 
         {/* Nota final */}
-        <p className="mt-4 text-center text-xs text-gray-500">
+        <p className="mt-6 text-center text-xs text-gray-400 leading-relaxed max-w-xs mx-auto">
           La contraseña debe tener al menos 5 letras y 3 números (no consecutivos).
         </p>
       </motion.div>
+      
+      <div className="absolute bottom-6 text-center text-gray-400 text-xs">
+        © 2025 Hotel Premier - Sistema de Gestión
+      </div>
     </div>
   );
 }

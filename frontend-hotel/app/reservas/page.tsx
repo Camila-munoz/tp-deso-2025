@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation"
 import { getHabitaciones, getEstadoHabitaciones, crearReserva } from "@/services/api"
 import Grilla from "@/components/habitaciones/Grilla"
 import Link from "next/link"
+// Iconos modernos
+import { ArrowLeft, Calendar, Search, Loader2, AlertTriangle, CheckCircle, X, Info } from "lucide-react"
 
 export default function ReservasPage() {
   const router = useRouter()
@@ -216,27 +218,27 @@ export default function ReservasPage() {
 
   const handleSubmit = async () => {
     // --- 1. Validar Campos Vacíos (Lógica actual) ---
-    const errors = {
-      apellido: !form.apellido.trim(),
-      nombre: !form.nombre.trim(),
-      telefono: !form.telefono.trim(),
-    }
+    const errors = {
+      apellido: !form.apellido.trim(),
+      nombre: !form.nombre.trim(),
+      telefono: !form.telefono.trim(),
+    }
 
-    setFieldErrors(errors)
+    setFieldErrors(errors)
 
     // Foco en el primer error encontrado
-    if (errors.apellido) {
-      apellidoRef.current?.focus()
-      return
-    }
-    if (errors.nombre) {
-      nombreRef.current?.focus()
-      return
-    }
-    if (errors.telefono) {
-      telefonoRef.current?.focus()
-      return
-    }
+    if (errors.apellido) {
+      apellidoRef.current?.focus()
+      return
+    }
+    if (errors.nombre) {
+      nombreRef.current?.focus()
+      return
+    }
+    if (errors.telefono) {
+      telefonoRef.current?.focus()
+      return
+    }
 
     // --- 2. Validaciones de Formato (NUEVO) ---
     const soloTextoRegex = /^[a-zA-Z\s\u00C0-\u00FF']+$/; // Letras, espacios y acentos
@@ -256,17 +258,17 @@ export default function ReservasPage() {
     }
 
     // 1. Validar el formato general (números, espacios, guiones, y opcionalmente +)
-if (!telefonoRegex.test(form.telefono)) {
-    setMensajeError("El Teléfono contiene caracteres inválidos. Solo se permiten números, espacios, guiones y el signo '+' al inicio."); 
-    setModalErrorOpen(true);
-    return;
-}
+    if (!telefonoRegex.test(form.telefono)) {
+        setMensajeError("El Teléfono contiene caracteres inválidos. Solo se permiten números, espacios, guiones y el signo '+' al inicio."); 
+        setModalErrorOpen(true);
+        return;
+    }
 
-if (!telefonoSoloNumerosRegex.test(form.telefono)) {
-    setMensajeError("El Teléfono debe contener al menos un número.");
-    setModalErrorOpen(true);
-    return;
-}
+    if (!telefonoSoloNumerosRegex.test(form.telefono)) {
+        setMensajeError("El Teléfono debe contener al menos un número.");
+        setModalErrorOpen(true);
+        return;
+    }
 
     if (form.nombre.length < 2 || form.nombre.length > 50) {
         setMensajeError("El Nombre debe tener entre 2 y 50 caracteres.");
@@ -281,35 +283,35 @@ if (!telefonoSoloNumerosRegex.test(form.telefono)) {
 
     const telefonoSoloDigitos = form.telefono.replace(/[\s\-\+]/g, ''); // Quitamos espacios, guiones y + para contar dígitos
 
-if (telefonoSoloDigitos.length < 7 || telefonoSoloDigitos.length > 15) { // Contamos solo los dígitos
-    setMensajeError(`El Teléfono debe tener entre 7 y 15 dígitos (se detectaron ${telefonoSoloDigitos.length}).`);
-    setModalErrorOpen(true);
-    return;
-}
+    if (telefonoSoloDigitos.length < 7 || telefonoSoloDigitos.length > 15) { // Contamos solo los dígitos
+        setMensajeError(`El Teléfono debe tener entre 7 y 15 dígitos (se detectaron ${telefonoSoloDigitos.length}).`);
+        setModalErrorOpen(true);
+        return;
+    }
 
     // --- 3. Envío al Backend ---
-    try {
-      const detalles = carrito.map((item) => ({
-        idHabitacion: item.idHab,
-        fechaEntrada: item.inicio,
-        fechaSalida: item.fin, 
-      }))
+    try {
+      const detalles = carrito.map((item) => ({
+        idHabitacion: item.idHab,
+        fechaEntrada: item.inicio,
+        fechaSalida: item.fin, 
+      }))
 
-      await crearReserva({
-        detalles: detalles,
-        nombre: form.nombre,
-        apellido: form.apellido,
-        telefono: form.telefono,
-      })
+      await crearReserva({
+        detalles: detalles,
+        nombre: form.nombre,
+        apellido: form.apellido,
+        telefono: form.telefono,
+      })
 
-      setPaso("EXITO")
+      setPaso("EXITO")
       // Opcional: Si quieres refrescar la grilla tras el éxito
       // handleBuscar() 
-    } catch (e: any) {
-      setMensajeError(e.message)
-      setModalErrorOpen(true)
-    }
-  }
+    } catch (e: any) {
+      setMensajeError(e.message)
+      setModalErrorOpen(true)
+    }
+  }
 
 
   const getDias = () => {
@@ -334,289 +336,298 @@ if (telefonoSoloDigitos.length < 7 || telefonoSoloDigitos.length > 15) { // Cont
   }
 
   return (
-    <div className="min-h-screen bg-[#F0F0F0] p-6 font-sans relative flex flex-col items-center">
-      {/* MENÚ */}
-      <div className="absolute top-6 left-6">
-        <Link href="/" className="text-gray-600 hover:text-black font-bold flex items-center gap-1 text-sm">
-          <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">👤</div>
-        </Link>
-      </div>
-
-      {/* CERRAR */}
-      <div className="absolute top-6 right-6">
-        <button
-          onClick={() => router.push("/principal")}
-          className="w-10 h-10 rounded-full bg-[#FF5252] border-2 border-black flex items-center justify-center text-white font-bold hover:bg-red-600"
-        >
-          X
-        </button>
-      </div>
-
-      {/* TÍTULO */}
-      <h1
-        className="text-4xl text-center text-[#C2185B] font-black mb-10 font-serif tracking-widest mt-4"
-        style={{ textShadow: "2px 2px 0px rgba(0,0,0,0.1)" }}
-      >
-        RESERVAR HABITACIÓN
-      </h1>
-
-      {/* FILTROS */}
-      <div className="flex items-center gap-10 mb-8 font-serif font-bold text-xl">
-        <div className="flex items-center gap-2">
-          <label>Desde:</label>
-          <input
-            type="date"
-            value={fechaDesde}
-            onChange={(e) => setFechaDesde(e.target.value)}
-            className="border-2 border-black p-1 rounded bg-white text-sm w-40 shadow-sm"
-          />
+    <div className="min-h-screen bg-gray-50 p-6 md:p-12 font-sans text-gray-900 relative">
+      
+      <div className="max-w-[95%] mx-auto">
+        {/* HEADER / BACK BUTTON */}
+        <div className="w-full mb-8 flex items-center justify-between">
+             <Link href="/principal" className="flex items-center gap-2 text-gray-500 hover:text-indigo-600 transition-colors font-medium">
+                <div className="w-10 h-10 bg-white rounded-xl border border-gray-200 flex items-center justify-center shadow-sm">
+                    <ArrowLeft size={20} />
+                </div>
+                <span>Volver al Menú</span>
+             </Link>
         </div>
-        <div className="flex items-center gap-2">
-          <label>Hasta:</label>
-          <input
-            type="date"
-            value={fechaHasta}
-            onChange={(e) => setFechaHasta(e.target.value)}
-            className="border-2 border-black p-1 rounded bg-white text-sm w-40 shadow-sm"
-          />
+
+        {/* TÍTULO */}
+        <div className="mb-10 text-center md:text-left">
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Crear Reserva</h1>
+            <p className="text-gray-500 text-sm mt-1">Seleccione un rango de fechas para verificar disponibilidad.</p>
         </div>
-        <button
-          onClick={handleBuscar}
-          className="bg-blue-200 border-2 border-black px-4 py-1 text-sm shadow hover:bg-blue-300"
-        >
-          ACTUALIZAR
-        </button>
-      </div>
 
-      {/* GRILLA */}
-      {busquedaRealizada && (
-        <div className="w-full max-w-[95%] bg-[#E0F7FA] border-2 border-black shadow-lg rounded-none overflow-hidden mb-6 p-1">
-          <Grilla
-            habitaciones={habitaciones}
-            estados={estados}
-            dias={getDias()}
-            onCellClick={handleCellClick}
-            seleccionInicio={clickInicio}
-            carrito={carrito}
-          />
-        </div>
-      )}
-
-      {busquedaRealizada && (
-        <div className="flex justify-center items-center gap-10 mb-8 bg-[#E0E0E0] py-4 w-full max-w-[95%] border-2 border-gray-400 rounded-b-xl shadow-inner">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[#FF5252] border border-gray-600 shadow-sm"></div>
-            <span className="font-bold text-black font-serif text-lg">Ocupado</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[#D4E157] border border-gray-600 shadow-sm"></div>
-            <span className="font-bold text-black font-serif text-lg">Disponible</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[#FFF9C4] border border-gray-600 shadow-sm"></div>
-            <span className="font-bold text-black font-serif text-lg">Reservado</span>
-          </div>
-        </div>
-      )}
-
-      {/* BOTÓN RESERVAR PRINCIPAL */}
-      {carrito.length > 0 && (
-        <button
-          onClick={() => setPaso("RESUMEN")}
-          className="bg-[#B3E5FC] text-black border-2 border-black px-16 py-2 font-bold font-serif text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none transition-all mb-10"
-        >
-          Reservar
-        </button>
-      )}
-
-      {/* --- MODAL DE ERROR --- */}
-      {modalErrorOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100]">
-          <div className="bg-gradient-to-b from-gray-200 to-gray-300 w-[450px] rounded-lg border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,0.5)] overflow-hidden">
-            <div className="bg-[#B2EBF2] border-b-2 border-black p-2 flex justify-between items-center h-10">
-              <span className="font-sans text-lg text-black ml-2">Error</span>
-              <button
-                onClick={() => setModalErrorOpen(false)}
-                className="bg-[#FF5252] border border-black w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold hover:bg-red-600"
-              >
-                X
-              </button>
-            </div>
-            <div className="p-8 flex flex-col items-center justify-center gap-6">
-              <div className="w-16 h-16 bg-[#FF3333] rounded-full border-2 border-black flex items-center justify-center shadow-md">
-                <span className="text-white text-4xl font-sans font-bold">X</span>
+        {/* FILTROS */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-wrap gap-6 items-end mb-8">
+            <div className="flex-1 min-w-[200px]">
+              <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Desde</label>
+              <div className="relative">
+                  <Calendar className="absolute left-3 top-2.5 text-gray-400" size={18}/>
+                  <input 
+                    type="date" 
+                    value={fechaDesde} 
+                    onChange={(e) => setFechaDesde(e.target.value)} 
+                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-medium text-gray-800" 
+                  />
               </div>
-              <p className="text-center font-sans font-bold text-black text-sm px-4">{mensajeError}</p>
+            </div>
+            <div className="flex-1 min-w-[200px]">
+              <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Hasta</label>
+              <div className="relative">
+                  <Calendar className="absolute left-3 top-2.5 text-gray-400" size={18}/>
+                  <input 
+                    type="date" 
+                    value={fechaHasta} 
+                    onChange={(e) => setFechaHasta(e.target.value)} 
+                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-medium text-gray-800" 
+                  />
+              </div>
+            </div>
+            <button 
+                onClick={handleBuscar} 
+                disabled={cargando} 
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-2.5 rounded-xl font-bold shadow-lg shadow-indigo-200 transition-all disabled:opacity-70 flex items-center gap-2 h-[46px]"
+            >
+              {cargando ? <Loader2 className="animate-spin" size={18}/> : <Search size={18}/>}
+              {cargando ? "BUSCANDO..." : "CONSULTAR"}
+            </button>
+        </div>
+
+        {/* GRILLA */}
+        {busquedaRealizada && (
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-1 relative overflow-hidden mb-8">
+            <Grilla
+              habitaciones={habitaciones}
+              estados={estados}
+              dias={getDias()}
+              onCellClick={handleCellClick}
+              seleccionInicio={clickInicio}
+              carrito={carrito}
+            />
+          </div>
+        )}
+
+        {/* REFERENCIAS */}
+        {busquedaRealizada && (
+          <div className="flex flex-wrap justify-center gap-8 text-sm font-medium text-gray-600 mb-12 bg-gray-50 p-4 rounded-xl border border-gray-200">
+             <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-rose-400 rounded"></div> <span>Ocupado</span>
+             </div>
+             <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-emerald-100 border border-emerald-200 rounded"></div> <span>Disponible</span>
+             </div>
+             <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-amber-300 rounded"></div> <span>Reservado</span>
+             </div>
+             <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-indigo-600 rounded"></div> <span>Tu Selección</span>
+             </div>
+          </div>
+        )}
+
+        {/* BOTÓN RESERVAR PRINCIPAL (Flotante) */}
+        {carrito.length > 0 && (
+          <div className="fixed bottom-10 right-10 z-40 animate-in slide-in-from-bottom-4 fade-in">
+            <button
+              onClick={() => setPaso("RESUMEN")}
+              className="bg-indigo-600 text-white px-10 py-4 rounded-2xl font-bold shadow-2xl hover:bg-indigo-700 transition-all flex items-center gap-3 transform hover:scale-105"
+            >
+              <CheckCircle size={24}/>
+              CONFIRMAR RESERVA ({carrito.length})
+            </button>
+          </div>
+        )}
+
+        {/* FOOTER */}
+        <footer className="mt-12 text-center text-gray-400 text-sm">
+          <p>© 2025 Hotel Premier - Sistema de Gestión</p>
+          <p className="text-xs mt-1 opacity-70">Diseño de Sistemas - TP Final</p>
+        </footer>
+      </div>
+
+      {/* --- MODALES --- */}
+
+      {/* MODAL DE ERROR */}
+      {modalErrorOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl w-[450px] overflow-hidden border border-gray-100">
+            <div className="bg-rose-50 p-6 flex flex-col items-center justify-center border-b border-rose-100">
+               <div className="w-16 h-16 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center mb-4 shadow-sm">
+                  <X size={32} />
+               </div>
+               <h3 className="text-xl font-bold text-rose-700">Error</h3>
+            </div>
+            <div className="p-8 text-center">
+              <p className="text-gray-600 font-medium mb-8 leading-relaxed">{mensajeError}</p>
               <button
                 onClick={() => setModalErrorOpen(false)}
-                className="bg-gradient-to-b from-white to-gray-200 border-2 border-black px-10 py-1 font-black text-black shadow-md active:translate-y-1 hover:bg-gray-100 font-serif"
+                className="w-full bg-rose-600 text-white py-3 rounded-xl font-bold hover:bg-rose-700 shadow-lg shadow-rose-200 transition-all"
               >
-                OK
+                Entendido
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* --- MODAL RESUMEN --- */}
+      {/* MODAL RESUMEN */}
       {paso === "RESUMEN" && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm">
-          {/* 1. Modal container: Max Height + Flex Col para estructurar */}
-          <div className="bg-white p-0 shadow-2xl w-[800px] border-2 border-black max-h-[90vh] flex flex-col">
-            {/* 2. Header: Shrink-0 para que no se achique */}
-            <div className="bg-[#B2EBF2] p-4 border-b-2 border-black flex justify-center items-center relative shrink-0">
-              <h2 className="text-xl font-black font-serif text-black uppercase">RESERVAR HABITACIÓN</h2>
-              <button
-                onClick={() => setPaso("NONE")}
-                className="absolute right-4 w-8 h-8 rounded-full bg-[#FF5252] border-2 border-black flex items-center justify-center text-white font-bold hover:bg-red-600"
-              >
-                X
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm animate-in zoom-in-95 duration-200">
+          <div className="bg-white w-[800px] rounded-3xl shadow-2xl max-h-[85vh] flex flex-col overflow-hidden border border-gray-100">
+            {/* Header */}
+            <div className="bg-white p-6 border-b border-gray-100 flex justify-between items-center shrink-0">
+              <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Resumen de Reserva</h2>
+                  <p className="text-gray-500 text-sm">Verifique los datos antes de continuar</p>
+              </div>
+              <button onClick={() => setPaso("NONE")} className="p-2 bg-gray-50 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-colors">
+                <X size={24} />
               </button>
             </div>
 
-            <div className="p-0 overflow-y-auto flex-1 min-h-0">
-              <table className="w-full text-center text-sm border-collapse">
-                <thead className="bg-[#B2EBF2] text-black font-bold uppercase border-b-2 border-black sticky top-0">
-                  <tr>
-                    <th className="p-3 border-r border-black">TIPO</th>
-                    <th className="p-3 border-r border-black">INGRESO</th>
-                    <th className="p-3 border-r border-black">EGRESO</th>
-                    <th className="p-3 border-r border-black">CANTIDAD</th>
-                    <th className="p-3">Nº HABITACION</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {carrito.map((item, idx) => (
-                    <tr key={idx} className="border-b border-black h-16 font-bold">
-                      <td className="p-3 border-r border-black">{item.tipo}</td>
-                      <td className="p-3 border-r border-black">{item.inicio}, 12:00 hs</td>
-                      <td className="p-3 border-r border-black">{getNextDayISO(item.fin)}, 10:00 hs</td>
-                      <td className="p-3 border-r border-black">{item.dias}</td>
-                      <td className="p-3">{item.numero}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="p-6 overflow-y-auto flex-1 bg-gray-50">
+              <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+                  <table className="w-full text-center text-sm">
+                    <thead className="bg-gray-50 text-gray-500 font-bold uppercase text-xs tracking-wider border-b border-gray-100">
+                      <tr>
+                        <th className="p-4">Tipo</th>
+                        <th className="p-4">Ingreso</th>
+                        <th className="p-4">Egreso</th>
+                        <th className="p-4">Días</th>
+                        <th className="p-4">Habitación</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {carrito.map((item, idx) => (
+                        <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                          <td className="p-4 font-medium text-gray-900">{item.tipo}</td>
+                          <td className="p-4 text-gray-600">{item.inicio} <span className="text-xs text-gray-400 ml-1">12:00</span></td>
+                          <td className="p-4 text-gray-600">{getNextDayISO(item.fin)} <span className="text-xs text-gray-400 ml-1">10:00</span></td>
+                          <td className="p-4 font-bold text-indigo-600">{item.dias}</td>
+                          <td className="p-4"><span className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full font-bold text-xs">#{item.numero}</span></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+              </div>
             </div>
 
-            <div className="p-8 flex justify-around items-center bg-gray-100 border-t-2 border-black shrink-0">
-              <button
-                onClick={() => setPaso("DATOS")}
-                className="bg-[#D4E157] border-2 border-black px-12 py-3 font-black text-black shadow-[4px_4px_0px_0px_#000] hover:translate-y-1 hover:shadow-none uppercase"
-              >
-                ACEPTAR
-              </button>
+            <div className="p-6 border-t border-gray-100 bg-white flex justify-end gap-4 shrink-0">
               <button
                 onClick={handleRechazar}
-                className="bg-[#FF5252] border-2 border-black px-12 py-3 font-black text-black shadow-[4px_4px_0px_0px_#000] hover:translate-y-1 hover:shadow-none uppercase"
+                className="px-6 py-3 border border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-colors"
               >
-                RECHAZAR
+                Cancelar Todo
+              </button>
+              <button
+                onClick={() => setPaso("DATOS")}
+                className="px-8 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-colors flex items-center gap-2"
+              >
+                Continuar <ArrowLeft className="rotate-180" size={18}/>
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* --- MODAL DATOS --- */}
+      {/* MODAL DATOS */}
       {paso === "DATOS" && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm">
-          <div className="bg-white w-[600px] p-10 border border-gray-400 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.5)] relative">
-            <h2 className="text-3xl font-black font-serif text-black text-center mb-8">Reserva a nombre de:</h2>
-            <div className="space-y-6 px-4">
-              <div>
-                <div className="flex items-center gap-4">
-                  <label className="w-32 text-right font-serif font-bold text-2xl">Apellido:</label>
-                  <div className="flex-1">
-                    <input
-                      ref={apellidoRef}
-                      placeholder="INGRESE EL APELLIDO"
-                      className={`w-full border-2 p-2 rounded text-sm outline-none focus:border-black uppercase ${
-                        fieldErrors.apellido ? "border-red-500" : "border-gray-400"
-                      }`}
-                      value={form.apellido}
-                      onChange={(e) => {
-                        setForm({ ...form, apellido: e.target.value.toUpperCase() })
-                        setFieldErrors({ ...fieldErrors, apellido: false })
-                      }}
-                    />
-                    {fieldErrors.apellido && <p className="text-red-500 text-xs mt-1">Campo Obligatorio</p>}
-                  </div>
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white w-[500px] p-8 rounded-3xl shadow-2xl relative">
+            <div className="text-center mb-8">
+                <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Info size={32}/>
                 </div>
+                <h2 className="text-2xl font-bold text-gray-900">Datos del Titular</h2>
+                <p className="text-gray-500 text-sm">Ingrese la información de contacto para la reserva.</p>
+            </div>
+            
+            <div className="space-y-5">
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase mb-1 block ml-1">Apellido</label>
+                <input
+                  ref={apellidoRef}
+                  placeholder="APELLIDO"
+                  className={`w-full border p-3 rounded-xl outline-none transition-all uppercase font-medium bg-gray-50 focus:bg-white ${
+                    fieldErrors.apellido ? "border-rose-300 ring-2 ring-rose-100" : "border-gray-200 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300"
+                  }`}
+                  value={form.apellido}
+                  onChange={(e) => {
+                    setForm({ ...form, apellido: e.target.value.toUpperCase() })
+                    setFieldErrors({ ...fieldErrors, apellido: false })
+                  }}
+                />
+                {fieldErrors.apellido && <p className="text-rose-500 text-xs mt-1 font-bold ml-1 flex items-center gap-1"><AlertTriangle size={10}/> Campo Obligatorio</p>}
               </div>
 
               <div>
-                <div className="flex items-center gap-4">
-                  <label className="w-32 text-right font-serif font-bold text-2xl">Nombre:</label>
-                  <div className="flex-1">
-                    <input
-                      ref={nombreRef}
-                      placeholder="Ingrese el nombre"
-                      className={`w-full border-2 p-2 rounded text-sm outline-none focus:border-black uppercase ${
-                        fieldErrors.nombre ? "border-red-500" : "border-gray-400"
-                      }`}
-                      value={form.nombre}
-                      onChange={(e) => {
-                        setForm({ ...form, nombre: e.target.value.toUpperCase() })
-                        setFieldErrors({ ...fieldErrors, nombre: false })
-                      }}
-                    />
-                    {fieldErrors.nombre && <p className="text-red-500 text-xs mt-1">Campo Obligatorio</p>}
-                  </div>
-                </div>
+                <label className="text-xs font-bold text-gray-500 uppercase mb-1 block ml-1">Nombre</label>
+                <input
+                  ref={nombreRef}
+                  placeholder="NOMBRE"
+                  className={`w-full border p-3 rounded-xl outline-none transition-all uppercase font-medium bg-gray-50 focus:bg-white ${
+                    fieldErrors.nombre ? "border-rose-300 ring-2 ring-rose-100" : "border-gray-200 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300"
+                  }`}
+                  value={form.nombre}
+                  onChange={(e) => {
+                    setForm({ ...form, nombre: e.target.value.toUpperCase() })
+                    setFieldErrors({ ...fieldErrors, nombre: false })
+                  }}
+                />
+                {fieldErrors.nombre && <p className="text-rose-500 text-xs mt-1 font-bold ml-1 flex items-center gap-1"><AlertTriangle size={10}/> Campo Obligatorio</p>}
               </div>
 
               <div>
-                <div className="flex items-center gap-4">
-                  <label className="w-32 text-right font-serif font-bold text-2xl">Teléfono:</label>
-                  <div className="flex-1">
-                    <input
-                      ref={telefonoRef}
-                      placeholder="Ingrese el teléfono"
-                      className={`w-full border-2 p-2 rounded text-sm outline-none focus:border-black ${
-                        fieldErrors.telefono ? "border-red-500" : "border-gray-400"
-                      }`}
-                      value={form.telefono}
-                      onChange={(e) => {
-                        setForm({ ...form, telefono: e.target.value })
-                        setFieldErrors({ ...fieldErrors, telefono: false })
-                      }}
-                    />
-                    {fieldErrors.telefono && <p className="text-red-500 text-xs mt-1">Campo Obligatorio</p>}
-                  </div>
-                </div>
+                <label className="text-xs font-bold text-gray-500 uppercase mb-1 block ml-1">Teléfono</label>
+                <input
+                  ref={telefonoRef}
+                  placeholder="TELÉFONO"
+                  className={`w-full border p-3 rounded-xl outline-none transition-all font-medium bg-gray-50 focus:bg-white ${
+                    fieldErrors.telefono ? "border-rose-300 ring-2 ring-rose-100" : "border-gray-200 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300"
+                  }`}
+                  value={form.telefono}
+                  onChange={(e) => {
+                    setForm({ ...form, telefono: e.target.value })
+                    setFieldErrors({ ...fieldErrors, telefono: false })
+                  }}
+                />
+                {fieldErrors.telefono && <p className="text-rose-500 text-xs mt-1 font-bold ml-1 flex items-center gap-1"><AlertTriangle size={10}/> Campo Obligatorio</p>}
               </div>
             </div>
-            <div className="flex justify-between mt-12 px-8">
-              <button
-                onClick={handleSubmit}
-                className="bg-[#D4E157] border-2 border-gray-600 text-black font-black px-10 py-3 shadow-md hover:bg-lime-300 uppercase font-serif tracking-wide"
-              >
-                RESERVAR
-              </button>
+
+            <div className="flex gap-4 mt-8 pt-6 border-t border-gray-100">
               <button
                 onClick={() => setPaso("RESUMEN")}
-                className="bg-[#FF5252] border-2 border-gray-600 text-black font-black px-10 py-3 shadow-md hover:bg-red-400 uppercase font-serif tracking-wide"
+                className="flex-1 py-3 border border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-colors"
               >
-                CANCELAR
+                Atrás
+              </button>
+              <button
+                onClick={handleSubmit}
+                className="flex-1 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-colors flex items-center justify-center gap-2"
+              >
+                Confirmar <CheckCircle size={18}/>
               </button>
             </div>
           </div>
         </div>
       )}
 
+      {/* MODAL ÉXITO */}
       {paso === "EXITO" && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-white p-10 border-4 border-green-500 rounded-xl shadow-2xl text-center">
-            <h2 className="text-3xl font-bold text-green-600 mb-4">¡ÉXITO!</h2>
-            <p className="font-bold mb-6">La reserva se ha registrado correctamente.</p>
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm animate-in zoom-in duration-300">
+          <div className="bg-white p-10 rounded-3xl shadow-2xl w-[450px] text-center relative border border-gray-100">
+            <div className="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+               <CheckCircle size={48} />
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-3">¡Reserva Exitosa!</h2>
+            <p className="text-gray-500 mb-8 font-medium">La reserva ha sido registrada correctamente en el sistema.</p>
             <button
               onClick={() => {
                 setPaso("NONE")
                 setCarrito([])
               }}
-              className="bg-green-500 text-white border-2 border-black px-8 py-2 font-bold shadow hover:bg-green-600"
+              className="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all"
             >
-              ACEPTAR
+              Finalizar
             </button>
           </div>
         </div>

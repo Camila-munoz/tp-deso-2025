@@ -1,10 +1,12 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { ArrowLeft, Search, Trash2, AlertCircle, CheckCircle, X } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 
 export default function CancelarReservaPage() {
+  // --- LÓGICA ORIGINAL INTACTA ---
   const [apellido, setApellido] = useState("");
   const [nombre, setNombre] = useState("");
   
@@ -100,49 +102,59 @@ export default function CancelarReservaPage() {
     }
   }, [mostrarExito]);
 
-
+  // --- RENDERIZADO CON NUEVA ESTÉTICA Y FOOTER ---
   return (
-    <div className="min-h-screen bg-gray-100 p-6 font-sans relative flex flex-col items-center">
+    <div className="min-h-screen bg-gray-50 p-6 md:p-12 font-sans relative flex flex-col items-center">
       
-      <div className="absolute top-6 left-6">
-        <Link href="/principal" className="text-gray-500 hover:text-red-800 font-bold flex items-center gap-1"><span>⬅</span> MENÚ</Link>
+      {/* HEADER / BACK BUTTON */}
+      <div className="w-full max-w-5xl mb-8 flex items-center justify-between">
+         <Link href="/principal" className="flex items-center gap-2 text-gray-500 hover:text-indigo-600 transition-colors font-medium">
+            <div className="w-10 h-10 bg-white rounded-xl border border-gray-200 flex items-center justify-center shadow-sm">
+                <ArrowLeft size={20} />
+            </div>
+            <span>Volver al Menú</span>
+         </Link>
       </div>
 
       {/* TÍTULO */}
-      <h1 className="text-4xl text-center text-red-900 font-bold mb-8 font-serif tracking-widest border-b-2 border-red-200 pb-4 px-10 mt-2">
-        CANCELAR RESERVA
-      </h1>
+      <div className="w-full max-w-5xl mb-10 text-center md:text-left">
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Cancelar Reserva</h1>
+          <p className="text-gray-500 text-sm mt-1">Busque y seleccione las reservas que desea anular.</p>
+      </div>
 
       {/* --- FORMULARIO DE BÚSQUEDA --- */}
-      <div className="bg-white px-10 py-8 rounded-xl shadow-md border border-gray-200 flex flex-col gap-6 mb-8 w-full max-w-4xl">
+      <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-6 mb-8 w-full max-w-5xl">
         
-        {/* Inputs */}
-        <div className="flex items-start gap-6">
+        {/* Inputs Container */}
+        <div className="flex flex-col md:flex-row items-start gap-6">
             
             {/* Columna Apellido  */}
-            <div className="flex-1 relative">
-                <label className="font-bold text-gray-600 text-sm mb-1 uppercase block">Apellido *</label>
-                <input 
-                    ref={apellidoInputRef}
-                    className={`border-2 p-2 rounded-lg text-gray-700 w-full outline-none uppercase transition-colors ${errorApellido ? 'border-red-500 bg-red-50' : 'border-gray-300 focus:border-red-400'}`}
-                    placeholder="INGRESE APELLIDO"
-                    value={apellido}
-                    onChange={e => setApellido(e.target.value.toUpperCase())}
-                    onKeyDown={e => e.key === 'Enter' && handleBuscar()}
-                />
+            <div className="flex-1 w-full relative">
+                <label className="font-bold text-gray-500 text-xs mb-2 uppercase block tracking-wide">Apellido <span className="text-rose-500">*</span></label>
+                <div className="relative">
+                    <Search className="absolute left-4 top-3.5 text-gray-400" size={18} />
+                    <input 
+                        ref={apellidoInputRef}
+                        className={`w-full bg-gray-50 border ${errorApellido ? 'border-rose-300 ring-2 ring-rose-100' : 'border-gray-200'} rounded-xl pl-12 pr-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all uppercase font-medium text-gray-700 placeholder-gray-400`}
+                        placeholder="INGRESE APELLIDO"
+                        value={apellido}
+                        onChange={e => setApellido(e.target.value.toUpperCase())}
+                        onKeyDown={e => e.key === 'Enter' && handleBuscar()}
+                    />
+                </div>
                 {/* Mensaje Error Flotante */}
                 {errorApellido && (
-                    <span className="absolute -bottom-6 left-0 text-red-500 text-xs font-bold animate-pulse">
-                        {errorApellido}
-                    </span>
+                    <div className="absolute -bottom-6 left-0 text-rose-500 text-xs font-bold flex items-center gap-1">
+                        <AlertCircle size={12} /> {errorApellido}
+                    </div>
                 )}
             </div>
 
             {/* Columna Nombre */}
-            <div className="flex-1">
-                <label className="font-bold text-gray-600 text-sm mb-1 uppercase block">Nombre (Opcional)</label>
+            <div className="flex-1 w-full">
+                <label className="font-bold text-gray-500 text-xs mb-2 uppercase block tracking-wide">Nombre (Opcional)</label>
                 <input 
-                    className="border-2 border-gray-300 p-2 rounded-lg text-gray-700 w-full focus:border-red-400 outline-none uppercase"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all uppercase font-medium text-gray-700 placeholder-gray-400"
                     placeholder="INGRESE NOMBRE"
                     value={nombre}
                     onChange={e => setNombre(e.target.value.toUpperCase())}
@@ -151,115 +163,126 @@ export default function CancelarReservaPage() {
             </div>
 
             {/* Botón */}
-            <div className="h-[70px] flex items-center pt-6">
+            <div className="h-[74px] flex items-end">
                 <button 
                     onClick={handleBuscar} 
                     disabled={buscando} 
-                    className="bg-gray-700 text-white px-8 py-2.5 rounded-lg font-bold hover:bg-gray-800 shadow-md disabled:opacity-50 transition-all h-[42px]"
+                    className="bg-gray-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-black shadow-lg shadow-gray-200 disabled:opacity-70 transition-all flex items-center gap-2"
                 >
-                    {buscando ? "..." : "BUSCAR"}
+                    {buscando ? <span className="animate-pulse">...</span> : <Search size={18} />}
+                    {buscando ? "BUSCANDO" : "BUSCAR"}
                 </button>
             </div>
         </div>
 
         {/* Mensaje General */}
         {mensajeGeneral && (
-            <div className="w-full text-center border-t pt-4 mt-2">
-                <p className="text-red-600 font-bold bg-red-50 py-2 px-4 rounded inline-block shadow-sm">
+            <div className="w-full border-t border-gray-100 pt-4 mt-2">
+                <div className="bg-amber-50 text-amber-700 px-4 py-3 rounded-xl border border-amber-100 flex items-center justify-center gap-2 text-sm font-medium">
+                    <AlertCircle size={18} />
                     {mensajeGeneral}
-                </p>
+                </div>
             </div>
         )}
       </div>
 
       {/* --- TABLA DE RESULTADOS --- */}
       {reservas.length > 0 && (
-        <div className="w-full max-w-5xl bg-white shadow-xl rounded-lg overflow-hidden border border-gray-300 animate-in fade-in slide-in-from-bottom-4">
-            <table className="w-full text-center text-sm border-collapse">
-                <thead className="bg-gray-100 text-gray-600 uppercase text-xs font-bold tracking-wider">
-                    <tr>
-                        <th className="p-4 border-b w-24">Seleccionar</th>
-                        <th className="p-4 border-b text-left">Huésped</th>
-                        <th className="p-4 border-b">Habitación</th>
-                        <th className="p-4 border-b">Tipo</th>
-                        <th className="p-4 border-b">Ingreso</th>
-                        <th className="p-4 border-b">Egreso</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {reservas.map(r => (
-                        <tr 
-                            key={r.id} 
-                            className={`border-b transition duration-150 cursor-pointer ${seleccionados.includes(r.id) ? 'bg-red-50' : 'hover:bg-gray-50'}`}
-                            onClick={() => toggleSeleccion(r.id)}
-                        >
-                            <td className="p-4">
-                                <input 
-                                    type="checkbox" 
-                                    checked={seleccionados.includes(r.id)}
-                                    onChange={() => {}}
-                                    className="w-5 h-5 accent-red-600 cursor-pointer"
-                                />
-                            </td>
-                            <td className="p-4 text-left font-bold text-gray-800">
-                                {r.apellidoHuesped}, {r.nombreHuesped}
-                            </td>
-                            <td className="p-4">
-                                <span className="bg-blue-100 text-blue-800 py-1 px-3 rounded-full font-bold text-sm">
-                                    {r.habitacion ? r.habitacion.numero : '-'}
-                                </span>
-                            </td>
-                            <td className="p-4 text-xs font-bold text-gray-500 uppercase">
-                                {r.habitacion?.tipo?.descripcion || "ESTÁNDAR"}
-                            </td>
-                            <td className="p-4 text-gray-600">{r.fechaEntrada}</td>
-                            <td className="p-4 text-gray-600">{r.fechaSalida}</td>
+        <div className="w-full max-w-5xl bg-white shadow-sm rounded-2xl overflow-hidden border border-gray-100 animate-in fade-in slide-in-from-bottom-4">
+            <div className="overflow-x-auto">
+                <table className="w-full text-center text-sm border-collapse">
+                    <thead className="bg-gray-50 text-gray-500 uppercase text-xs font-bold tracking-wider border-b border-gray-100">
+                        <tr>
+                            <th className="p-5 w-24">Seleccionar</th>
+                            <th className="p-5 text-left">Huésped</th>
+                            <th className="p-5">Habitación</th>
+                            <th className="p-5">Tipo</th>
+                            <th className="p-5">Ingreso</th>
+                            <th className="p-5">Egreso</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                        {reservas.map(r => (
+                            <tr 
+                                key={r.id} 
+                                className={`transition duration-150 cursor-pointer ${seleccionados.includes(r.id) ? 'bg-rose-50/50' : 'hover:bg-gray-50'}`}
+                                onClick={() => toggleSeleccion(r.id)}
+                            >
+                                <td className="p-5">
+                                    <div className={`w-5 h-5 rounded border mx-auto flex items-center justify-center transition-all ${seleccionados.includes(r.id) ? 'bg-rose-500 border-rose-500' : 'border-gray-300 bg-white'}`}>
+                                        {seleccionados.includes(r.id) && <CheckCircle size={14} className="text-white"/>}
+                                    </div>
+                                </td>
+                                <td className="p-5 text-left font-bold text-gray-800">
+                                    {r.apellidoHuesped}, {r.nombreHuesped}
+                                </td>
+                                <td className="p-5">
+                                    <span className="bg-indigo-100 text-indigo-700 py-1 px-3 rounded-full font-bold text-xs">
+                                        {r.habitacion ? r.habitacion.numero : '-'}
+                                    </span>
+                                </td>
+                                <td className="p-5 text-xs font-bold text-gray-500 uppercase">
+                                    {r.habitacion?.tipo?.descripcion || "ESTÁNDAR"}
+                                </td>
+                                <td className="p-5 text-gray-600 font-medium">{r.fechaEntrada}</td>
+                                <td className="p-5 text-gray-600 font-medium">{r.fechaSalida}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
             
-            <div className="p-4 bg-gray-50 border-t flex justify-end">
+            <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-end">
                 <button 
                     disabled={seleccionados.length === 0}
                     onClick={() => setMostrarConfirmacion(true)}
-                    className="bg-red-600 text-white px-8 py-3 rounded font-bold shadow hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    className="bg-rose-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-rose-200 hover:bg-rose-700 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed transition-all flex items-center gap-2"
                 >
+                    <Trash2 size={18} />
                     CANCELAR SELECCIONADAS ({seleccionados.length})
                 </button>
             </div>
         </div>
       )}
 
+      {/* --- FOOTER --- */}
+      <footer className="mt-12 text-center text-gray-400 text-sm">
+          <p>© 2025 Hotel Premier - Sistema de Gestión</p>
+          <p className="text-xs mt-1 opacity-70">Diseño de Sistemas - TP Final</p>
+      </footer>
+
       {/* --- MODAL DE CONFIRMACIÓN --- */}
       {mostrarConfirmacion && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-sm animate-in fade-in">
-            <div className="bg-white p-8 w-[500px] rounded-lg shadow-2xl border-t-8 border-red-600 text-center">
-                <div className="text-5xl mb-4">⚠️</div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-4 font-serif">¿Confirmar Cancelación?</h3>
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm animate-in fade-in">
+            <div className="bg-white p-8 w-[480px] rounded-3xl shadow-2xl text-center">
+                <div className="w-16 h-16 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <AlertCircle size={32} />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">¿Confirmar Cancelación?</h3>
+                <p className="text-gray-500 mb-6">Esta acción es irreversible.</p>
                 
-                <div className="bg-red-50 p-4 rounded border border-red-100 mb-6 text-left text-sm text-gray-700 space-y-3 max-h-60 overflow-y-auto">
-                    <p className="text-center font-bold text-red-800 mb-2 border-b border-red-200 pb-2">Se eliminarán las siguientes reservas:</p>
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 mb-8 text-left text-sm text-gray-700 space-y-3 max-h-60 overflow-y-auto">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Reservas a eliminar:</p>
                     {seleccionados.map(id => {
                         const r = reservas.find(res => res.id === id);
                         return (
-                            <div key={id} className="flex justify-between items-center pb-1 mb-1 border-b border-red-100 last:border-0">
+                            <div key={id} className="flex justify-between items-center pb-2 border-b border-gray-100 last:border-0 last:pb-0">
                                 <div>
-                                    <span className="font-bold block">{r.apellidoHuesped}, {r.nombreHuesped}</span>
-                                    <span className="text-xs text-gray-500">Hab: {r.habitacion?.numero} ({r.habitacion?.tipo?.descripcion})</span>
+                                    <span className="font-bold block text-gray-800">{r.apellidoHuesped}, {r.nombreHuesped}</span>
+                                    <span className="text-xs text-gray-500">Hab: {r.habitacion?.numero}</span>
                                 </div>
-                                <span className="font-mono text-xs font-bold bg-white px-2 py-1 rounded border border-gray-300">#{r.id}</span>
+                                <span className="font-mono text-xs font-bold text-gray-400">#{r.id}</span>
                             </div>
                         );
                     })}
                 </div>
                 
-                <div className="flex gap-4 justify-center">
-                    <button onClick={() => setMostrarConfirmacion(false)} className="px-8 py-3 border-2 border-red-600 text-red-600 rounded font-bold hover:bg-red-50 w-40">
-                        CANCELAR
+                <div className="flex gap-3">
+                    <button onClick={() => setMostrarConfirmacion(false)} className="flex-1 py-3 border border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-colors">
+                        Volver
                     </button>
-                    <button onClick={handleAceptarCancelacion} className="px-8 py-3 bg-red-600 text-white rounded font-bold hover:bg-red-700 shadow-lg w-40">
-                        ACEPTAR
+                    <button onClick={handleAceptarCancelacion} className="flex-1 py-3 bg-rose-600 text-white rounded-xl font-bold hover:bg-rose-700 shadow-lg shadow-rose-200 transition-colors">
+                        Confirmar
                     </button>
                 </div>
             </div>
@@ -268,20 +291,19 @@ export default function CancelarReservaPage() {
 
       {/* --- MODAL DE ÉXITO --- */}
       {mostrarExito && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[100] backdrop-blur-sm animate-in zoom-in duration-200">
-             <div className="bg-white p-10 rounded-xl shadow-2xl text-center w-[500px] border-b-8 border-green-500 relative">
-                 {/* Botón X para cerrar también */}
-                 <button onClick={()=>{setMostrarExito(false)}} className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 font-bold">✕</button>
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] backdrop-blur-sm animate-in zoom-in duration-200">
+             <div className="bg-white p-10 rounded-3xl shadow-2xl text-center w-[480px] relative">
+                 <button onClick={()=>{setMostrarExito(false)}} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold bg-gray-50 p-2 rounded-full"><X size={20}/></button>
 
-                 <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-5xl mx-auto mb-6 shadow-inner">
-                    ✓
+                 <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <CheckCircle size={40} />
                  </div>
-                 <h2 className="text-2xl font-bold text-gray-800 mb-2">Reservas Canceladas</h2>
+                 <h2 className="text-2xl font-bold text-gray-900 mb-2">Reservas Canceladas</h2>
                  <p className="text-gray-500 mb-8">Las habitaciones han sido liberadas correctamente.</p>
                  
-                 <p className="text-xs text-gray-400 uppercase font-bold tracking-widest animate-pulse">
+                 <div className="text-xs text-gray-400 uppercase font-bold tracking-widest animate-pulse mb-2">
                     Presione una tecla para continuar...
-                 </p>
+                 </div>
                  
                  <button className="sr-only" autoFocus onClick={() => setMostrarExito(false)}>Cerrar</button>
              </div>
