@@ -18,10 +18,9 @@ public interface EstadiaRepositorio extends JpaRepository<Estadia, Integer> {
     List<Estadia> findByHuespedID(@Param("idHuesped") Integer idHuesped);
 
     // Busca estadías que se solapen con el rango de fechas solicitado
-    @Query("SELECT e FROM Estadia e " +
-           "WHERE e.habitacion.id = :idHabitacion " +
-           "AND e.checkOut IS NOT NULL " + // Solo estadías activas o futuras definidas
-           "AND (e.checkIn < :fechaFin AND e.checkOut > :fechaInicio)")
+    @Query("SELECT e FROM Estadia e WHERE e.habitacion.id = :idHabitacion AND " +
+       "(e.checkOut >= :fechaInicio OR e.checkOut IS NULL) AND " +
+       "e.checkIn <= :fechaFin")
     List<Estadia> findEstadiasConflictivas(
             @Param("idHabitacion") Integer idHabitacion,
             @Param("fechaInicio") LocalDateTime fechaInicio,

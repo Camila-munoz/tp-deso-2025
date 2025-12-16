@@ -14,8 +14,20 @@ import { ArrowLeft, Calendar, Search, Loader2, CheckCircle, Play, AlertTriangle 
 
 export default function OcuparPage() {
   const router = useRouter();
-  const today = new Date().toISOString().split("T")[0];
-  const nextWeek = new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0];
+
+  // --- HELPER DE FECHAS (CRÍTICO) ---
+  // Garantiza que la fecha local se convierta a string YYYY-MM-DD sin cambios por zona horaria
+  const toLocalISO = (d: Date) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const today = toLocalISO(new Date());
+  const nextWeekObj = new Date();
+  nextWeekObj.setDate(new Date().getDate() + 7);
+  const nextWeek = toLocalISO(nextWeekObj);
   
   // --- ESTADOS ---
   const [fechaDesde, setFechaDesde] = useState(today);
@@ -43,16 +55,23 @@ export default function OcuparPage() {
   };
 
   const verificarDisponibilidad = (mapaEstados: Record<string, string>): boolean => {
-    const start = new Date(fechaDesde + "T00:00:00");
-    const end = new Date(fechaHasta + "T00:00:00");
+    // Parseo manual para evitar problemas de timezone al crear el Date
+    const [y1, m1, d1] = fechaDesde.split('-').map(Number);
+    const [y2, m2, d2] = fechaHasta.split('-').map(Number);
+    
+    const start = new Date(y1, m1 - 1, d1);
+    const end = new Date(y2, m2 - 1, d2);
     const diff = Math.ceil((end.getTime() - start.getTime()) / 86400000);
+
     for (const habitacion of habitaciones) {
       for (let i = 0; i <= diff; i++) {
         const d = new Date(start);
         d.setDate(d.getDate() + i);
-        const iso = d.toISOString().split("T")[0];
+        
+        const iso = toLocalISO(d); // USAR HELPER
         const key = `${habitacion.id}_${iso}`;
         const estado = mapaEstados[key] || "LIBRE";
+        
         if (estado === "LIBRE" || estado === "RESERVADA") return true;
       }
     }
@@ -66,6 +85,7 @@ export default function OcuparPage() {
       if (res.success) {
         const mapa: any = {};
         res.data.forEach((i: any) => (mapa[`${i.idHabitacion}_${i.fecha}`] = i.estado));
+        
         if (!verificarDisponibilidad(mapa)) {
           mostrarMensaje("Sin Disponibilidad", "No existen habitaciones disponibles.", "ERROR");
           return;
@@ -96,12 +116,17 @@ export default function OcuparPage() {
       setClickInicio(null);
       return;
     }
+    
+    // --- VALIDACIÓN INMEDIATA ---
     const key = `${hab.id}_${fechaIso}`;
     const estado = estados[key] || "LIBRE";
+    
     if (estado === "OCUPADA" || estado === "FUERA_DE_SERVICIO") {
-      mostrarMensaje("No Disponible", `La habitación ${hab.numero} está ${estado}.`, "ERROR");
+      setClickInicio(null);
+      mostrarMensaje("No Disponible", `La habitación ${hab.numero} está ${estado.replace('_', ' ')}.`, "ERROR");
       return;
     }
+
     if (!clickInicio) {
       setClickInicio({ idHab: hab.id, index: diaIndex, fechaIso });
     } else {
@@ -109,22 +134,30 @@ export default function OcuparPage() {
         setClickInicio({ idHab: hab.id, index: diaIndex, fechaIso });
         return;
       }
+      
+      // Ordenar fechas
       const d1 = new Date(clickInicio.fechaIso);
       const d2 = new Date(fechaIso);
       const inicio = d1 < d2 ? clickInicio.fechaIso : fechaIso;
       const fin = d1 < d2 ? fechaIso : clickInicio.fechaIso;
-      const dias = Math.ceil(Math.abs(d2.getTime() - d1.getTime()) / 86400000) + 1;
-      let fIter = new Date(inicio);
-      const fEnd = new Date(fin);
+      
+      // Validar rango completo
+      const dateInicio = new Date(inicio + "T00:00:00");
+      const dateFin = new Date(fin + "T00:00:00");
+      const dias = Math.ceil(Math.abs(dateFin.getTime() - dateInicio.getTime()) / 86400000) + 1;
+      
+      let fIter = new Date(dateInicio);
       let esReservada = false;
       let fechaReserva = "";
-      while (fIter <= fEnd) {
-        const iso = fIter.toISOString().split("T")[0];
+      let rangoValido = true;
+
+      for(let i=0; i<dias; i++) {
+        const iso = toLocalISO(fIter); // USAR HELPER
         const st = estados[`${hab.id}_${iso}`] || "LIBRE";
+        
         if (st === "OCUPADA" || st === "FUERA_DE_SERVICIO") {
-            setClickInicio(null);
-            mostrarMensaje("Rango Inválido", "El rango incluye días no disponibles.", "ERROR");
-            return;
+            rangoValido = false;
+            break;
         }
         if (st === "RESERVADA") {
           esReservada = true;
@@ -132,6 +165,13 @@ export default function OcuparPage() {
         }
         fIter.setDate(fIter.getDate() + 1);
       }
+
+      if (!rangoValido) {
+          setClickInicio(null);
+          mostrarMensaje("Rango Inválido", "El rango incluye días ocupados.", "ERROR");
+          return;
+      }
+
       const item = {
         idHab: hab.id,
         numero: hab.numero,
@@ -146,6 +186,7 @@ export default function OcuparPage() {
     }
   };
 
+  // Resto de la lógica se mantiene igual...
   const iniciarProceso = () => {
     if (itemsPendientes.length === 0) {
         mostrarMensaje("Atención", "Seleccione al menos una habitación.", "INFO");
@@ -224,7 +265,7 @@ export default function OcuparPage() {
         mostrarMensaje("Éxito", "Estadía(s) registrada(s) correctamente.", "EXITO");
         setDatosFinales([]); setItemsPendientes([]); setClickInicio(null); setItemActual(null);
         setModal("NONE"); setModoBloqueoVisual(false); 
-        handleBuscar(); // IMPORTANTE: Refresca la grilla para ver el nuevo color Rojo
+        handleBuscar(); // REFRESCAR GRILLA
     }
   };
 
@@ -238,15 +279,17 @@ export default function OcuparPage() {
   const getDias = () => {
     if(!fechaDesde || !fechaHasta) return [];
     const d = [];
-    const [yearDesde, monthDesde, dayDesde] = fechaDesde.split("-").map(Number);
-    const [yearHasta, monthHasta, dayHasta] = fechaHasta.split("-").map(Number);
-    const inicio = new Date(yearDesde, monthDesde - 1, dayDesde);
-    const fin = new Date(yearHasta, monthHasta - 1, dayHasta);
+    const [y1, m1, d1] = fechaDesde.split('-').map(Number);
+    const [y2, m2, d2] = fechaHasta.split('-').map(Number);
+    
+    const inicio = new Date(y1, m1 - 1, d1);
+    const fin = new Date(y2, m2 - 1, d2);
+    
     const current = new Date(inicio);
     while (current <= fin) {
       d.push({
         label: `${current.getDate()}/${current.getMonth() + 1}`,
-        iso: current.toISOString().split("T")[0],
+        iso: toLocalISO(current), // USAR HELPER
         index: d.length
       });
       current.setDate(current.getDate() + 1);
@@ -259,7 +302,6 @@ export default function OcuparPage() {
       const estaListo = datosFinales.some((d) => d.idHabitacion === i.idHab);
       return {
         idHab: i.idHab, inicio: i.inicio, fin: i.fin,
-        // Usamos azul fuerte o el color original solicitado
         colorForzado: modoBloqueoVisual
           ? estaListo ? "bg-green-600 text-white opacity-90 shadow-md" : "bg-blue-600 text-white animate-pulse"
           : i.estadoOriginal === "RESERVADA" ? "bg-[#fef08a] text-black shadow-sm border border-yellow-400" : "bg-blue-600 text-white shadow-md",
@@ -356,7 +398,7 @@ export default function OcuparPage() {
             </div>
         )}
 
-        {/* REFERENCIAS (LEYENDA CORREGIDA) */}
+        {/* REFERENCIAS (RESTAURADO CON PALETA ORIGINAL) */}
         {busquedaRealizada && (
           <div className="flex flex-wrap justify-center gap-8 text-sm font-medium text-gray-600 mb-12 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
              <div className="flex items-center gap-2">

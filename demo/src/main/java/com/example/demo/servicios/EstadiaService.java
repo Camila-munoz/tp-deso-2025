@@ -151,7 +151,7 @@ public class EstadiaService {
         estadia.setHabitacion(habitacion);
         estadia.setHuesped(titular);
         estadia.setCheckIn(LocalDateTime.now());
-        estadia.setCheckOut(null);
+        //estadia.setCheckOut(null);
         estadia.setCantidadDias(request.getCantidadDias());
         estadia.setCantidadHuespedes(1 + listaAcomp.size());
         estadia.setCantidadHabitaciones(1);

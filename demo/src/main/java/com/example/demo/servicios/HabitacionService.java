@@ -42,17 +42,12 @@ public class HabitacionService {
         List<Habitacion> todas = habitacionRepositorio.findAll();
         List<Map<String, Object>> grilla = new ArrayList<>();
 
-        // Convertimos LocalDate a LocalDateTime para buscar estadías
         LocalDateTime inicioDia = fechaDesde.atStartOfDay();
         LocalDateTime finDia = fechaHasta.atTime(LocalTime.MAX);
 
-        // Iteramos por cada habitación
         for (Habitacion hab : todas) {
             
-            // 1. Buscamos Reservas (Amarillo)
             List<Reserva> reservas = reservaRepositorio.findReservasConflictivas(hab.getId(), fechaDesde, fechaHasta);
-            
-            // 2. Buscamos Estadías (Rojo)
             List<Estadia> estadias = estadiaRepositorio.findEstadiasConflictivas(hab.getId(), inicioDia, finDia);
 
             LocalDate diaActual = fechaDesde;
@@ -61,24 +56,31 @@ public class HabitacionService {
                 
                 EstadoHabitacion estadoDia = EstadoHabitacion.LIBRE;
 
-                // A. Prioridad 1: FUERA DE SERVICIO
                 if (hab.getEstado() == EstadoHabitacion.FUERA_DE_SERVICIO) {
                     estadoDia = EstadoHabitacion.FUERA_DE_SERVICIO;
                 } else {
                     
-                    // B. Prioridad 2: OCUPADA (Estadía Activa)
+                    // --- CORRECCIÓN AQUÍ ---
                     for (Estadia e : estadias) {
                         LocalDate in = e.getCheckIn().toLocalDate();
-                        LocalDate out = e.getCheckOut().toLocalDate();
+                        LocalDate out;
+
+                        // Si tiene checkout real (ya se fue), lo usamos. 
+                        // Si es null (sigue ahí), calculamos la salida estimada con cantidadDias.
+                        if (e.getCheckOut() != null) {
+                            out = e.getCheckOut().toLocalDate();
+                        } else {
+                            out = in.plusDays(e.getCantidadDias());
+                        }
                         
-                        // Si el día cae dentro de la estadía (Inclusive checkin, exclusive checkout)
+                        // Lógica de rango: [in, out) -> El día de salida se considera libre para el siguiente
                         if (!diaActual.isBefore(in) && diaActual.isBefore(out)) {
                             estadoDia = EstadoHabitacion.OCUPADA;
                             break;
                         }
                     }
+                    // -----------------------
 
-                    // C. Prioridad 3: RESERVADA (Solo si no está ocupada)
                     if (estadoDia == EstadoHabitacion.LIBRE) {
                         for (Reserva r : reservas) {
                             if (!diaActual.isBefore(r.getFechaEntrada()) && !diaActual.isAfter(r.getFechaSalida())) {
