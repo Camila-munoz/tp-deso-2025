@@ -106,21 +106,33 @@ export default function AltaHuespedPage() {
 
     // VALIDACIÓN DE EMAIL (Regex estándar)
     // Verifica que tenga texto + @ + texto + . + texto
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (form.email && !emailRegex.test(form.email)) {
-      faltantes.push("El formato del Email no es válido (ejemplo: usuario@dominio.com)")
-    }
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/ // <-- Regex del backend adaptada
+    if (form.email && !emailRegex.test(form.email)) {
+      faltantes.push("El formato del Email no es válido (ejemplo: usuario@dominio.com).") // <-- Mensaje más específico
+    }
 
     // VALIDACIÓN DE FECHA DE NACIMIENTO (No futura)
     if (form.fechaNacimiento) {
-      const fechaNac = new Date(form.fechaNacimiento)
-      const hoy = new Date()
-      // Reseteamos horas para comparar solo fechas
-      hoy.setHours(0, 0, 0, 0)
-      if (fechaNac > hoy) {
-        faltantes.push("La fecha de nacimiento no puede ser futura")
-      }
-    }
+      const fechaNac = new Date(form.fechaNacimiento)
+      const hoy = new Date()
+      
+      // 1. No futura (Ya estaba, pero la simplifico)
+      const fechaHoySoloFecha = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate())
+      if (fechaNac > fechaHoySoloFecha) {
+        faltantes.push("La fecha de nacimiento no puede ser futura")
+      }
+
+      // 2. Validación de Edad (Mayor de 18 y No muy vieja - 120 años)
+      const fechaMayorEdad = new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate())
+      const fechaMaxima = new Date(hoy.getFullYear() - 120, hoy.getMonth(), hoy.getDate()) // <-- NUEVA VALIDACIÓN (Máximo 120 años)
+      
+      if (fechaNac > fechaMayorEdad) {
+        faltantes.push("El huésped debe ser mayor de 18 años.")
+      }
+      if (fechaNac < fechaMaxima) {
+        faltantes.push("La fecha de nacimiento es inválida o demasiado antigua.")
+      }
+    }
     if (form.tipoDocumento === "PASAPORTE" && form.numeroDocumento) {
         // Regex: ^ (inicio) [a-zA-Z]{3} (3 letras) \d{6} (6 números) $ (fin)
         if (!/^[a-zA-Z]{3}\d{6}$/.test(form.numeroDocumento)) {
@@ -128,9 +140,10 @@ export default function AltaHuespedPage() {
         }
     }
     // VALIDACIÓN DE TELÉFONO (Solo números, espacios, guiones y +)
-    if (form.telefono && !/^[\d\s\-\+]+$/.test(form.telefono)) {
-        faltantes.push("El Teléfono contiene caracteres inválidos")
-    }
+    const telefonoRegex = /^\+?[0-9]{5,20}$/ 
+    if (form.telefono && !telefonoRegex.test(form.telefono)) {
+      faltantes.push("El formato del Teléfono es inválido. Debe contener números y opcionalmente el signo '+' al inicio.") // <-- NUEVA VALIDACIÓN
+    }
 
     // VALIDACIÓN DE DNI (Solo números si el tipo es DNI)
     if (form.tipoDocumento === "DNI" && form.numeroDocumento) {
@@ -143,10 +156,41 @@ export default function AltaHuespedPage() {
     }
 
     // VALIDACIÓN DE CUIT (Solo números y guiones)
-    if (form.cuit && !/^[\d\-]+$/.test(form.cuit)) {
-        faltantes.push("El CUIT contiene caracteres inválidos")
-    }
-
+    if (form.cuit) {
+        // CUIT: Solo números y guiones, y no puede ser negativo
+        if (form.cuit.startsWith("-")) { // <-- NUEVA VALIDACIÓN
+            faltantes.push("El CUIT no puede ser negativo.")
+        }
+        if (!/^[\d\-]+$/.test(form.cuit)) {
+            faltantes.push("El CUIT contiene caracteres inválidos (solo números y guiones)") // <-- Mensaje ajustado
+        }
+        // VALIDAR LONGITUD DE CUIT (11 dígitos numéricos) - (Mantenida, pero después de la validación de formato)
+        const cuitSoloNumeros = form.cuit.replace(/-/g, "")
+        if (cuitSoloNumeros.length !== 11) {
+            faltantes.push("El CUIT debe tener 11 dígitos")
+        }
+    }
+const numDir = Number(form.numero)
+    if (!isNaN(numDir) && numDir <= 0) { // <-- Nueva validación para número positivo
+        faltantes.push("El Número de calle debe ser un valor numérico positivo.")
+    }
+    
+    if (form.piso && form.piso.trim() !== "") {
+        const pisoDir = Number(form.piso)
+        if (isNaN(pisoDir)) {
+            faltantes.push("El Piso debe ser un valor numérico.")
+        } else if (pisoDir < 0) { // <-- Nueva validación para piso no negativo
+            faltantes.push("El Piso no puede ser negativo.")
+        }
+    }
+    
+    // **CRÍTICO: Código Postal verifica solo longitud**
+    if (form.codigoPostal) {
+      // 1. Validación de formato: solo números y longitud exacta (3 o 4)
+      if (!/^\d{3,4}$/.test(form.codigoPostal)) { // <-- CORRECCIÓN: Sólo 3 o 4 dígitos
+        faltantes.push("El Código Postal debe ser numérico y tener entre 3 y 4 dígitos."); // <-- Mensaje ajustado
+      }
+}
     // VALIDACIÓN DE CAMPOS NUMÉRICOS DE DIRECCIÓN
     // isNaN comprueba si NO es un número
     if (form.numero && isNaN(Number(form.numero))) {
@@ -158,9 +202,32 @@ export default function AltaHuespedPage() {
 
     // VALIDACIÓN OCUPACIÓN: Debe contener al menos una letra
     // Esto evita inputs como "!", "?", "...", "123"
-    if (form.ocupacion && !/[a-zA-ZñÑáéíóúÁÉÍÓÚ]/.test(form.ocupacion)) {
-        faltantes.push("La ocupación ingresada no es válida (debe contener letras)")
-    }
+    // **CRÍTICO: Ocupacion solo alfabetica**
+    if (form.ocupacion && !/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/.test(form.ocupacion)) { // <-- NUEVA VALIDACIÓN
+      faltantes.push("La Ocupación debe contener sólo letras y espacios.")
+    }
+
+    // **CRÍTICO: Nacionalidad, Calle, Localidad, Provincia, País (Validación alfabética)**
+    // Usamos una validación simple para evitar números/símbolos raros en estos campos.
+    const alfanumericoRegex = /^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s,.'-]*$/
+    // La calle puede tener números y separadores. El resto sólo alfabéticos o básicos.
+    const soloAlfabeticoRegex = /^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s,.'-]*$/
+    
+    if (form.nacionalidad && !soloAlfabeticoRegex.test(form.nacionalidad)) {
+      faltantes.push("La Nacionalidad contiene caracteres inválidos.")
+    }
+    if (form.localidad && !soloAlfabeticoRegex.test(form.localidad)) {
+      faltantes.push("La Localidad contiene caracteres inválidos.")
+    }
+    if (form.provincia && !soloAlfabeticoRegex.test(form.provincia)) {
+      faltantes.push("La Provincia contiene caracteres inválidos.")
+    }
+    if (form.pais && !soloAlfabeticoRegex.test(form.pais)) {
+      faltantes.push("El País contiene caracteres inválidos.")
+    }
+    if (form.calle && !alfanumericoRegex.test(form.calle)) {
+      faltantes.push("La Calle contiene caracteres inválidos.")
+    }
 
     // SOLO LETRAS EN NOMBRE Y APELLIDO
     // Permite letras, espacios y acentos (\u00C0-\u00FF)

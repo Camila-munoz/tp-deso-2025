@@ -2,8 +2,10 @@ package com.example.demo.servicios;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,6 +44,7 @@ public class HuespedService {
 
     // --- CU09: Dar de alta huésped (Flujo principal: No acepta duplicados) ---
     public Huesped darAltaHuesped(Huesped huesped) throws ValidacionException {
+        validarDatosHuesped(huesped);
         // 1. Validaciones básicas
         if (huesped.getNumeroDocumento() == null || huesped.getNumeroDocumento().isEmpty()) {
             throw new ValidacionException("El número de documento es obligatorio.");
@@ -72,8 +75,8 @@ public class HuespedService {
      * @return El huésped guardado.
      */
     public Huesped altaHuespedForzada(Huesped huesped) {
-
     // 1. Busco si ya existe uno con ese DNI/TIPO
+    
     Optional<Huesped> existenteOpt = huespedRepositorio.findByDocumento(
             huesped.getTipoDocumento(),
             huesped.getNumeroDocumento()
@@ -113,6 +116,8 @@ public class HuespedService {
 
 // --- CU10: Modificar huésped (Con validación de duplicados) ---
     public Huesped modificarHuesped(Huesped huespedDatosNuevos) throws ValidacionException, EntidadNoEncontradaException {
+
+        validarDatosHuesped(huespedDatosNuevos);
         // 1. Buscamos el huésped original por su ID (que nunca cambia)
         if (huespedDatosNuevos.getId() == null) {
             throw new ValidacionException("El ID del huésped es obligatorio para modificar.");
@@ -144,7 +149,7 @@ public class HuespedService {
 
     // --- CU10 Flujo Alternativo: Modificar con Fusión (Merge) ---
     public Huesped modificarHuespedForzado(Huesped huespedOrigen) throws EntidadNoEncontradaException, ValidacionException {
-        
+        validarDatosHuesped(huespedOrigen);
         // 1. Buscamos al huésped que estamos editando (Origen)
         Huesped origenEnBD = huespedRepositorio.findById(huespedOrigen.getId())
                 .orElseThrow(() -> new EntidadNoEncontradaException("El huésped origen no existe."));
@@ -232,5 +237,113 @@ public class HuespedService {
     
     public Huesped buscarPorId(Integer id) {
         return huespedRepository.findById(id).orElse(null);
+    }
+
+    private void validarDatosHuesped(Huesped huesped) throws ValidacionException {
+        // --- 1. Validaciones de Existencia (Ya estaban) ---
+        if (huesped.getNumeroDocumento() == null || huesped.getNumeroDocumento().trim().isEmpty()) {
+            throw new ValidacionException("El número de documento es obligatorio.");
+        }
+        if (huesped.getTipoDocumento() == null || huesped.getTipoDocumento().trim().isEmpty()) {
+            throw new ValidacionException("El tipo de documento es obligatorio.");
+        }
+        
+        // --- 2. Validaciones Críticas (Errores encontrados) ---
+        
+        // **CRÍTICO: Fecha de nacimiento muy vieja / Mayoría de edad**
+        if (huesped.getFechaNacimiento() == null) {
+             throw new ValidacionException("La fecha de nacimiento es obligatoria.");
+        }
+        
+        LocalDate hoy = LocalDate.now();
+        long edadAnios = ChronoUnit.YEARS.between(huesped.getFechaNacimiento(), hoy);
+        
+        if (edadAnios < 18) {
+            throw new ValidacionException("El huésped debe ser mayor de 18 años. (Edad calculada: " + edadAnios + ")");
+        }
+        // Asumo que "muy vieja" se refiere a un límite superior arbitrario (e.g., más de 120 años)
+        if (edadAnios > 120) {
+            throw new ValidacionException("La fecha de nacimiento es inválida o demasiado antigua.");
+        }
+
+        // **CU9/CRÍTICO: Email (!@gmail.com)**
+        // Regex para validar formato estándar: [user]@[domain].[tld]
+        // Un ejemplo básico (puede ser más complejo según los requisitos):
+        String emailRegex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$";
+        if (huesped.getEmail() != null && !huesped.getEmail().trim().isEmpty()) {
+             if (!Pattern.matches(emailRegex, huesped.getEmail())) {
+                 throw new ValidacionException("El formato del correo electrónico es inválido. Debe ser del tipo 'ejemplo@dominio.com'.");
+             }
+        }
+        
+        // **CRÍTICO: Teléfono solo '+'**
+        // Permite '+' al inicio y requiere al menos 5 dígitos después (un mínimo razonable)
+        String telefonoRegex = "^\\+?[0-9]{5,20}$"; 
+        if (huesped.getTelefono() != null && !huesped.getTelefono().trim().isEmpty()) {
+            if (!Pattern.matches(telefonoRegex, huesped.getTelefono().trim())) {
+                throw new ValidacionException("El formato del teléfono es inválido. Debe contener números y opcionalmente el signo '+' al inicio.");
+            }
+        }
+
+        // **CRÍTICO: CUIT negativo**
+        if (huesped.getCuit() != null && !huesped.getCuit().trim().isEmpty()) {
+            // Se asume que CUIT debe ser numérico y sin signo negativo.
+            // Una CUIT argentina tiene 11 dígitos, pero validamos solo que sea positivo.
+            if (huesped.getCuit().startsWith("-")) {
+                throw new ValidacionException("El CUIT no puede ser negativo.");
+            }
+            // Agregamos una validación para asegurar que sean sólo números o números con guiones
+            if (!huesped.getCuit().matches("^[0-9-]{10,13}$")) { 
+                 throw new ValidacionException("El CUIT/CUIL contiene caracteres inválidos.");
+            }
+        }
+
+        // **CRÍTICO: Ocupación solo alfabética**
+        if (huesped.getOcupacion() != null && !huesped.getOcupacion().trim().isEmpty()) {
+             // Permite letras, espacios, tildes y ñ (adaptar si se necesita otro idioma)
+            if (!huesped.getOcupacion().matches("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$")) {
+                throw new ValidacionException("La Ocupación debe contener sólo letras y espacios.");
+            }
+        }
+
+        // --- 3. Validaciones de Dirección (Se asume que Direccion se valida aquí o en su propio servicio) ---
+        if (huesped.getDireccion() != null) {
+            // **CRÍTICO: Número y Piso negativos**
+            if ( huesped.getDireccion().getNumero() <= 0) {
+                 throw new ValidacionException("El número de calle debe ser positivo.");
+            }
+            if (huesped.getDireccion().getPiso() != null && huesped.getDireccion().getPiso() < 0) {
+                 throw new ValidacionException("El piso no puede ser negativo.");
+            }
+
+            // **CRÍTICO: Código Postal verifica solo longitud**
+            String codPostal = huesped.getDireccion().getCodPostal();
+            if (codPostal != null && !codPostal.trim().isEmpty()) {
+                 // CP Argentino típico: 4 dígitos (viejo) o A0000AAA (nuevo). Usamos un regex flexible.
+                if (!codPostal.matches("^[a-zA-Z0-9]{3,10}$")) { 
+                     throw new ValidacionException("El Código Postal contiene caracteres inválidos o longitud incorrecta.");
+                }
+            }
+            
+            // **CRÍTICO: Campos obligatorios sin verificar (Nacionalidad, Calle, Localidad, etc.)**
+            // Se asume que estos campos no deberían estar vacíos:
+            if (huesped.getNacionalidad() == null || huesped.getNacionalidad().trim().isEmpty()) {
+                 throw new ValidacionException("La Nacionalidad es obligatoria.");
+            }
+             if (huesped.getDireccion().getCalle() == null || huesped.getDireccion().getCalle().trim().isEmpty()) {
+                 throw new ValidacionException("La Calle es obligatoria.");
+            }
+             if (huesped.getDireccion().getLocalidad() == null || huesped.getDireccion().getLocalidad().trim().isEmpty()) {
+                 throw new ValidacionException("La Localidad es obligatoria.");
+            }
+            if (huesped.getDireccion().getProvincia() == null || huesped.getDireccion().getProvincia().trim().isEmpty()) {
+                 throw new ValidacionException("La Provincia es obligatoria.");
+            }
+            if (huesped.getDireccion().getPais() == null || huesped.getDireccion().getPais().trim().isEmpty()) {
+                 throw new ValidacionException("El País es obligatorio.");
+            }
+
+            // El Departamento es opcional, por lo que se puede dejar sin verificar.
+        }
     }
 }

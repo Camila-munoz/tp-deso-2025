@@ -240,7 +240,8 @@ export default function ReservasPage() {
 
     // --- 2. Validaciones de Formato (NUEVO) ---
     const soloTextoRegex = /^[a-zA-Z\s\u00C0-\u00FF']+$/; // Letras, espacios y acentos
-    const telefonoRegex = /^[\d\s\-]+$/; // Números, espacios y guiones
+    const telefonoRegex = /^\+?[\d\s\-]+$/; // Permite + opcionalmente, luego números, espacios o guiones.
+    const telefonoSoloNumerosRegex = /[0-9]/; // Requiere que haya al menos un dígito [0-9]
 
     if (!soloTextoRegex.test(form.apellido)) {
         setMensajeError("El Apellido debe contener solo letras.");
@@ -254,11 +255,18 @@ export default function ReservasPage() {
         return;
     }
 
-    if (!telefonoRegex.test(form.telefono)) {
-        setMensajeError("El Teléfono debe contener solo números y guiones.");
-        setModalErrorOpen(true);
-        return;
-    }
+    // 1. Validar el formato general (números, espacios, guiones, y opcionalmente +)
+if (!telefonoRegex.test(form.telefono)) {
+    setMensajeError("El Teléfono contiene caracteres inválidos. Solo se permiten números, espacios, guiones y el signo '+' al inicio."); 
+    setModalErrorOpen(true);
+    return;
+}
+
+if (!telefonoSoloNumerosRegex.test(form.telefono)) {
+    setMensajeError("El Teléfono debe contener al menos un número.");
+    setModalErrorOpen(true);
+    return;
+}
 
     if (form.nombre.length < 2 || form.nombre.length > 50) {
         setMensajeError("El Nombre debe tener entre 2 y 50 caracteres.");
@@ -271,12 +279,13 @@ export default function ReservasPage() {
         return;
     }
 
-    // NUEVA: Longitud de Teléfono (ej: entre 7 y 15 dígitos)
-    if (form.telefono.length < 7 || form.telefono.length > 15) {
-        setMensajeError("El Teléfono debe tener entre 7 y 15 dígitos.");
-        setModalErrorOpen(true);
-        return;
-    }
+    const telefonoSoloDigitos = form.telefono.replace(/[\s\-\+]/g, ''); // Quitamos espacios, guiones y + para contar dígitos
+
+if (telefonoSoloDigitos.length < 7 || telefonoSoloDigitos.length > 15) { // Contamos solo los dígitos
+    setMensajeError(`El Teléfono debe tener entre 7 y 15 dígitos (se detectaron ${telefonoSoloDigitos.length}).`);
+    setModalErrorOpen(true);
+    return;
+}
 
     // --- 3. Envío al Backend ---
     try {
