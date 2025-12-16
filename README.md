@@ -178,3 +178,18 @@ PUT http://localhost:8080/api/huespedes
 
 # CU 11 - Dar de Baja Huesped
 DELETE http://localhost:8080/api/huespedes/DNI/12345678 (o el número y tipo de documento del huesped que quieras borrar)
+
+# CU 15 - Ocupar Habitación
+POST http://localhost:8080/api/estadias/masivo
+[
+{
+        "idHabitacion": 5,
+        "idHuespedTitular": 5,
+        "idHuespedesAcompanantes": [],
+        "cantidadHuespedes": 1,
+        "cantidadDias": 3,
+        "idReserva": null
+    }
+]
+
+
