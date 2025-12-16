@@ -171,7 +171,7 @@ export default function ModificarHuespedPage() {
 
     // 2. VALIDACIONES DE FORMATO
 
-    // -- Nombres y Apellidos (Solo letras y caracteres válidos)
+    // -- Solo letras (Nombre, Apellido, Ocupacion)
     const nombreRegex = /^[a-zA-Z\s\u00C0-\u00FF']+$/;
     if (form.nombre && !nombreRegex.test(form.nombre)) {
       newErrors.nombre = "Contiene caracteres inválidos";
@@ -181,14 +181,12 @@ export default function ModificarHuespedPage() {
       newErrors.apellido = "Contiene caracteres inválidos";
       hayErrores = true;
     }
-    if (form.nacionalidad && !nombreRegex.test(form.nacionalidad)) {
-      newErrors.nacionalidad = "Contiene caracteres inválidos";
-      hayErrores = true;
-    }
+    // Ocupación solo alfabética
     if (form.ocupacion && !nombreRegex.test(form.ocupacion)) {
-        newErrors.ocupacion = "Contiene caracteres inválidos";
+        newErrors.ocupacion = "Solo se permiten letras";
         hayErrores = true;
     }
+
     // -- Email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (form.email && !emailRegex.test(form.email)) {
@@ -200,8 +198,7 @@ export default function ModificarHuespedPage() {
     if (form.fechaNacimiento) {
         const fechaNac = new Date(form.fechaNacimiento);
         const hoy = new Date();
-        const fechaLimite = new Date();
-        fechaLimite.setFullYear(hoy.getFullYear() - 18);
+        const fechaMinima = new Date("1900-01-01"); 
         
         // Reset de horas para comparar solo fechas
         hoy.setHours(0,0,0,0);
@@ -212,64 +209,99 @@ export default function ModificarHuespedPage() {
         } else if (fechaNac > hoy) {
              newErrors.fechaNacimiento = "La fecha no puede ser futura";
              hayErrores = true;
-        } 
+        } else if (fechaNac < fechaMinima) {
+             newErrors.fechaNacimiento = "Fecha inválida (muy antigua)";
+             hayErrores = true;
+        }
     }
 
-    // -- Validaciones según Tipo de Documento
+    // -- Tipo de Documento
     if (form.numeroDocumento) {
         if (form.tipoDocumento === "PASAPORTE") {
-            // 3 letras + 6 números
             if (!/^[a-zA-Z]{3}\d{6}$/.test(form.numeroDocumento)) {
                 newErrors.numeroDocumento = "Debe tener 3 letras y 6 números (ej: AAA123456)";
                 hayErrores = true;
             }
         } else if (form.tipoDocumento === "DNI") {
-            // Solo números
             if (!/^\d+$/.test(form.numeroDocumento)) {
                 newErrors.numeroDocumento = "Debe contener solo números";
                 hayErrores = true;
-            }
-            if(form.numeroDocumento.length>8 || form.numeroDocumento.length<7){
-              newErrors.numeroDocumento= "Debe tener entre 7 y 8 dígitos"
-              hayErrores= true;
+            } else if(form.numeroDocumento.length > 8 || form.numeroDocumento.length < 7){
+              newErrors.numeroDocumento = "Debe tener entre 7 y 8 dígitos";
+              hayErrores = true;
             }
         }
     }
 
     // -- Teléfono
-    if (form.telefono && !/^[\d\s\-\+]+$/.test(form.telefono)) {
-        newErrors.telefono = "Caracteres inválidos (use números, espacios o guiones)";
-        hayErrores = true;
-    }
-
-    if (form.cuit) {
-        // Validar caracteres válidos (números y guiones)
-        if (!/^[\d\-]+$/.test(form.cuit)) {
-            newErrors.cuit = "Caracteres inválidos";
+    if (form.telefono) {
+        // Validación básica de caracteres
+        if (!/^[\d\s\-\+]+$/.test(form.telefono)) {
+            newErrors.telefono = "Caracteres inválidos";
             hayErrores = true;
         } else {
-            // Validar longitud (11 dígitos)
-            const cuitLimpio = form.cuit.replace(/[^0-9]/g, "");
-            if (cuitLimpio.length !== 11) {
-                newErrors.cuit = "Debe contener 11 dígitos numéricos";
+            // VALIDACIÓN NUEVA: Debe tener números
+            const soloNumeros = form.telefono.replace(/\D/g, "");
+            if (soloNumeros.length === 0) {
+                newErrors.telefono = "Número inválido (sin dígitos)";
                 hayErrores = true;
             }
         }
     }
 
-    // -- Campos Numéricos de Dirección
-    if (form.numero && isNaN(Number(form.numero))) {
-        newErrors.numero = "Debe ser numérico";
-        hayErrores = true;
+    // -- CUIT (VALIDACIÓN NUEVA: Forma XX-XXXXXXXX-X)
+    if (form.cuit) {
+        const cuitRegex = /^\d{2}-\d{8}-\d{1}$/;
+        if (!cuitRegex.test(form.cuit)) {
+            newErrors.cuit = "Formato requerido: XX-XXXXXXXX-X";
+            hayErrores = true;
+        } 
     }
-    if (form.piso && String(form.piso).trim() !== "" && isNaN(Number(form.piso))) {
-        newErrors.piso = "Debe ser numérico";
-        hayErrores = true;
+
+    // -- Direcciones: Números Positivos y Longitud de Texto
+    
+    // Validación Número (Calle)
+    if (form.numero) {
+        if (isNaN(Number(form.numero))) {
+            newErrors.numero = "Debe ser numérico";
+            hayErrores = true;
+        } else if (Number(form.numero) < 0) {
+            newErrors.numero = "No puede ser negativo";
+            hayErrores = true;
+        }
     }
-    if (form.codigoPostal && (form.codigoPostal.length < 4 || form.codigoPostal.length > 8)) {
-        newErrors.codigoPostal = "Longitud inválida";
-        hayErrores = true;
+
+    // Validación Piso
+    if (form.piso && String(form.piso).trim() !== "") {
+        if (isNaN(Number(form.piso))) {
+            newErrors.piso = "Debe ser numérico";
+            hayErrores = true;
+        } else if (Number(form.piso) < 0) { 
+            newErrors.piso = "No puede ser negativo";
+            hayErrores = true;
+        }
     }
+
+    if (form.codigoPostal) {
+        if (form.codigoPostal.length < 4 || form.codigoPostal.length > 8) {
+            newErrors.codigoPostal = "Longitud inválida";
+            hayErrores = true;
+        }
+        // VALIDACIÓN NUEVA: No negativo
+        if (!isNaN(Number(form.codigoPostal)) && Number(form.codigoPostal) < 0) {
+            newErrors.codigoPostal = "No puede ser negativo";
+            hayErrores = true;
+        }
+    }
+
+    // Longitud mínima de 3 letras
+    const camposTextoMin3 = ["nacionalidad", "calle", "departamento", "localidad", "provincia", "pais","ocupacion"];
+    camposTextoMin3.forEach(campo => {
+        if (form[campo] && form[campo].trim().length < 3) {
+            newErrors[campo] = "Mínimo 3 caracteres";
+            hayErrores = true;
+        }
+    });
 
     setErrors(newErrors);
 
@@ -316,9 +348,9 @@ export default function ModificarHuespedPage() {
 
     } catch (err: any) {
       if (!forzar && err.message && err.message.includes("CUIDADO")) {
-         setModalCuidadoDuplicado(true);
+          setModalCuidadoDuplicado(true);
       } else {
-         alert("Error: " + err.message);
+          alert("Error: " + err.message);
       }
     } finally {
       setProcesando(false);
@@ -427,7 +459,7 @@ export default function ModificarHuespedPage() {
         <div className="grid grid-cols-3 gap-6">
           <div className="col-span-1"><InputField label="Calle" name="calle" value={form.calle} onChange={handleChange} error={errors.calle} required /></div>
           <div><InputField label="Número" name="numero" value={form.numero} onChange={handleChange} error={errors.numero} required /></div>
-          <div><InputField label="Departamento" name="departamento" value={form.departamento} onChange={handleChange} /></div>
+          <div><InputField label="Departamento" name="departamento" value={form.departamento} onChange={handleChange} error={errors.departamento} /></div>
           <div><InputField label="Piso" name="piso" value={form.piso} onChange={handleChange} error={errors.piso} /></div>
           <div><InputField label="Código postal" name="codigoPostal" value={form.codigoPostal} onChange={handleChange} error={errors.codigoPostal} required /></div>
           <div><InputField label="Localidad" name="localidad" value={form.localidad} onChange={handleChange} error={errors.localidad} required /></div>
